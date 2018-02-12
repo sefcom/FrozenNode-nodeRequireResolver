@@ -78,6 +78,7 @@ public class CodeGenerator {
       CompilerOptions options) {
     cc = consumer;
     initReqResLog(options); // THIS WAS ADDED BY JAMES (ME)
+    initDFSRR(options); // James
 
     this.outputCharsetEncoder = new OutputCharsetEncoder(options.getOutputCharset());
     this.preferSingleQuotes = options.preferSingleQuotes;
@@ -2008,13 +2009,22 @@ public class CodeGenerator {
     // Gets file location and extension
     String modName = findModuleName(currNode);
     String path = getRequirePath(modName,currNode);
+    // See if file has a variable already
+    String DFSVar = findVarName(path);
+    if(!DFSVar.equals("")){ // If it does replace it with variable name... DONE
+      ReqResLog("The variable was found, replacing require with variable\n");
+      add(DFSVar+".exports"); // TODO preseve the stuff attached (so var x = require("mod").x1, .x1 would be "attached")
+      currNode = currNode.getFirstChild().getNext(); // FIRST ATTEMPT TO GET TO ATTACHED CHILD
+      return currNode;
+    }
+    DFSVar = assignVarName(path);
     ReqResLog("Replace require was called for: ");
     ReqResLog(path+"\n");
     String extension = path.substring(path.lastIndexOf("."),path.length());
 
     // Call wrappers based on type
     if(extension.equalsIgnoreCase(".js")){
-      wrapJavaScript(path);
+      wrapJavaScript(path,DFSVar);
     }else if(extension.equalsIgnoreCase(".json")){
       wrapJSON(path);
     }else if (extension.equalsIgnoreCase(".node")){
@@ -2029,10 +2039,11 @@ public class CodeGenerator {
     return currNode;
   }
   // These are the wrappers
-  public void wrapJavaScript(String path){
+  public void wrapJavaScript(String path,String DFSVar){
     // Wrapper Creation
     String startWrapper = "(function(){\n" +
             "\t\tvar module = { exports: {} };\n" +
+            "\t\t"+DFSVar+" = module;\n" +
             "\t\t(function(exports, module, __filename, __dirname) {\n\n";
     String beforePaths = "\n\n\t\t})(module.exports,module,";
     String afterPaths = ";\n\t\treturn module.exports\n\t}())";
@@ -2080,21 +2091,32 @@ public class CodeGenerator {
     path = out.substring(3,out.lastIndexOf('>')-2);
     if(m.equalsIgnoreCase(path)){
       ReqResLog("This might be a native module: ");
+      ReqResLog(m);ReqResLog("\n");
       // TODO make path to native modules into an argument and make this dynamic
       path = "D:\\Sefcom\\NodeJS_code\\node-master\\lib"+"\\"+m+".js"; // pathToNative+file-seporator+moduleName+.js
       // TODO if does not exist complain (to log)
     }
     String errorString = "rror: Cannot find module '";
-    if(path.startsWith(errorString)){
+    if(path.startsWith(errorString)) {
       ReqResLog("This might be a internal module: ");
       // TODO make path to native modules into an argument and make this dynamic
       String temp = path.split("'")[1];
-      if(temp.startsWith("internal/")) {
-        ReqResLog(temp);
+      if (temp.startsWith("internal/")) {
+        ReqResLog(temp);ReqResLog("\n");
         path = "D:\\Sefcom\\NodeJS_code\\node-master\\lib" + "\\" + temp + ".js";
-      }else{
-        ReqResLog(temp);
-        ReqResLog(" DOES NOT appear to exist");
+      } else {
+        try {
+          // async_hooks is the reason for this. It gives the error message an internal/ does, but is not an internal/
+          path = "D:\\Sefcom\\NodeJS_code\\node-master\\lib" + "\\" + temp + ".js";
+          File f = new File(path);
+          if (!f.exists()) {
+            ReqResLog(temp);
+            ReqResLog(" DOES NOT appear to exist\n[ VERY IMPORTANT ] A path may need to be provided\n");
+          }
+        } catch (Exception e) {
+          ReqResLog(temp);
+          ReqResLog(" DOES NOT appear to exist\n");
+        }
       }
     }
     path = path.replace("\\\\","\\").replace("\\","/");
@@ -2172,7 +2194,7 @@ public class CodeGenerator {
         ReqResLog("\n");
       }
     }catch (Exception e){
-      out = "An error occured inside callCommand (CodeGenerator.java)";
+      out = "An error occurred inside callCommand (CodeGenerator.java)";
       ReqResLog(out+":\n");
       ReqResLog(e.toString());
       ReqResLog("\n");
@@ -2191,7 +2213,7 @@ public class CodeGenerator {
         }
       }
     }catch (Exception e){
-      out = "An error occured inside readInput (CodeGenerator.java)";
+      out = "An error occurred inside readInput (CodeGenerator.java)";
       ReqResLog(out+":\n");
       ReqResLog(e.toString());
       ReqResLog("\n");
@@ -2212,7 +2234,7 @@ public class CodeGenerator {
         }
       }
     }catch (Exception e){
-      String out = "An error occured inside makeSourceFile (CodeGenerator.java)";
+      String out = "An error occurred inside makeSourceFile (CodeGenerator.java)";
       ReqResLog(out+":\n");
       ReqResLog(e.toString());
       ReqResLog("\n");
@@ -2225,9 +2247,11 @@ public class CodeGenerator {
     // TODO replace "java" with path to java var... in fact change the third one to var also
     // TODO replace hardcoded path with Variable path
     // TODO see if I (need to) can I call it without console commands
+    storeCurrentDFSRequireResults();
     String[] command = getCommand(path);
     String out = callCommand(command,"D:\\Sefcom\\closure\\closure-compiler-myAttempt","\n");
     code = out;
+    getCurrentDFSRequireResults();
     return code;
   }
   public String[] getCommand(String path){
@@ -2264,7 +2288,7 @@ public class CodeGenerator {
         this.rrl.println(msg);
         this.rrl.close();
       }catch (Exception e){
-        String out = "An error occured inside initReqResLog > file (CodeGenerator.java)";
+        String out = "An error occurred inside initReqResLog > file (CodeGenerator.java)";
         System.out.println(out);
         System.out.println(e);
       }
@@ -2275,7 +2299,7 @@ public class CodeGenerator {
     try {
       this.rrl = new PrintWriter(new BufferedWriter(new FileWriter(this.reqreslogloc, true)));
     } catch (Exception e) {
-      String out = "An error occured inside reInLog (CodeGenerator.java)";
+      String out = "An error occurred inside reInLog (CodeGenerator.java)";
       System.out.println(out);
       System.out.println(e);
     }
@@ -2289,10 +2313,138 @@ public class CodeGenerator {
         this.rrl.print(s);
         this.rrl.close();
       } catch (Exception e) {
-        String out = "An error occured inside ReqResLog (CodeGenerator.java)";
+        String out = "An error occurred inside ReqResLog (CodeGenerator.java)";
         System.out.println(out);
         System.out.println(e);
       }
     }
+  }
+  // These are the loop resolving specifics
+  private int currentVar = 0;
+  private String baseVarName = "globalVariable_SHYDNUTN_";// Stands for Global Variable: Sure Hope You Did Not Use This Name: ID Number
+  private List<String> filesToVar = new ArrayList<String>();
+  private String dfsResultFilename = "../DFSMapping.txt";// TODO make variable
+  public String varNameCreation(int x){
+    String name = null;
+    if(x >= 0 && x < 10){
+      name = baseVarName+"00"+String.valueOf(x);
+    }else if(x >= 10 && x < 100){
+      name = baseVarName+"0"+String.valueOf(x);
+    }else if(x >= 100){
+      name = baseVarName+String.valueOf(x);
+    }else{
+      ReqResLog("An invalid number was used to try and create a global variable. ");
+      ReqResLog("The number was: "+String.valueOf(x));
+    }
+    //ReqResLog("INFO: a variable "+name+" was created to handle ");
+    return name;
+  }
+  public String assignVarName(String fn){
+    this.filesToVar.add(fn);
+    currentVar++;
+    return varNameCreation(currentVar-1);
+  }
+  public String findVarName(String absoluteFileName){
+    absoluteFileName = absoluteFileName.replace("\\\\","\\").replace("\\","/");
+    if(this.filesToVar.size() > currentVar) {
+      ReqResLog("filesToVar.length: " + String.valueOf(this.filesToVar.size()) + " vs currentVar: " + String.valueOf(currentVar)+"\n");
+    }
+    for(int i=0;i<this.filesToVar.size();i++) {
+      if (absoluteFileName.equalsIgnoreCase(this.filesToVar.get(i))) {
+        ReqResLog(absoluteFileName + "==" + this.filesToVar.get(i)+"\n");
+        return varNameCreation(i);
+      }
+    }
+    ReqResLog(absoluteFileName+" did not have a variable already.\n");
+    return "";
+  }
+  public void initDFSRR(CompilerOptions options){
+    // TODO own variable
+    boolean logReset = options.getResetRRL();
+    if(logReset){
+      storeCurrentDFSRequireResults();
+    }else{
+      getCurrentDFSRequireResults();
+    }
+  }
+  public void getCurrentDFSRequireResults(){
+    BufferedReader dfsResults = (BufferedReader) openFile("open",this.dfsResultFilename,false);
+    if(dfsResults == null){
+      ReqResLog("Could not retrieve DFS results\n");
+      return;
+    }
+    try{
+      // Read line
+      String line = dfsResults.readLine();
+      // Store first line (number of variables so far in a temp variable as to not mess with quality checks
+      int totalTemp = 0;
+      if(line != null){ totalTemp = Integer.parseInt(line); }
+      else{ ReqResLog("DFS Results was empty"); return; }
+      // Create a temp int to figure out when we are past variables we already read in
+      int temp = 0;
+      line = dfsResults.readLine();
+      // While the file is not empty read in results and make sure they make sense
+      while(line != null){
+        // If temp pass total number of variables something is wrong
+        if(temp > totalTemp){ ReqResLog("Something is off about currentVar"); }
+        // If temp is less than this.currentVar, then it should already be in the filesToVar. Make sure it is
+        if(temp < this.currentVar){
+          if(!this.filesToVar.get(temp).equalsIgnoreCase(line)) {
+            ReqResLog("Something is off about filesToVar");
+          }
+        }else { // Add new variables to list
+          this.filesToVar.add(line);
+        }
+        // Increment so loop continues (correctly)
+        temp++;
+        line = dfsResults.readLine();
+      }
+      // Update current count of variable
+      this.currentVar = totalTemp;
+      // Close file object
+      dfsResults.close();
+    } catch (Exception e){
+      ReqResLog("An error occurred inside getCurrentDFSRequireResults (CodeGenerator.java)\n");
+      ReqResLog(e.toString());
+    }
+  }
+  public void storeCurrentDFSRequireResults(){
+    PrintWriter dfsResults = (PrintWriter) openFile("write",this.dfsResultFilename,false);
+    try {
+      dfsResults.print(String.valueOf(currentVar));
+      dfsResults.print("\n");
+      for(int i=0;i<this.filesToVar.size();i++) {
+        dfsResults.print(this.filesToVar.get(i).replace("\\\\","\\").replace("\\","/"));
+        dfsResults.print("\n");
+      }
+    } catch (Exception e){
+      ReqResLog("An error occurred inside storeCurrentDFSRequireResults (CodeGenerator.java)\n");
+      ReqResLog(e.toString());
+    } finally {
+      dfsResults.close();
+    }
+  }
+  public Object openFile(String mode, String filename, boolean append){
+    Object file = null;
+    if(mode.equalsIgnoreCase("write") || mode.equalsIgnoreCase("w")){
+      try {
+        file = new PrintWriter(new BufferedWriter(new FileWriter(filename, append)));
+      } catch (Exception e) {
+        String out = "An error occurred inside openFile (CodeGenerator.java)\n" +
+                "\t While trying to open a file to write to\n";
+        ReqResLog(out);
+        ReqResLog(e.toString());
+      }
+    }else if(mode.equalsIgnoreCase("open") || mode.equalsIgnoreCase("o")){
+      try {
+        file = new BufferedReader(new FileReader(filename));
+      }catch (Exception e) {
+        String out = "An error occurred inside openFile (CodeGenerator.java)\n" +
+                "\t While trying to open a file to read from\n";
+        ReqResLog(out);
+        ReqResLog(e.toString());
+      }
+    }
+    return file;
   }
 }
