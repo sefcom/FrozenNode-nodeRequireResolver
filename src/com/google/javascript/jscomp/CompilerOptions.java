@@ -3039,8 +3039,12 @@ public class CompilerOptions implements Serializable {
             .add("variableRenaming", variableRenaming)
             .add("warningsGuard", getWarningsGuard())
             .add("wrapGoogModulesForWhitespaceOnly", wrapGoogModulesForWhitespaceOnly)
-            .add("reqreslog",getReqResLog()) // JAMES
-            .add("resetRRL",getResetRRL()) // JAMES
+            .add("reqreslog",getReqResLog()) // JAMES START
+            .add("resetRRL",getResetRRL())
+            .add("nodejslibsource",getNJSSource())
+            .add("dfsLog",getDFSLog())
+            .add("node_pref",getNodePref())
+            .add("reqresconfig",getReqResConfig()) // JAMES (TODO) END
             .toString();
 
     return strValue;
@@ -3446,16 +3450,30 @@ public class CompilerOptions implements Serializable {
 
   // James
   private String ReqResLog = null;
-  public String getReqResLog(){
-    return ReqResLog;
-  }
-  public void setReqResLog(String path){
-    this.ReqResLog = path;
-  }
+  public String getReqResLog(){ return ReqResLog; }
+  public void setReqResLog(String path){ this.ReqResLog = path; }
 
   private boolean resetReqResLog = false;
   public boolean getResetRRL() { return resetReqResLog; }
   public void setResetRRL(String b) {
     if (b.equalsIgnoreCase("true")) { this.resetReqResLog = true; }
   }
+
+  private String DFSLog = null;
+  public String getDFSLog() { return DFSLog; }
+  public void setDFSLog(String path) { this.DFSLog = path; }
+
+  private String nodejs_source = null;
+  public String getNJSSource() { return nodejs_source; }
+  public void setNJSSource(String path) { this.nodejs_source = path; }
+
+  private String node_path = null;
+  public String getNodePref() {return node_path;}
+  public void setNodePref(String path) { this.node_path = path; }
+
+  // TODO make this config file work. Plan is to read in config file assigning values in it. Then I use the flags from
+  //      the command line if they exist and overwrite the value with those.
+  private String ReqResConfig = null;
+  public String getReqResConfig() { return ReqResConfig; }
+  public void setReqResConfig(String path) { this.ReqResConfig = path; }
 }

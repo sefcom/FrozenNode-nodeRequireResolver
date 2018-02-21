@@ -3,9 +3,10 @@
   <component name="ChangeListManager">
     <list default="true" id="9ba8c76d-324d-4e6c-8169-b92a136a08b6" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/README.md" afterPath="$PROJECT_DIR$/README.md" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/README.md" afterPath="$PROJECT_DIR$/README_org.md" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/README_James.md" afterPath="$PROJECT_DIR$/README.md" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CommandLineRunner.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CommandLineRunner.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CompilerOptions.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CompilerOptions.java" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -19,8 +20,8 @@
       <file leaf-file-name="CodeGenerator.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="204">
-              <caret line="2320" column="3" lean-forward="true" selection-start-line="2320" selection-start-column="3" selection-end-line="2320" selection-end-column="3" />
+            <state relative-caret-position="313">
+              <caret line="2472" column="27" lean-forward="false" selection-start-line="2472" selection-start-column="27" selection-end-line="2472" selection-end-column="27" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="method#replaceRequire#0;class#CodeGenerator#0" expanded="false" />
@@ -32,8 +33,6 @@
                 <element signature="method#callCommand#0;class#CodeGenerator#0" expanded="false" />
                 <element signature="method#readInput#0;class#CodeGenerator#0" expanded="false" />
                 <element signature="method#readFile#0;class#CodeGenerator#0" expanded="false" />
-                <element signature="method#compileCode#0;class#CodeGenerator#0" expanded="false" />
-                <element signature="method#getCommand#0;class#CodeGenerator#0" expanded="false" />
                 <element signature="method#initReqResLog#0;class#CodeGenerator#0" expanded="false" />
                 <element signature="method#reInLog#0;class#CodeGenerator#0" expanded="false" />
                 <element signature="method#ReqResLog#0;class#CodeGenerator#0" expanded="false" />
@@ -62,21 +61,9 @@
       <file leaf-file-name="README.md" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/README.md">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-298">
-              <caret line="0" column="23" lean-forward="false" selection-start-line="0" selection-start-column="23" selection-end-line="0" selection-end-column="23" />
+            <state relative-caret-position="535">
+              <caret line="64" column="119" lean-forward="false" selection-start-line="64" selection-start-column="119" selection-end-line="64" selection-end-column="119" />
               <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="CodePrinter.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CodePrinter.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="537">
-              <caret line="897" column="5" lean-forward="false" selection-start-line="897" selection-start-column="5" selection-end-line="897" selection-end-column="5" />
-              <folding>
-                <element signature="e#0#28108#0" expanded="true" />
-              </folding>
             </state>
           </provider>
         </entry>
@@ -84,8 +71,8 @@
       <file leaf-file-name="CompilerOptions.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CompilerOptions.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="281">
-              <caret line="3042" column="51" lean-forward="false" selection-start-line="3042" selection-start-column="46" selection-end-line="3042" selection-end-column="51" />
+            <state relative-caret-position="172">
+              <caret line="3046" column="59" lean-forward="false" selection-start-line="3046" selection-start-column="54" selection-end-line="3046" selection-end-column="59" />
               <folding />
             </state>
           </provider>
@@ -94,8 +81,8 @@
       <file leaf-file-name="CommandLineRunner.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CommandLineRunner.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="434">
-              <caret line="796" column="25" lean-forward="false" selection-start-line="796" selection-start-column="14" selection-end-line="796" selection-end-column="25" />
+            <state relative-caret-position="398">
+              <caret line="826" column="25" lean-forward="false" selection-start-line="826" selection-start-column="14" selection-end-line="826" selection-end-column="25" />
               <folding />
             </state>
           </provider>
@@ -105,36 +92,36 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>// James (ME)</find>
-      <find>// James</find>
-      <find>todo</find>
-      <find>InputStreamReader</find>
-      <find>varNameCreation</find>
-      <find>ReqResLog(e)</find>
-      <find>filesToVar</find>
-      <find>get_assignVarName</find>
-      <find>filesTo</find>
-      <find>get</find>
+      <find>ignore</find>
+      <find>D:</find>
+      <find>callCommand</find>
+      <find>&quot;node</find>
+      <find>make va</find>
+      <find>variable</find>
+      <find>reqresl</find>
+      <find>Todo</find>
+      <find>path</find>
+      <find>getRequirePath</find>
+      <find>n.getSourceFileName()</find>
+      <find>Node</find>
+      <find>n.get</find>
       <find>init</find>
-      <find>initRe</find>
-      <find>storeCurrentDFSRequireResults</find>
-      <find>INFO:</find>
-      <find>store</find>
-      <find>equalsign</find>
-      <find>occured</find>
-      <find>totalTemp</find>
-      <find>getCurrentDFSRequireResults</find>
-      <find>resolve</find>
-      <find>openfil</find>
-      <find>replaceRe</find>
-      <find>wrapJavaScript</find>
-      <find>assignVarName</find>
-      <find>= mod</find>
+      <find>// JAMES</find>
+      <find>--js</find>
+      <find>initDFSRR</find>
+      <find>this m</find>
+      <find>reqreslogloc</find>
+      <find>D:\\</find>
+      <find>getNJSSource</find>
+      <find>&quot;node&quot;</find>
+      <find>node_pref</find>
+      <find>get</find>
+      <find>todo</find>
+      <find>this.</find>
+      <find>initReqResLog</find>
+      <find>this.sourceNodeCodeLib</find>
       <find>james</find>
-      <find>CodeGenerator</find>
-      <find>first</find>
-      <find>mcp</find>
-      <find>add(</find>
+      <find>d:\\</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -149,11 +136,11 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeNodeRequireReplacer" />
-        <option value="$PROJECT_DIR$/src/com/google/javascript/jscomp/CommandLineRunner.java" />
-        <option value="$PROJECT_DIR$/src/com/google/javascript/jscomp/CompilerOptions.java" />
         <option value="$PROJECT_DIR$/src/com/google/javascript/jscomp/Compiler.java" />
-        <option value="$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java" />
         <option value="$PROJECT_DIR$/README_James.md" />
+        <option value="$PROJECT_DIR$/src/com/google/javascript/jscomp/CompilerOptions.java" />
+        <option value="$PROJECT_DIR$/src/com/google/javascript/jscomp/CommandLineRunner.java" />
+        <option value="$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java" />
         <option value="$PROJECT_DIR$/README.md" />
       </list>
     </option>
@@ -179,9 +166,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scratches" />
       <pane id="PackagesPane" />
-      <pane id="AndroidView" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -220,6 +205,8 @@
         </subPane>
       </pane>
       <pane id="Scope" />
+      <pane id="Scratches" />
+      <pane id="AndroidView" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -248,7 +235,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="JAR Application.sSourceAndSink_RRL">
+  <component name="RunManager" selected="JAR Application.LoopCompile_RRL">
     <configuration name="Advanced Test" type="JarApplication" factoryName="JAR Application">
       <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
       <option name="JAR_PATH" value="$PROJECT_DIR$/target/closure-compiler-1.0-SNAPSHOT.jar" />
@@ -588,43 +575,43 @@
         </line-breakpoint>
         <line-breakpoint type="java-line">
           <url>file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java</url>
-          <line>2245</line>
+          <line>2242</line>
           <properties />
           <option name="timeStamp" value="77" />
         </line-breakpoint>
         <line-breakpoint type="java-line">
           <url>file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java</url>
-          <line>826</line>
+          <line>825</line>
           <properties />
           <option name="timeStamp" value="78" />
         </line-breakpoint>
         <line-breakpoint type="java-line">
           <url>file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java</url>
-          <line>2007</line>
+          <line>2006</line>
           <properties />
           <option name="timeStamp" value="79" />
         </line-breakpoint>
         <line-breakpoint type="java-line">
           <url>file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java</url>
-          <line>2184</line>
+          <line>2181</line>
           <properties />
           <option name="timeStamp" value="81" />
         </line-breakpoint>
         <line-breakpoint type="java-line">
           <url>file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java</url>
-          <line>2138</line>
+          <line>2135</line>
           <properties />
           <option name="timeStamp" value="83" />
         </line-breakpoint>
         <line-breakpoint type="java-line">
           <url>file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java</url>
-          <line>2174</line>
+          <line>2171</line>
           <properties />
           <option name="timeStamp" value="86" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java</url>
-          <line>2013</line>
+          <line>2012</line>
           <properties />
           <option name="timeStamp" value="87" />
         </line-breakpoint>
@@ -634,11 +621,23 @@
           <properties />
           <option name="timeStamp" value="88" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java</url>
+          <line>2346</line>
+          <properties />
+          <option name="timeStamp" value="89" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java</url>
+          <line>2078</line>
+          <properties />
+          <option name="timeStamp" value="90" />
+        </line-breakpoint>
       </breakpoints>
       <breakpoints-dialog>
         <breakpoints-dialog />
       </breakpoints-dialog>
-      <option name="time" value="89" />
+      <option name="time" value="91" />
     </breakpoint-manager>
     <watches-manager>
       <configuration name="JarApplication">
@@ -669,8 +668,6 @@
             <element signature="method#callCommand#0;class#CodeGenerator#0" expanded="false" />
             <element signature="method#readInput#0;class#CodeGenerator#0" expanded="false" />
             <element signature="method#readFile#0;class#CodeGenerator#0" expanded="false" />
-            <element signature="method#compileCode#0;class#CodeGenerator#0" expanded="false" />
-            <element signature="method#getCommand#0;class#CodeGenerator#0" expanded="false" />
             <element signature="method#initReqResLog#0;class#CodeGenerator#0" expanded="false" />
             <element signature="method#reInLog#0;class#CodeGenerator#0" expanded="false" />
             <element signature="method#ReqResLog#0;class#CodeGenerator#0" expanded="false" />
@@ -690,7 +687,7 @@
         <state relative-caret-position="15266">
           <caret line="898" column="0" lean-forward="false" selection-start-line="898" selection-start-column="0" selection-end-line="898" selection-end-column="0" />
           <folding>
-            <element signature="e#0#28108#0" expanded="true" />
+            <element signature="e#0#28108#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -728,8 +725,6 @@
             <element signature="method#callCommand#0;class#CodeGenerator#0" expanded="false" />
             <element signature="method#readInput#0;class#CodeGenerator#0" expanded="false" />
             <element signature="method#readFile#0;class#CodeGenerator#0" expanded="false" />
-            <element signature="method#compileCode#0;class#CodeGenerator#0" expanded="false" />
-            <element signature="method#getCommand#0;class#CodeGenerator#0" expanded="false" />
             <element signature="method#initReqResLog#0;class#CodeGenerator#0" expanded="false" />
             <element signature="method#reInLog#0;class#CodeGenerator#0" expanded="false" />
             <element signature="method#ReqResLog#0;class#CodeGenerator#0" expanded="false" />
@@ -749,7 +744,7 @@
         <state relative-caret-position="15266">
           <caret line="898" column="0" lean-forward="false" selection-start-line="898" selection-start-column="0" selection-end-line="898" selection-end-column="0" />
           <folding>
-            <element signature="e#0#28108#0" expanded="true" />
+            <element signature="e#0#28108#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -770,7 +765,7 @@
         <state relative-caret-position="14654">
           <caret line="898" column="0" lean-forward="false" selection-start-line="898" selection-start-column="0" selection-end-line="898" selection-end-column="0" />
           <folding>
-            <element signature="e#0#28108#0" expanded="true" />
+            <element signature="e#0#28108#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -790,8 +785,6 @@
             <element signature="method#callCommand#0;class#CodeGenerator#0" expanded="false" />
             <element signature="method#readInput#0;class#CodeGenerator#0" expanded="false" />
             <element signature="method#readFile#0;class#CodeGenerator#0" expanded="false" />
-            <element signature="method#compileCode#0;class#CodeGenerator#0" expanded="false" />
-            <element signature="method#getCommand#0;class#CodeGenerator#0" expanded="false" />
             <element signature="method#initReqResLog#0;class#CodeGenerator#0" expanded="false" />
             <element signature="method#reInLog#0;class#CodeGenerator#0" expanded="false" />
             <element signature="method#ReqResLog#0;class#CodeGenerator#0" expanded="false" />
@@ -846,8 +839,6 @@
             <element signature="method#callCommand#0;class#CodeGenerator#0" expanded="false" />
             <element signature="method#readInput#0;class#CodeGenerator#0" expanded="false" />
             <element signature="method#readFile#0;class#CodeGenerator#0" expanded="false" />
-            <element signature="method#compileCode#0;class#CodeGenerator#0" expanded="false" />
-            <element signature="method#getCommand#0;class#CodeGenerator#0" expanded="false" />
             <element signature="method#initReqResLog#0;class#CodeGenerator#0" expanded="false" />
             <element signature="method#reInLog#0;class#CodeGenerator#0" expanded="false" />
             <element signature="method#ReqResLog#0;class#CodeGenerator#0" expanded="false" />
@@ -867,7 +858,7 @@
         <state relative-caret-position="15266">
           <caret line="898" column="0" lean-forward="false" selection-start-line="898" selection-start-column="0" selection-end-line="898" selection-end-column="0" />
           <folding>
-            <element signature="e#0#28108#0" expanded="true" />
+            <element signature="e#0#28108#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -1056,7 +1047,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1072,7 +1062,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1084,27 +1073,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CommandLineRunner.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="434">
-          <caret line="796" column="25" lean-forward="false" selection-start-line="796" selection-start-column="14" selection-end-line="796" selection-end-column="25" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CompilerOptions.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="281">
-          <caret line="3042" column="51" lean-forward="false" selection-start-line="3042" selection-start-column="46" selection-end-line="3042" selection-end-column="51" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CompilerExecutor.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="379">
           <caret line="139" column="0" lean-forward="false" selection-start-line="139" selection-start-column="0" selection-end-line="139" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1121,18 +1093,34 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CodePrinter.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="537">
+        <state relative-caret-position="566">
           <caret line="897" column="5" lean-forward="false" selection-start-line="897" selection-start-column="5" selection-end-line="897" selection-end-column="5" />
           <folding>
-            <element signature="e#0#28108#0" expanded="true" />
+            <element signature="e#0#28108#0" expanded="false" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CommandLineRunner.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="398">
+          <caret line="826" column="25" lean-forward="false" selection-start-line="826" selection-start-column="14" selection-end-line="826" selection-end-column="25" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CompilerOptions.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="172">
+          <caret line="3046" column="59" lean-forward="false" selection-start-line="3046" selection-start-column="54" selection-end-line="3046" selection-end-column="59" />
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="204">
-          <caret line="2320" column="3" lean-forward="true" selection-start-line="2320" selection-start-column="3" selection-end-line="2320" selection-end-column="3" />
+        <state relative-caret-position="313">
+          <caret line="2472" column="27" lean-forward="false" selection-start-line="2472" selection-start-column="27" selection-end-line="2472" selection-end-column="27" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="method#replaceRequire#0;class#CodeGenerator#0" expanded="false" />
@@ -1144,8 +1132,6 @@
             <element signature="method#callCommand#0;class#CodeGenerator#0" expanded="false" />
             <element signature="method#readInput#0;class#CodeGenerator#0" expanded="false" />
             <element signature="method#readFile#0;class#CodeGenerator#0" expanded="false" />
-            <element signature="method#compileCode#0;class#CodeGenerator#0" expanded="false" />
-            <element signature="method#getCommand#0;class#CodeGenerator#0" expanded="false" />
             <element signature="method#initReqResLog#0;class#CodeGenerator#0" expanded="false" />
             <element signature="method#reInLog#0;class#CodeGenerator#0" expanded="false" />
             <element signature="method#ReqResLog#0;class#CodeGenerator#0" expanded="false" />
@@ -1162,8 +1148,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/README.md">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-298">
-          <caret line="0" column="23" lean-forward="false" selection-start-line="0" selection-start-column="23" selection-end-line="0" selection-end-column="23" />
+        <state relative-caret-position="535">
+          <caret line="64" column="119" lean-forward="false" selection-start-line="64" selection-start-column="119" selection-end-line="64" selection-end-column="119" />
           <folding />
         </state>
       </provider>

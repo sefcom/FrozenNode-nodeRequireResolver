@@ -785,21 +785,52 @@ public class CommandLineRunner extends
     )
     private String packageJsonEntryNames = null;
 
-    @Option( // JAMES
+    @Option( // JAMES START
       name = "--require_resolve_log_location",
       usage =
           "This tells the program where to log information about the attempt to resolve node files"
-            + "If it is not used the logger will initialize it to the name of the current file"
+            + "(TODO) If it is not used the logger will initialize it to the name of the current file"
     )
     private String reqreslog = null;
 
-    @Option( // JAMES
+    @Option(
       name = "--reset_rrl",
       usage =
           "True or False"
             + "This must be fully typed out if used. It tells the program to reset the named log."
     )
     private String resetRRL = "false";
+
+    @Option(
+      name = "--DFS_tracking_log_location",
+      usage =
+          "This tells the program where to log information about DFS results."
+            + "(TODO) If it is not used the logger will initialize it to the name of the current file"
+    )
+    private String dfslog = null;
+
+    @Option(
+      name = "--nodejs_source",
+      usage =
+          "This tells the program where to find the nodeJS source code on you computer. This is NEEDED."
+    )
+    private String nss = null;
+
+    @Option(
+      name = "--node_exe_path",
+      usage =
+          "This is used when enviroment variables are not set up to allow the system to just call node"
+    )
+    private String node_pref = "node";
+
+    @Option(
+      name = "--rr_config",
+      usage =
+          "(TODO) Give the path to a log to set up the require resolver functionality."
+            + "All functionality can be done with commandline options."
+            + "Commandline options take priotiry."
+    )
+    private String reqresconfig = null; // JAMES END
 
     @Argument
     private List<String> arguments = new ArrayList<>();
@@ -1808,8 +1839,12 @@ public class CommandLineRunner extends
         reportError("ERROR - invalid package_json_entry_names format specified.");
       }
     }
-    options.setReqResLog(flags.reqreslog); // JAMES
-    options.setResetRRL(flags.resetRRL); // JAMES
+    options.setReqResLog(flags.reqreslog); // JAMES START
+    options.setResetRRL(flags.resetRRL);
+    options.setDFSLog(flags.dfslog);
+    options.setNJSSource(flags.nss);
+    options.setNodePref(flags.node_pref);
+    options.setReqResConfig(flags.reqresconfig); // James END
 
     return options;
   }

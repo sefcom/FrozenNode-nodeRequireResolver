@@ -77,8 +77,7 @@ public class CodeGenerator {
       CodeConsumer consumer,
       CompilerOptions options) {
     cc = consumer;
-    initReqResLog(options); // THIS WAS ADDED BY JAMES (ME)
-    initDFSRR(options); // James
+    initRequireResolver(options); // JAMES
 
     this.outputCharsetEncoder = new OutputCharsetEncoder(options.getOutputCharset());
     this.preferSingleQuotes = options.preferSingleQuotes;
@@ -2064,7 +2063,7 @@ public class CodeGenerator {
     add(afterPaths);
   }
   public void wrapJSON(String path){
-    // TODO This still seems wrong, so we will need to test it I think
+    // This still seems wrong, so we will need to test it I think
     // IF we could use the below that would be great
     //Compiler.processJsonInputs(path);
     String code = readFile(path);
@@ -2080,7 +2079,7 @@ public class CodeGenerator {
     String path = "";String out = "";
     // Create Command and input
     String req = "require.resolve(\""+m+"\");\n.exit\n";
-    String[] command = {"node","--interactive"};//,req};
+    String[] command = {this.nodePref,"--interactive"};//,req};
     // Get Directory to run the command in
     String currentPath = n.getSourceFileName(); // Need to get current path
     int index = currentPath.lastIndexOf("/");
@@ -2090,24 +2089,22 @@ public class CodeGenerator {
     // Process output into path
     path = out.substring(3,out.lastIndexOf('>')-2);
     if(m.equalsIgnoreCase(path)){
-      ReqResLog("This might be a native module: ");
+      ReqResLog("This might be a source module: ");
       ReqResLog(m);ReqResLog("\n");
-      // TODO make path to native modules into an argument and make this dynamic
-      path = "D:\\Sefcom\\NodeJS_code\\node-master\\lib"+"\\"+m+".js"; // pathToNative+file-seporator+moduleName+.js
+      path = this.sourceNodeCode+"\\lib"+"\\"+m+".js"; // pathToNative+file-seporator+moduleName+.js
       // TODO if does not exist complain (to log)
     }
     String errorString = "rror: Cannot find module '";
     if(path.startsWith(errorString)) {
-      ReqResLog("This might be a internal module: ");
-      // TODO make path to native modules into an argument and make this dynamic
+      ReqResLog("This might be a internal source module: ");
       String temp = path.split("'")[1];
       if (temp.startsWith("internal/")) {
         ReqResLog(temp);ReqResLog("\n");
-        path = "D:\\Sefcom\\NodeJS_code\\node-master\\lib" + "\\" + temp + ".js";
+        path = this.sourceNodeCode+"\\lib" + "\\" + temp + ".js";
       } else {
         try {
           // async_hooks is the reason for this. It gives the error message an internal/ does, but is not an internal/
-          path = "D:\\Sefcom\\NodeJS_code\\node-master\\lib" + "\\" + temp + ".js";
+          path = this.sourceNodeCode+"\\lib" + "\\" + temp + ".js";
           File f = new File(path);
           if (!f.exists()) {
             ReqResLog(temp);
@@ -2256,19 +2253,23 @@ public class CodeGenerator {
   }
   public String[] getCommand(String path){
     // TODO Change "java" and <location of jar> to varriables.
-    if(this.reqreslogloc == null) {
+    // TODO add new options
+    if(this.nodePref.equalsIgnoreCase("node")) {
       String[] command = {
               "java", "-jar",
               "D:\\Sefcom\\closure\\closure-compiler-myAttempt\\target\\closure-compiler-1.0-SNAPSHOT.jar",
-              "--module_resolution", "NODE", "--js", path, "--formatting", "PRETTY_PRINT"
+              "--module_resolution", "NODE", "--js", path, "--formatting", "PRETTY_PRINT", "--require_resolve_log_location",
+              this.reqreslogloc, "--nodejs_source", this.sourceNodeCode, "--DFS_tracking_log_location",
+              this.dfsResultFilename
       };
       return command;
-    }else{
+    }else {
       String[] command = {
               "java", "-jar",
               "D:\\Sefcom\\closure\\closure-compiler-myAttempt\\target\\closure-compiler-1.0-SNAPSHOT.jar",
-              "--module_resolution","NODE","--js",path,"--formatting","PRETTY_PRINT","--require_resolve_log_location",
-              this.reqreslogloc
+              "--module_resolution", "NODE", "--js", path, "--formatting", "PRETTY_PRINT", "--require_resolve_log_location",
+              this.reqreslogloc, "--nodejs_source", this.sourceNodeCode, "--DFS_tracking_log_location",
+              this.dfsResultFilename, "--node_exe_path", this.nodePref
       };
       return command;
     }
@@ -2276,12 +2277,11 @@ public class CodeGenerator {
   // These are the logging varriables and functions
   private PrintWriter rrl = null;
   private String reqreslogloc = null;
-  public void initReqResLog(CompilerOptions options){
-    // Get file name
-    this.reqreslogloc = options.getReqResLog();
-    boolean logReset = options.getResetRRL();
-    // Open up log
-    if(this.reqreslogloc != null && logReset){
+  public void initReqResLog(boolean logReset){
+    // Assign log name if one does not exist
+    if(this.reqreslogloc == null){ this.reqreslogloc = ("../resreqlog.txt"); }
+    // If we need to reset the log, do that
+    if(logReset){
       try{
         this.rrl = new PrintWriter(new BufferedWriter(new FileWriter(this.reqreslogloc,false)));
         String msg = "Log file \""+this.reqreslogloc+"\" has been reset.";
@@ -2293,7 +2293,6 @@ public class CodeGenerator {
         System.out.println(e);
       }
     }
-    // else use system.out
   }
   public void reInLog(){
     try {
@@ -2323,7 +2322,7 @@ public class CodeGenerator {
   private int currentVar = 0;
   private String baseVarName = "globalVariable_SHYDNUTN_";// Stands for Global Variable: Sure Hope You Did Not Use This Name: ID Number
   private List<String> filesToVar = new ArrayList<String>();
-  private String dfsResultFilename = "../DFSMapping.txt";// TODO make variable
+  private String dfsResultFilename = null;
   public String varNameCreation(int x){
     String name = null;
     if(x >= 0 && x < 10){
@@ -2358,9 +2357,8 @@ public class CodeGenerator {
     ReqResLog(absoluteFileName+" did not have a variable already.\n");
     return "";
   }
-  public void initDFSRR(CompilerOptions options){
-    // TODO own variable
-    boolean logReset = options.getResetRRL();
+  public void initDFSRR(boolean logReset){
+    if(dfsResultFilename == null) { this.dfsResultFilename = "../DFSMapping.txt"; }
     if(logReset){
       storeCurrentDFSRequireResults();
     }else{
@@ -2446,5 +2444,35 @@ public class CodeGenerator {
       }
     }
     return file;
+  }
+  // This will take in options and initialize all the values
+  private String sourceNodeCode = null;
+  private String nodePref = null;
+  public void initRequireResolver(CompilerOptions options){
+    // Assign values to Global Variables
+    initGlobals(options);
+    // Reset the log?
+    boolean logReset = options.getResetRRL();
+    initReqResLog(logReset);
+    initDFSRR(logReset);// TODO add own boolean?
+
+    // Any important or missed varialbes need to be checked here
+    if(this.sourceNodeCode == null) {
+      ReqResLog("Please enter the absolute path to the source code of Nodejs."+
+              "\n[Important] Unless you are me the code will not work without this.\n");
+      this.sourceNodeCode = "D:\\Sefcom\\NodeJS_code\\node-master";
+    }
+  }
+  public void initGlobals(CompilerOptions options){
+    // Used for log location
+    this.reqreslogloc = options.getReqResLog();
+    this.dfsResultFilename = options.getDFSLog();
+    this.sourceNodeCode = options.getNJSSource();
+    this.nodePref = options.getNodePref();
+    /* TODO
+       Get Path of this JAR
+       Get working directory
+       Get Java (var)
+    */
   }
 }
