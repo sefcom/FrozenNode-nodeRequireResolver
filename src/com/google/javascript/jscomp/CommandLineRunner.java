@@ -28,8 +28,10 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.io.Files;
+import com.google.javascript.jscomp.AbstractCommandLineRunner.CommandLineConfig.ErrorFormatOption;
 import com.google.javascript.jscomp.CompilerOptions.IsolationMode;
 import com.google.javascript.jscomp.SourceMap.LocationMapping;
+import com.google.javascript.jscomp.deps.ClosureBundler;
 import com.google.javascript.jscomp.deps.ModuleLoader;
 import com.google.javascript.jscomp.parsing.parser.FeatureSet;
 import com.google.javascript.rhino.TokenStream;
@@ -758,6 +760,11 @@ public class CommandLineRunner extends
         usage = "Rewrite ES6 library calls to use polyfills provided by the compiler's runtime.")
     private boolean rewritePolyfills = true;
 
+    @Option(name = "--allow_method_call_decomposing",
+        handler = BooleanOptionHandler.class,
+        usage = "Allow decomposing x.y(); to: var tmp = x.y; tmp.call(x); Unsafe on IE 8 and 9")
+    private boolean allowMethodCallDecomposing = false;
+
     @Option(
       name = "--print_source_after_each_pass",
       handler = BooleanOptionHandler.class,
@@ -772,7 +779,7 @@ public class CommandLineRunner extends
       usage =
           "Specifies how the compiler locates modules. BROWSER requires all module imports "
               + "to begin with a '.' or '/' and have a file extension. NODE uses the node module "
-              + "rules."
+              + "rules. WEBPACK looks up modules from a special lookup map."
     )
     private ModuleLoader.ResolutionMode moduleResolutionMode = ModuleLoader.ResolutionMode.BROWSER;
 
@@ -832,6 +839,14 @@ public class CommandLineRunner extends
     )
     private String reqresconfig = null; // JAMES END
 
+    @Option(name = "--error_format", usage = "Specifies format for error messages.")
+    private ErrorFormatOption errorFormat = ErrorFormatOption.STANDARD;
+
+    @Option(name = "--renaming",
+        handler = BooleanOptionHandler.class,
+        usage = "Disables variable renaming. Cannot be used with ADVANCED optimizations.")
+    private boolean renaming = true;
+
     @Argument
     private List<String> arguments = new ArrayList<>();
     private final CmdLineParser parser;
@@ -870,6 +885,7 @@ public class CommandLineRunner extends
                 "Warning and Error Management",
                 ImmutableList.of(
                     "conformance_configs",
+                    "error_format",
                     "extra_annotation_name",
                     "hide_warnings_for",
                     "jscomp_error",
@@ -1601,6 +1617,12 @@ public class CommandLineRunner extends
         }
       }
 
+      if (!flags.renaming
+          && flags.compilationLevelParsed == CompilationLevel.ADVANCED_OPTIMIZATIONS) {
+        reportError("ERROR - renaming cannot be disabled when ADVANCED_OPTIMIZATIONS is used.");
+        runCompiler = false;
+      }
+
       getCommandLineConfig()
           .setPrintTree(flags.printTree)
           .setPrintAst(flags.printAst)
@@ -1646,7 +1668,8 @@ public class CommandLineRunner extends
           .setAngularPass(flags.angularPass)
           .setInstrumentationTemplateFile(flags.instrumentationFile)
           .setNewTypeInference(flags.useNewTypeInference)
-          .setJsonStreamMode(flags.jsonStreamMode);
+          .setJsonStreamMode(flags.jsonStreamMode)
+          .setErrorFormat(flags.errorFormat);
     }
     errorStream = null;
   }
@@ -1717,7 +1740,7 @@ public class CommandLineRunner extends
       level.setTypeBasedOptimizationOptions(options);
     }
 
-    if (flags.assumeFunctionWrapper) {
+    if (flags.assumeFunctionWrapper || flags.isolationMode == IsolationMode.IIFE) {
       level.setWrappedOutputOptimizations(options);
     }
 
@@ -1774,6 +1797,8 @@ public class CommandLineRunner extends
 
     options.rewritePolyfills =
         flags.rewritePolyfills && options.getLanguageIn().toFeatureSet().contains(FeatureSet.ES6);
+
+    options.setAllowMethodCallDecomposing(flags.allowMethodCallDecomposing);
 
     if (!flags.translationsFile.isEmpty()) {
       try {
@@ -1846,12 +1871,29 @@ public class CommandLineRunner extends
     options.setNodePref(flags.node_pref);
     options.setReqResConfig(flags.reqresconfig); // James END
 
+    if (!flags.renaming) {
+      options.setVariableRenaming(VariableRenamingPolicy.OFF);
+      options.setPropertyRenaming(PropertyRenamingPolicy.OFF);
+    }
+
     return options;
   }
 
   @Override
   protected Compiler createCompiler() {
     return new Compiler(getErrorPrintStream());
+  }
+
+  @Override
+  protected void prepForBundleAndAppendTo(Appendable out, CompilerInput input, String content)
+      throws IOException {
+    new ClosureBundler().withPath(input.getName()).appendInput(out, input, content);
+  }
+
+  @Override
+  protected void appendRuntimeTo(Appendable out)
+      throws IOException {
+    new ClosureBundler().appendRuntimeTo(out);
   }
 
   @Override

@@ -33,6 +33,7 @@ import com.google.common.primitives.Chars;
 import com.google.javascript.jscomp.deps.ModuleLoader;
 import com.google.javascript.jscomp.parsing.Config;
 import com.google.javascript.jscomp.parsing.parser.FeatureSet;
+import com.google.javascript.jscomp.resources.ResourceLoader;
 import com.google.javascript.rhino.IR;
 import com.google.javascript.rhino.Node;
 import com.google.javascript.rhino.SourcePosition;
@@ -72,7 +73,21 @@ public class CompilerOptions implements Serializable {
   public enum Reach {
     ALL,
     LOCAL_ONLY,
-    NONE
+    NONE;
+
+    public boolean isOn() {
+      return this != NONE;
+    }
+
+    public boolean includesGlobals() {
+      return this == ALL;
+    }
+  }
+
+  public enum PropertyCollapseLevel {
+    ALL,
+    NONE,
+    MODULE_EXPORT
   }
 
   // TODO(nicksantos): All public properties of this class should be made
@@ -158,11 +173,6 @@ public class CompilerOptions implements Serializable {
      * of the code being compiled.  This is useful for incremental type checking.
      */
     GENERATE_IJS,
-
-    /**
-     * The compiler should check type-only interface definitions generated above.
-     */
-    CHECK_IJS,
   }
 
   private IncrementalCheckMode incrementalCheckMode = IncrementalCheckMode.OFF;
@@ -176,23 +186,11 @@ public class CompilerOptions implements Serializable {
         setPreserveTypeAnnotations(true);
         setOutputJs(OutputJs.NORMAL);
         break;
-      case CHECK_IJS:
-        setChecksOnly(true);
-        setOutputJs(OutputJs.SENTINEL);
-        break;
     }
-  }
-
-  public boolean inIncrementalCheckMode() {
-    return incrementalCheckMode != IncrementalCheckMode.OFF;
   }
 
   public boolean shouldGenerateTypedExterns() {
     return incrementalCheckMode == IncrementalCheckMode.GENERATE_IJS;
-  }
-
-  public boolean allowIjsInputs() {
-    return incrementalCheckMode != IncrementalCheckMode.OFF;
   }
 
   private Config.JsDocParsing parseJsDocDocumentation = Config.JsDocParsing.TYPES_ONLY;
@@ -215,13 +213,13 @@ public class CompilerOptions implements Serializable {
   private boolean useNewTypeInference;
 
   /**
-   * Several passes after type checking use type information. Some of these passes do not work
-   * yet with the new type inference. For this reason, we run the old type checker after NTI,
-   * so that the subsequent passes can use the old types.
-   * Turning this option off allows us to debug NTI-only builds; with the goal to eventually
-   * stop running OTI after NTI.
+   * Several passes after type checking use type information. We have converted all these passes
+   * to use TypeI, and most users of NTI use NTI types throughout their compilation.
+   * But there are a few NTI users that still use the old mode, where OTI runs after NTI
+   * and the optimizations see the old types. We plan to switch these users to NTI-only builds
+   * and delete this option.
    */
-  private boolean runOTIafterNTI = true;
+  private boolean runOTIafterNTI = false;
 
   /**
    * Relevant only when {@link #useNewTypeInference} is true, where we normally disable OTI errors.
@@ -264,12 +262,6 @@ public class CompilerOptions implements Serializable {
   //--------------------------------
 
   DependencyOptions dependencyOptions = new DependencyOptions();
-
-  // TODO(tbreisacher): When this is false, report an error if there's a goog.provide
-  // in an externs file.
-  boolean allowGoogProvideInExterns() {
-    return allowIjsInputs();
-  }
 
   /** Returns localized replacement for MSG_* variables */
   public MessageBundle messageBundle = null;
@@ -422,18 +414,12 @@ public class CompilerOptions implements Serializable {
   /** Inlines constants (symbols that are all CAPS) */
   public boolean inlineConstantVars;
 
-  /** Inlines global functions */
-  public boolean inlineFunctions;
-
   /**
    * For projects that want to avoid the creation of giant functions after
    * inlining.
    */
   int maxFunctionSizeAfterInlining;
   static final int UNLIMITED_FUN_SIZE_AFTER_INLINING = -1;
-
-  /** Inlines functions defined in local scopes */
-  public boolean inlineLocalFunctions;
 
   /** More aggressive function inlining */
   boolean assumeClosuresOnlyCaptureReferences;
@@ -556,16 +542,6 @@ public class CompilerOptions implements Serializable {
   public boolean rewriteFunctionExpressions;
 
   /**
-   * Remove unused and constant parameters.
-   */
-  public boolean optimizeParameters;
-
-  /**
-   * Remove unused return values.
-   */
-  public boolean optimizeReturns;
-
-  /**
    * Remove unused parameters from call sites.
    */
   public boolean optimizeCalls;
@@ -574,9 +550,6 @@ public class CompilerOptions implements Serializable {
    * Provide formal names for elements of arguments array.
    */
   public boolean optimizeArgumentsArray;
-
-  /** Chains calls to functions that return this. */
-  boolean chainCalls;
 
   /** Use type information to enable additional optimization opportunities. */
   boolean useTypesForLocalOptimization;
@@ -641,8 +614,16 @@ public class CompilerOptions implements Serializable {
     renamePrefixNamespaceAssumeCrossModuleNames = assume;
   }
 
+  private PropertyCollapseLevel collapsePropertiesLevel;
+
   /** Flattens multi-level property names (e.g. a$b = x) */
-  public boolean collapseProperties;
+  public boolean shouldCollapseProperties() {
+    return collapsePropertiesLevel != PropertyCollapseLevel.NONE;
+  }
+
+  public PropertyCollapseLevel getPropertyCollapseLevel() {
+    return collapsePropertiesLevel;
+  }
 
   /** Split object literals into individual variables when possible. */
   boolean collapseObjectLiterals;
@@ -989,6 +970,25 @@ public class CompilerOptions implements Serializable {
     trustedStrings = yes;
   }
 
+  private boolean allowMethodCallDecomposing;
+
+  /**
+   * See https://github.com/google/closure-compiler/wiki/FAQ#i-get-an-undecomposable-expression-error-for-my-yield-or-await-expression-what-do-i-do
+   */
+  boolean allowMethodCallDecomposing() {
+    return allowMethodCallDecomposing;
+  }
+
+  /**
+   * Setting this to true indicates that it's safe to rewrite x.y() as: fn = x.y; fn.call(x);
+   * This should be false if supporting IE 8 or IE 9 is necessary.
+   *
+   * See https://github.com/google/closure-compiler/wiki/FAQ#i-get-an-undecomposable-expression-error-for-my-yield-or-await-expression-what-do-i-do
+   */
+  public void setAllowMethodCallDecomposing(boolean value) {
+    this.allowMethodCallDecomposing = value;
+  }
+
   // Should only be used when debugging compiler bugs.
   boolean printSourceAfterEachPass;
 
@@ -1007,13 +1007,6 @@ public class CompilerOptions implements Serializable {
 
   public void setModulesToPrintAfterEachPassRegexList(List<String> modulePathRegexList) {
     this.modulesToPrintAfterEachPassRegexList = modulePathRegexList;
-  }
-
-  String reportPath;
-
-  /** Where to save a report of global name usage */
-  public void setReportPath(String reportPath) {
-    this.reportPath = reportPath;
   }
 
   private TracerMode tracer;
@@ -1107,12 +1100,6 @@ public class CompilerOptions implements Serializable {
   boolean sourceMapIncludeSourcesContent = false;
 
   /**
-   * Whether to return strings logged with AbstractCompiler#addToDebugLog
-   * in the compiler's Result.
-   */
-  boolean useDebugLog;
-
-  /**
    * Charset to use when generating code.  If null, then output ASCII.
    */
   transient Charset outputCharset;
@@ -1162,8 +1149,13 @@ public class CompilerOptions implements Serializable {
 
   String instrumentationTemplateFile;
 
-  /** List of conformance configs to use in CheckConformance */
-  private ImmutableList<ConformanceConfig> conformanceConfigs = ImmutableList.of();
+  /**
+   * List of conformance configs to use in CheckConformance.
+   *
+   * <p>The first entry of this list is always the Global ConformanceConfig
+   */
+  private ImmutableList<ConformanceConfig> conformanceConfigs =
+      ImmutableList.of(ResourceLoader.loadGlobalConformance(CompilerOptions.class));
 
   /**
    * For use in {@link CompilationLevel#WHITESPACE_ONLY} mode, when using goog.module.
@@ -1207,7 +1199,7 @@ public class CompilerOptions implements Serializable {
    */
   public CompilerOptions() {
     // Accepted language
-    languageIn = LanguageMode.ECMASCRIPT3;
+    languageIn = LanguageMode.ECMASCRIPT_2017;
     languageOut = LanguageMode.NO_TRANSPILE;
 
     // Which environment to use
@@ -1230,7 +1222,6 @@ public class CompilerOptions implements Serializable {
     checkMissingGetCssNameLevel = CheckLevel.OFF;
     checkMissingGetCssNameBlacklist = null;
     computeFunctionSideEffects = false;
-    chainCalls = false;
     extraAnnotationNames = null;
 
     // Optimizations
@@ -1238,9 +1229,8 @@ public class CompilerOptions implements Serializable {
     coalesceVariableNames = false;
     deadAssignmentElimination = false;
     inlineConstantVars = false;
-    inlineFunctions = false;
+    inlineFunctionsLevel = Reach.NONE;
     maxFunctionSizeAfterInlining = UNLIMITED_FUN_SIZE_AFTER_INLINING;
-    inlineLocalFunctions = false;
     assumeStrictThis = false;
     assumeClosuresOnlyCaptureReferences = false;
     inlineProperties = false;
@@ -1269,8 +1259,6 @@ public class CompilerOptions implements Serializable {
     outputJsStringUsage = false;
     convertToDottedProperties = false;
     rewriteFunctionExpressions = false;
-    optimizeParameters = false;
-    optimizeReturns = false;
 
     // Renaming
     variableRenaming = VariableRenamingPolicy.OFF;
@@ -1280,7 +1268,7 @@ public class CompilerOptions implements Serializable {
     shadowVariables = false;
     preferStableNames = false;
     renamePrefix = null;
-    collapseProperties = false;
+    collapsePropertiesLevel = PropertyCollapseLevel.NONE;
     collapseObjectLiterals = false;
     devirtualizePrototypeMethods = false;
     disambiguateProperties = false;
@@ -1345,7 +1333,6 @@ public class CompilerOptions implements Serializable {
     prettyPrint = false;
     lineBreak = false;
     preferLineBreakAtEndOfFile = false;
-    reportPath = null;
     tracer = TracerMode.OFF;
     colorizeErrorOutput = false;
     errorFormat = ErrorFormat.SINGLELINE;
@@ -1356,7 +1343,6 @@ public class CompilerOptions implements Serializable {
     aliasHandler = NULL_ALIAS_TRANSFORMATION_HANDLER;
     errorHandler = null;
     printSourceAfterEachPass = false;
-    useDebugLog = false;
   }
 
   /**
@@ -1403,11 +1389,8 @@ public class CompilerOptions implements Serializable {
     return getReplacementsHelper(tweakReplacements);
   }
 
-  /**
-   * Creates a map of String->Node from a map of String->Number/String/Boolean.
-   */
-  private static Map<String, Node> getReplacementsHelper(
-      Map<String, Object> source) {
+  /** Creates a map of String->Node from a map of String->Number/String/Boolean. */
+  private static ImmutableMap<String, Node> getReplacementsHelper(Map<String, Object> source) {
     ImmutableMap.Builder<String, Node> map = ImmutableMap.builder();
     for (Map.Entry<String, Object> entry : source.entrySet()) {
       String name = entry.getKey();
@@ -1593,13 +1576,6 @@ public class CompilerOptions implements Serializable {
   }
 
   /**
-   * Sets the hash function to use for Xid
-   */
-  public void setXidHashFunction(Xid.HashFunction xidHashFunction) {
-    this.xidHashFunction = xidHashFunction;
-  }
-
-  /**
    * Sets the id generators to replace.
    */
   public void setIdGenerators(Map<String, RenamingMap> idGenerators) {
@@ -1616,30 +1592,41 @@ public class CompilerOptions implements Serializable {
   }
 
   /**
+   * Sets the hash function to use for Xid
+   */
+  public void setXidHashFunction(Xid.HashFunction xidHashFunction) {
+    this.xidHashFunction = xidHashFunction;
+  }
+
+  private Reach inlineFunctionsLevel;
+
+  /** Use {@link #setInlineFunctions(Reach)} instead */
+  @Deprecated
+  public void setInlineFunctions(boolean inlineFunctions) {
+    this.setInlineFunctions(inlineFunctions ? Reach.ALL : Reach.NONE);
+  }
+
+  /**
    * Set the function inlining policy for the compiler.
    */
   public void setInlineFunctions(Reach reach) {
-    switch (reach) {
-      case ALL:
-        this.inlineFunctions = true;
-        this.inlineLocalFunctions = true;
-        break;
-      case LOCAL_ONLY:
-        this.inlineFunctions = false;
-        this.inlineLocalFunctions = true;
-        break;
-      case NONE:
-        this.inlineFunctions = false;
-        this.inlineLocalFunctions = false;
-        break;
-      default:
-        throw new IllegalStateException("unexpected");
-    }
+    this.inlineFunctionsLevel = reach;
+  }
+
+  /**
+   * Get the function inlining policy for the compiler.
+   */
+  public Reach getInlineFunctionsLevel() {
+    return this.inlineFunctionsLevel;
   }
 
   public void setMaxFunctionSizeAfterInlining(int funAstSize) {
     checkArgument(funAstSize > 0);
     this.maxFunctionSizeAfterInlining = funAstSize;
+  }
+
+  public void setInlineVariables(boolean inlineVariables) {
+    this.inlineVariables = inlineVariables;
   }
 
   /**
@@ -1715,6 +1702,10 @@ public class CompilerOptions implements Serializable {
     this.removeSuperMethods = remove;
   }
 
+  public boolean getRemoveSuperMethods() {
+    return removeSuperMethods;
+  }
+
   public void setRemoveClosureAsserts(boolean remove) {
     this.removeClosureAsserts = remove;
   }
@@ -1731,12 +1722,6 @@ public class CompilerOptions implements Serializable {
     return colorizeErrorOutput;
   }
 
-  /**
-   * If true, chain calls to functions that return this.
-   */
-  public void setChainCalls(boolean value) {
-    this.chainCalls = value;
-  }
 
   /**
    * Enable run-time type checking, which adds JS type assertions for debugging.
@@ -1793,11 +1778,6 @@ public class CompilerOptions implements Serializable {
 
   public void setDartPass(boolean dartPass) {
     this.dartPass = dartPass;
-  }
-
-  @Deprecated
-  public void setJ2clPass(boolean flag) {
-    setJ2clPass(flag ? J2clPassMode.ON : J2clPassMode.OFF);
   }
 
   public void setJ2clPass(J2clPassMode j2clPassMode) {
@@ -2172,9 +2152,6 @@ public class CompilerOptions implements Serializable {
 
   public void setCheckDeterminism(boolean checkDeterminism) {
     this.checkDeterminism = checkDeterminism;
-    if (checkDeterminism) {
-      this.useDebugLog = true;
-    }
   }
 
   public boolean getCheckDeterminism() {
@@ -2213,14 +2190,6 @@ public class CompilerOptions implements Serializable {
     this.inlineConstantVars = inlineConstantVars;
   }
 
-  public void setInlineFunctions(boolean inlineFunctions) {
-    this.inlineFunctions = inlineFunctions;
-  }
-
-  public void setInlineLocalFunctions(boolean inlineLocalFunctions) {
-    this.inlineLocalFunctions = inlineLocalFunctions;
-  }
-
   public void setCrossModuleCodeMotion(boolean crossModuleCodeMotion) {
     this.crossModuleCodeMotion = crossModuleCodeMotion;
   }
@@ -2244,10 +2213,6 @@ public class CompilerOptions implements Serializable {
     this.crossModuleMethodMotion = crossModuleMethodMotion;
   }
 
-  public void setInlineVariables(boolean inlineVariables) {
-    this.inlineVariables = inlineVariables;
-  }
-
   public void setInlineLocalVariables(boolean inlineLocalVariables) {
     this.inlineLocalVariables = inlineLocalVariables;
   }
@@ -2257,7 +2222,14 @@ public class CompilerOptions implements Serializable {
   }
 
   public void setSmartNameRemoval(boolean smartNameRemoval) {
+    // TODO(bradfordcsmith): Remove the smart name removal option.
     this.smartNameRemoval = smartNameRemoval;
+    if (smartNameRemoval) {
+      // To get the effect this option used to have we need to enable these options.
+      // Don't disable them here if they were set explicitly, though.
+      this.removeUnusedVars = true;
+      this.removeUnusedPrototypeProperties = true;
+    }
   }
 
   public void setExtraSmartNameRemoval(boolean smartNameRemoval) {
@@ -2283,7 +2255,7 @@ public class CompilerOptions implements Serializable {
   public void setRemoveUnusedPrototypeProperties(boolean enabled) {
     this.removeUnusedPrototypeProperties = enabled;
     // InlineSimpleMethods makes similar assumptions to
-    // RemoveUnusedPrototypeProperties, so they are enabled together.
+    // RemoveUnusedCode, so they are enabled together.
     this.inlineGetters = enabled;
   }
 
@@ -2341,14 +2313,6 @@ public class CompilerOptions implements Serializable {
     this.rewriteFunctionExpressions = rewriteFunctionExpressions;
   }
 
-  public void setOptimizeParameters(boolean optimizeParameters) {
-    this.optimizeParameters = optimizeParameters;
-  }
-
-  public void setOptimizeReturns(boolean optimizeReturns) {
-    this.optimizeReturns = optimizeReturns;
-  }
-
   public void setOptimizeCalls(boolean optimizeCalls) {
     this.optimizeCalls = optimizeCalls;
   }
@@ -2397,8 +2361,14 @@ public class CompilerOptions implements Serializable {
     this.renamePrefixNamespace = renamePrefixNamespace;
   }
 
-  public void setCollapseProperties(boolean collapseProperties) {
-    this.collapseProperties = collapseProperties;
+  public void setCollapsePropertiesLevel(PropertyCollapseLevel level) {
+    this.collapsePropertiesLevel = level;
+  }
+
+  @Deprecated
+  public void setCollapseProperties(boolean fullyCollapse) {
+    this.collapsePropertiesLevel =
+        fullyCollapse ? PropertyCollapseLevel.ALL : PropertyCollapseLevel.NONE;
   }
 
   public void setDevirtualizePrototypeMethods(boolean devirtualizePrototypeMethods) {
@@ -2513,6 +2483,11 @@ public class CompilerOptions implements Serializable {
   }
 
   public boolean shouldPreserveGoogModule() {
+    return this.preserveClosurePrimitives;
+  }
+
+  /** Do not process goog. intrinsics, such as goog.getCssName(). */
+  public boolean shouldPreserveGoogLibraryPrimitives() {
     return this.preserveClosurePrimitives;
   }
 
@@ -2782,16 +2757,14 @@ public class CompilerOptions implements Serializable {
     }
   }
 
-  public List<ConformanceConfig> getConformanceConfigs() {
+  public final ImmutableList<ConformanceConfig> getConformanceConfigs() {
     return conformanceConfigs;
   }
 
-  /**
-   * Both enable and configure conformance checks, if non-null.
-   */
+  /** Both enable and configure conformance checks, if non-null. */
   @GwtIncompatible("Conformance")
   public void setConformanceConfig(ConformanceConfig conformanceConfig) {
-    this.conformanceConfigs = ImmutableList.of(conformanceConfig);
+    setConformanceConfigs(ImmutableList.of(conformanceConfig));
   }
 
   /**
@@ -2799,7 +2772,11 @@ public class CompilerOptions implements Serializable {
    */
   @GwtIncompatible("Conformance")
   public void setConformanceConfigs(List<ConformanceConfig> configs) {
-    this.conformanceConfigs = ImmutableList.copyOf(configs);
+    this.conformanceConfigs =
+        ImmutableList.<ConformanceConfig>builder()
+            .add(ResourceLoader.loadGlobalConformance(CompilerOptions.class))
+            .addAll(configs)
+            .build();
   }
 
   public boolean shouldEmitUseStrict() {
@@ -2858,7 +2835,6 @@ public class CompilerOptions implements Serializable {
             .add("assumeClosuresOnlyCaptureReferences", assumeClosuresOnlyCaptureReferences)
             .add("assumeStrictThis", assumeStrictThis())
             .add("brokenClosureRequiresLevel", brokenClosureRequiresLevel)
-            .add("chainCalls", chainCalls)
             .add("checkDeterminism", getCheckDeterminism())
             .add("checkGlobalNamesLevel", checkGlobalNamesLevel)
             .add("checkGlobalThisLevel", checkGlobalThisLevel)
@@ -2873,7 +2849,7 @@ public class CompilerOptions implements Serializable {
             .add("codingConvention", getCodingConvention())
             .add("collapseAnonymousFunctions", collapseAnonymousFunctions)
             .add("collapseObjectLiterals", collapseObjectLiterals)
-            .add("collapseProperties", collapseProperties)
+            .add("collapseProperties", collapsePropertiesLevel)
             .add("collapseVariableDeclarations", collapseVariableDeclarations)
             .add("colorizeErrorOutput", shouldColorizeErrorOutput())
             .add("computeFunctionSideEffects", computeFunctionSideEffects)
@@ -2907,6 +2883,7 @@ public class CompilerOptions implements Serializable {
             .add("extraAnnotationNames", extraAnnotationNames)
             .add("extractPrototypeMemberDeclarations", extractPrototypeMemberDeclarations)
             .add("extraSmartNameRemoval", extraSmartNameRemoval)
+            .add("filesToPrintAfterEachPassRegexList", filesToPrintAfterEachPassRegexList)
             .add("flowSensitiveInlineVariables", flowSensitiveInlineVariables)
             .add("foldConstants", foldConstants)
             .add("forceLibraryInjection", forceLibraryInjection)
@@ -2917,12 +2894,12 @@ public class CompilerOptions implements Serializable {
             .add("generateTypedExterns", shouldGenerateTypedExterns())
             .add("idGenerators", idGenerators)
             .add("idGeneratorsMapSerialized", idGeneratorsMapSerialized)
+            .add("incrementalCheckMode", incrementalCheckMode)
             .add("inferConsts", inferConsts)
             .add("inferTypes", inferTypes)
             .add("inlineConstantVars", inlineConstantVars)
-            .add("inlineFunctions", inlineFunctions)
+            .add("inlineFunctionsLevel", inlineFunctionsLevel)
             .add("inlineGetters", inlineGetters)
-            .add("inlineLocalFunctions", inlineLocalFunctions)
             .add("inlineLocalVariables", inlineLocalVariables)
             .add("inlineProperties", inlineProperties)
             .add("inlineVariables", inlineVariables)
@@ -2949,12 +2926,11 @@ public class CompilerOptions implements Serializable {
             .add("maxFunctionSizeAfterInlining", maxFunctionSizeAfterInlining)
             .add("messageBundle", messageBundle)
             .add("moduleRoots", moduleRoots)
+            .add("modulesToPrintAfterEachPassRegexList", modulesToPrintAfterEachPassRegexList)
             .add("moveFunctionDeclarations", moveFunctionDeclarations)
             .add("nameGenerator", nameGenerator)
             .add("optimizeArgumentsArray", optimizeArgumentsArray)
             .add("optimizeCalls", optimizeCalls)
-            .add("optimizeParameters", optimizeParameters)
-            .add("optimizeReturns", optimizeReturns)
             .add("outputCharset", outputCharset)
             .add("outputJs", outputJs)
             .add("outputJsStringUsage", outputJsStringUsage)
@@ -3006,7 +2982,6 @@ public class CompilerOptions implements Serializable {
             .add("replaceStringsPlaceholderToken", replaceStringsPlaceholderToken)
             .add("replaceStringsReservedStrings", replaceStringsReservedStrings)
             .add("reportOTIErrorsUnderNTI", reportOTIErrorsUnderNTI)
-            .add("reportPath", reportPath)
             .add("reserveRawExports", reserveRawExports)
             .add("rewriteFunctionExpressions", rewriteFunctionExpressions)
             .add("rewritePolyfills", rewritePolyfills)
@@ -3032,7 +3007,6 @@ public class CompilerOptions implements Serializable {
             .add("trustedStrings", trustedStrings)
             .add("tweakProcessing", getTweakProcessing())
             .add("tweakReplacements", getTweakReplacements())
-            .add("useDebugLog", useDebugLog)
             .add("useNewTypeInference", getNewTypeInference())
             .add("emitUseStrict", emitUseStrict)
             .add("useTypesForLocalOptimization", useTypesForLocalOptimization)
@@ -3149,8 +3123,9 @@ public class CompilerOptions implements Serializable {
         case ECMASCRIPT_2016:
           return FeatureSet.ES7_MODULES;
         case ECMASCRIPT_2017:
-        case ECMASCRIPT_NEXT:
           return FeatureSet.ES8_MODULES;
+        case ECMASCRIPT_NEXT:
+          return FeatureSet.ES_NEXT;
         case ECMASCRIPT6_TYPED:
           return FeatureSet.TYPESCRIPT;
         case NO_TRANSPILE:
@@ -3372,18 +3347,12 @@ public class CompilerOptions implements Serializable {
    */
   public static enum J2clPassMode {
     /** J2clPass is disabled. */
-    FALSE,
-    /** J2clPass is enabled. */
-    TRUE,
-    /** J2clPass is disabled. */
     OFF,
-    /** J2clPass is enabled. */
-    ON,
     /** It auto-detects whether there are J2cl generated file. If yes, execute J2clPass. */
     AUTO;
 
     boolean shouldAddJ2clPasses() {
-      return this == TRUE || this == ON || this == AUTO;
+      return this == AUTO;
     }
   }
 
