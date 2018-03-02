@@ -22,7 +22,6 @@ import static com.google.common.base.Preconditions.checkState;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
@@ -30,6 +29,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 import com.google.common.io.Files;
+import com.google.errorprone.annotations.Immutable;
 import com.google.javascript.jscomp.CodingConvention.Cache;
 import com.google.javascript.jscomp.DefinitionsRemover.Definition;
 import com.google.javascript.jscomp.NodeTraversal.ScopedCallback;
@@ -49,6 +49,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nullable;
 
 /**
  * Compiler pass that computes function purity. A function is pure if it has no outside visible side
@@ -61,7 +62,7 @@ import java.util.Map;
  * <p>TODO: This pass could be greatly improved by proper tracking of locals within function bodies.
  * Every instance of the call to {@link NodeUtil#evaluatesToLocalValue(Node)} and {@link
  * NodeUtil#allArgsUnescapedLocal(Node)} do not actually take into account local variables. They
- * only assume literals, primatives, and operations on primatives are local.
+ * only assume literals, primitives, and operations on primitives are local.
  *
  * @author johnlenz@google.com (John Lenz)
  * @author tdeegan@google.com (Thomas Deegan)
@@ -70,7 +71,7 @@ import java.util.Map;
  */
 class PureFunctionIdentifier implements CompilerPass {
   private final AbstractCompiler compiler;
-  private final DefinitionProvider definitionProvider;
+  private final NameBasedDefinitionProvider definitionProvider;
 
   /** Map of function names to side effect gathering representative nodes */
   private final Map<String, FunctionInformation> functionInfoByName = new HashMap<>();
@@ -104,7 +105,8 @@ class PureFunctionIdentifier implements CompilerPass {
   private Node externs;
   private Node root;
 
-  public PureFunctionIdentifier(AbstractCompiler compiler, DefinitionProvider definitionProvider) {
+  public PureFunctionIdentifier(
+      AbstractCompiler compiler, NameBasedDefinitionProvider definitionProvider) {
     this.compiler = checkNotNull(compiler);
     this.definitionProvider = definitionProvider;
     this.functionSideEffectMap = ArrayListMultimap.create();
@@ -184,6 +186,7 @@ class PureFunctionIdentifier implements CompilerPass {
    * @return A list of GET_PROP NAME and function expression nodes (all of which can be called). Or
    *     null if any of the callable nodes are of an unsupported type. e.g. x['asdf'](param);
    */
+  @Nullable
   private static Iterable<Node> unwrapCallableExpression(Node exp) {
     switch (exp.getToken()) {
       case GETPROP:
@@ -215,7 +218,7 @@ class PureFunctionIdentifier implements CompilerPass {
     }
   }
 
-  private static boolean isSupportedFunctionDefinition(Node definitionRValue) {
+  private static boolean isSupportedFunctionDefinition(@Nullable Node definitionRValue) {
     if (definitionRValue == null) {
       return false;
     }
@@ -240,8 +243,9 @@ class PureFunctionIdentifier implements CompilerPass {
         unwrapCallableExpression(cacheCall.valueFn), unwrapCallableExpression(cacheCall.keyFn));
   }
 
+  @Nullable
   private List<FunctionInformation> getSideEffectsForCall(Node call) {
-    checkArgument(call.isCall() || call.isNew());
+    checkArgument(call.isCall() || call.isNew(), call);
 
     Iterable<Node> expanded;
     Cache cacheCall = compiler.getCodingConvention().describeCachingCall(call);
@@ -261,7 +265,7 @@ class PureFunctionIdentifier implements CompilerPass {
         // getFunctionDefinitions() will only be called on the first
         // child of a call and thus the function expression
         // definition will never be an extern.
-        results.addAll(checkNotNull(functionSideEffectMap.get(expression)));
+        results.addAll(functionSideEffectMap.get(expression));
         continue;
       }
 
@@ -283,7 +287,7 @@ class PureFunctionIdentifier implements CompilerPass {
   /**
    * When propagating side effects we construct a graph from every function definition A to every
    * function definition B that calls A(). Since the definition provider cannot always provide a
-   * unique defintion for a name, there may be many possible definitions for a given call site. In
+   * unique definition for a name, there may be many possible definitions for a given call site. In
    * the case where multiple defs share the same node in the graph.
    *
    * <p>We need to build the map {@link PureFunctionIdentifier#functionInfoByName} to get a
@@ -350,8 +354,8 @@ class PureFunctionIdentifier implements CompilerPass {
 
   /**
    * Propagate side effect information by building a graph based on call site information stored in
-   * FunctionInformation and the DefinitionProvider and then running GraphReachability to determine
-   * the set of functions that have side effects.
+   * FunctionInformation and the NameBasedDefinitionProvider and then running GraphReachability to
+   * determine the set of functions that have side effects.
    */
   private void propagateSideEffects() {
     // Propagate side effect information to a fixed point.
@@ -450,14 +454,12 @@ class PureFunctionIdentifier implements CompilerPass {
       // Functions need to be processed as part of pre-traversal so that an entry for the function
       // exists in the functionSideEffectMap map when processing assignments and calls within the
       // body.
-      if (node.isFunction()) {
-        if (!functionSideEffectMap.containsKey(node)) {
-          // This function was not part of a definition which is why it was not created by
-          // {@link buildGraph}. For example, an anonymous function.
-          FunctionInformation functionInfo = new FunctionInformation();
-          functionSideEffectMap.put(node, functionInfo);
-          functionInfo.graphNode = sideEffectGraph.createNode(functionInfo);
-        }
+      if (node.isFunction() && !functionSideEffectMap.containsKey(node)) {
+        // This function was not part of a definition which is why it was not created by
+        // {@link buildGraph}. For example, an anonymous function.
+        FunctionInformation functionInfo = new FunctionInformation();
+        functionSideEffectMap.put(node, functionInfo);
+        functionInfo.graphNode = sideEffectGraph.createNode(functionInfo);
       }
       return true;
     }
@@ -501,7 +503,7 @@ class PureFunctionIdentifier implements CompilerPass {
       } else if (node.isName()) {
         // Variable definition are not side effects. Check that the name appears in the context of a
         // variable declaration.
-        checkArgument(NodeUtil.isNameDeclaration(node.getParent()));
+        checkArgument(NodeUtil.isNameDeclaration(node.getParent()), node.getParent());
         Node value = node.getFirstChild();
         // Assignment to local, if the value isn't a safe local value,
         // new object creation or literal or known primitive result
@@ -518,11 +520,13 @@ class PureFunctionIdentifier implements CompilerPass {
           sideEffectInfo.setTaintsReturn();
         }
       } else if (node.isYield()) {
-        if (node.hasChildren() && !NodeUtil.evaluatesToLocalValue(node.getFirstChild())) {
-          sideEffectInfo.setTaintsReturn();
-        }
+        // 'yield' throws if the caller calls `.throw` on the generator object.
+        sideEffectInfo.setFunctionThrows();
+      } else if (node.isAwait()) {
+        // 'await' throws if the promise it's waiting on is rejected.
+        sideEffectInfo.setFunctionThrows();
       } else {
-        throw new IllegalArgumentException("Unhandled side effect node type " + node.getToken());
+        throw new IllegalArgumentException("Unhandled side effect node type " + node);
       }
     }
 
@@ -544,15 +548,14 @@ class PureFunctionIdentifier implements CompilerPass {
 
       // Handle deferred local variable modifications:
       for (FunctionInformation sideEffectInfo : functionSideEffectMap.get(function)) {
-        Preconditions.checkNotNull(sideEffectInfo, "%s has no side effect info.", function);
+        checkNotNull(sideEffectInfo, "%s has no side effect info.", function);
 
         if (sideEffectInfo.mutatesGlobalState()) {
           continue;
         }
 
         for (Var v : t.getScope().getVarIterable()) {
-          boolean param = v.getParentNode().isParamList();
-          if (param
+          if (v.isParam()
               && !blacklistedVarsByFunction.containsEntry(function, v)
               && taintedVarsByFunction.containsEntry(function, v)) {
             sideEffectInfo.setTaintsArguments();
@@ -561,7 +564,7 @@ class PureFunctionIdentifier implements CompilerPass {
 
           boolean localVar = false;
           // Parameters and catch values can come from other scopes.
-          if (v.getParentNode().isVar()) {
+          if (!v.isParam() && !v.isCatch()) {
             // TODO(johnlenz): create a useful parameter list
             // sideEffectInfo.addKnownLocal(v.getName());
             localVar = true;
@@ -586,15 +589,15 @@ class PureFunctionIdentifier implements CompilerPass {
       }
     }
 
-    private boolean isVarDeclaredInScope(Var v, Scope scope) {
+    private boolean isVarDeclaredInScope(@Nullable Var v, Scope scope) {
       if (v == null) {
         return false;
       }
       if (v.scope == scope) {
         return true;
       }
-      Node declarationRoot = NodeUtil.getEnclosingFunction(v.scope.rootNode);
-      Node scopeRoot = NodeUtil.getEnclosingFunction(scope.rootNode);
+      Node declarationRoot = NodeUtil.getEnclosingFunction(v.scope.getRootNode());
+      Node scopeRoot = NodeUtil.getEnclosingFunction(scope.getRootNode());
       return declarationRoot == scopeRoot;
     }
 
@@ -608,42 +611,47 @@ class PureFunctionIdentifier implements CompilerPass {
      */
     private void visitAssignmentOrUnaryOperator(
         FunctionInformation sideEffectInfo, Scope scope, Node op, Node enclosingFunction) {
-      Node lhs = op.getFirstChild();
-      Preconditions.checkState(
-          lhs.isName() || NodeUtil.isGet(lhs), "Unexpected LHS expression:", lhs);
-      if (lhs.isName()) {
-        Var var = scope.getVar(lhs.getString());
-        if (isVarDeclaredInScope(var, scope)) {
-          // Assignment to local, if the value isn't a safe local value,
-          // a literal or new object creation, add it to the local blacklist.
-          // parameter values depend on the caller.
-
-          // Note: other ops result in the name or prop being assigned a local
-          // value (x++ results in a number, for instance)
-          checkState(NodeUtil.isAssignmentOp(op) || isIncDec(op) || op.isDelProp());
-          Node rhs = op.getLastChild();
-          if (rhs != null && op.isAssign() && !NodeUtil.evaluatesToLocalValue(rhs)) {
-            blacklistedVarsByFunction.put(enclosingFunction, var);
-          }
-        } else {
-          sideEffectInfo.setTaintsGlobalState();
-        }
-      } else if (NodeUtil.isGet(lhs)) { // a['elem'] or a.elem
-        if (lhs.getFirstChild().isThis()) {
-          sideEffectInfo.setTaintsThis();
-        } else {
-          Node objectNode = lhs.getFirstChild();
-          if (objectNode.isName()) {
-            Var var = scope.getVar(objectNode.getString());
-            if (isVarDeclaredInScope(var, scope)) {
-              // Maybe a local object modification.  We won't know for sure until
-              // we exit the scope and can validate the value of the local.
-              taintedVarsByFunction.put(enclosingFunction, var);
+      Iterable<Node> lhsNodes;
+      if (isIncDec(op) || op.isDelProp()) {
+        lhsNodes = ImmutableList.of(op.getOnlyChild());
+      } else {
+        lhsNodes = NodeUtil.findLhsNodesInNode(op);
+      }
+      for (Node lhs : lhsNodes) {
+        if (NodeUtil.isGet(lhs)) {
+          if (lhs.getFirstChild().isThis()) {
+            sideEffectInfo.setTaintsThis();
+          } else {
+            Node objectNode = lhs.getFirstChild();
+            if (objectNode.isName()) {
+              Var var = scope.getVar(objectNode.getString());
+              if (isVarDeclaredInScope(var, scope)) {
+                // Maybe a local object modification.  We won't know for sure until
+                // we exit the scope and can validate the value of the local.
+                taintedVarsByFunction.put(enclosingFunction, var);
+              } else {
+                sideEffectInfo.setTaintsGlobalState();
+              }
             } else {
+              // TODO(tdeegan): Perhaps handle multi level locals: local.prop.prop2++;
               sideEffectInfo.setTaintsGlobalState();
             }
+          }
+        } else {
+          Var var = scope.getVar(lhs.getString());
+          if (isVarDeclaredInScope(var, scope)) {
+            // Assignment to local, if the value isn't a safe local value,
+            // a literal or new object creation, add it to the local blacklist.
+            // parameter values depend on the caller.
+
+            // Note: other ops result in the name or prop being assigned a local
+            // value (x++ results in a number, for instance)
+            checkState(NodeUtil.isAssignmentOp(op) || isIncDec(op) || op.isDelProp());
+            Node rhs = NodeUtil.getRValueOfLValue(lhs);
+            if (rhs != null && op.isAssign() && !NodeUtil.evaluatesToLocalValue(rhs)) {
+              blacklistedVarsByFunction.put(enclosingFunction, var);
+            }
           } else {
-            // TODO(tdeegan): Perhaps handle multi level locals: local.prop.prop2++;
             sideEffectInfo.setTaintsGlobalState();
           }
         }
@@ -690,6 +698,7 @@ class PureFunctionIdentifier implements CompilerPass {
    * This class stores all the information about a call site needed to propagate side effects from
    * one instance of {@link FunctionInformation} to another.
    */
+  @Immutable
   private static class CallSitePropagationInfo {
 
     private CallSitePropagationInfo(
@@ -811,17 +820,13 @@ class PureFunctionIdentifier implements CompilerPass {
       return (bitmask & mask) != 0;
     }
 
-    boolean taintsGlobalState() {
-      return getMask(TAINTS_GLOBAL_STATE_MASK);
-    }
-
     boolean taintsThis() {
       return getMask(TAINTS_THIS_MASK);
     }
 
     /**
      * @return Whether the function returns something that is not affected by global state. In this
-     *     case, only true if return value is a literal or primative since locals are not tracked
+     *     case, only true if return value is a literal or primitive since locals are not tracked
      *     correctly.
      */
     boolean taintsReturn() {
@@ -889,12 +894,16 @@ class PureFunctionIdentifier implements CompilerPass {
         status.add("this");
       }
 
-      if (taintsGlobalState()) {
+      if (mutatesGlobalState()) {
         status.add("global");
       }
 
       if (mutatesArguments()) {
         status.add("args");
+      }
+
+      if (taintsReturn()) {
+        status.add("return");
       }
 
       if (functionThrows()) {
@@ -913,7 +922,10 @@ class PureFunctionIdentifier implements CompilerPass {
       // Handle externs.
       TypeI typei = externFunction.getTypeI();
       FunctionTypeI functionType = typei == null ? null : typei.toMaybeFunctionType();
-      if (functionType != null) {
+      if (functionType == null) {
+        // Assume extern functions return tainted values when we have no type info to say otherwise.
+        setTaintsReturn();
+      } else {
         TypeI retType = functionType.getReturnType();
         if (!PureFunctionIdentifier.isLocalValueType(retType, compiler)) {
           setTaintsReturn();

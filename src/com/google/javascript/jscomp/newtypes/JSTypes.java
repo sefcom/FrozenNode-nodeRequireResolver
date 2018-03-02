@@ -274,16 +274,6 @@ public final class JSTypes implements Serializable {
       }
 
       @Override
-      public int hashCode() {
-        throw new UnsupportedOperationException();
-      }
-
-      @Override
-      public boolean equals(Object o) {
-        return o == this;
-      }
-
-      @Override
       public String toString() {
         return "MAP_TO_UNKNOWN";
       }
@@ -322,6 +312,20 @@ public final class JSTypes implements Serializable {
 
   public JSType getArrayInstance() {
     return getArrayInstance(this.UNKNOWN);
+  }
+
+  public JSType getArrayInstance(JSType t) {
+    if (arrayType == null) {
+      return this.UNKNOWN;
+    }
+    ImmutableList<String> typeParams = arrayType.getTypeParameters();
+    // typeParams can be != 1 in old externs files :-S
+    if (typeParams.size() == 1) {
+      return JSType.fromObjectType(
+          ObjectType.fromNominalType(
+              this.arrayType.getAsNominalType().instantiateGenerics(ImmutableList.of(t))));
+    }
+    return arrayType.getInstanceAsJSType();
   }
 
   public JSType getIArrayLikeInstance(JSType t) {
@@ -394,19 +398,6 @@ public final class JSTypes implements Serializable {
     return this.iObject;
   }
 
-  public JSType getArrayInstance(JSType t) {
-    if (arrayType == null) {
-      return this.UNKNOWN;
-    }
-    ImmutableList<String> typeParams = arrayType.getTypeParameters();
-    // typeParams can be != 1 in old externs files :-S
-    if (typeParams.size() == 1) {
-      return JSType.fromObjectType(ObjectType.fromNominalType(
-          this.arrayType.getAsNominalType().instantiateGenerics(ImmutableList.of(t))));
-    }
-    return arrayType.getInstanceAsJSType();
-  }
-
   public JSType getArgumentsArrayType(JSType t) {
     if (this.arguments == null) {
       return this.UNKNOWN;
@@ -419,6 +410,10 @@ public final class JSTypes implements Serializable {
       result = result.substituteGenerics(ImmutableMap.of(typeParam, t));
     }
     return result;
+  }
+
+  public JSType getArgumentsArrayType() {
+    return getArgumentsArrayType(this.UNKNOWN);
   }
 
   public JSType getRegexpType() {
@@ -451,10 +446,6 @@ public final class JSTypes implements Serializable {
 
   ObjectType getStringInstanceObjType() {
     return stringInstanceObjtype != null ? stringInstanceObjtype : this.topObjectType;
-  }
-
-  public JSType getArgumentsArrayType() {
-    return getArgumentsArrayType(this.UNKNOWN);
   }
 
   public JSType getITemplateArrayType() {
@@ -508,13 +499,15 @@ public final class JSTypes implements Serializable {
         return builtinFunction.toJSType();
       case OBJECT_PROTOTYPE:
       case TOP_LEVEL_PROTOTYPE:
-        return getTopObject().getNominalTypeIfSingletonObj().getPrototypePropertyOfCtor();
+        return getTopObject().getNominalTypeIfSingletonObj().getPrototypeObject();
       case GLOBAL_THIS:
         return getGlobalThis();
       case I_ITERABLE_RESULT_TYPE:
         return getIIterableResultInstance(UNKNOWN);
       case I_TEMPLATE_ARRAY_TYPE:
         return getITemplateArrayType();
+      case ITERABLE_TYPE:
+        return getIterableInstance(UNKNOWN);
       case ITERATOR_TYPE:
         return getIteratorInstance(UNKNOWN);
       case GENERATOR_TYPE:

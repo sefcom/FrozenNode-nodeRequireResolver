@@ -19,6 +19,8 @@ package com.google.javascript.jscomp;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import com.google.javascript.jscomp.NodeTraversal.AbstractPostOrderCallback;
+import com.google.javascript.jscomp.parsing.parser.FeatureSet;
+import com.google.javascript.jscomp.parsing.parser.FeatureSet.Feature;
 import com.google.javascript.rhino.Node;
 import java.util.HashSet;
 import java.util.Set;
@@ -33,6 +35,8 @@ public final class Es6RenameVariablesInParamLists extends AbstractPostOrderCallb
     implements HotSwapCompilerPass {
 
   private final AbstractCompiler compiler;
+  private static final FeatureSet transpiledFeatures =
+      FeatureSet.BARE_MINIMUM.with(Feature.DEFAULT_PARAMETERS, Feature.COMPUTED_PROPERTIES);
 
   public Es6RenameVariablesInParamLists(AbstractCompiler compiler) {
     this.compiler = compiler;
@@ -71,8 +75,8 @@ public final class Es6RenameVariablesInParamLists extends AbstractPostOrderCallb
     for (Var var : fBlockScope.getVarIterable()) {
       String oldName = var.getName();
       if (collector.currFuncReferences.contains(oldName)
-          && !renameTable.contains(fBlockScope.rootNode, oldName)) {
-        renameTable.put(fBlockScope.rootNode,
+          && !renameTable.contains(fBlockScope.getRootNode(), oldName)) {
+        renameTable.put(fBlockScope.getRootNode(),
             oldName, oldName + "$" + compiler.getUniqueNameIdSupplier().get());
       }
     }
@@ -83,12 +87,12 @@ public final class Es6RenameVariablesInParamLists extends AbstractPostOrderCallb
 
   @Override
   public void process(Node externs, Node root) {
-    TranspilationPasses.processTranspile(compiler, root, this);
+    TranspilationPasses.processTranspile(compiler, root, transpiledFeatures, this);
   }
 
   @Override
   public void hotSwapScript(Node scriptRoot, Node originalRoot) {
-    TranspilationPasses.hotSwapTranspile(compiler, scriptRoot, this);
+    TranspilationPasses.hotSwapTranspile(compiler, scriptRoot, transpiledFeatures, this);
   }
 
   /**

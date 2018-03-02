@@ -66,12 +66,11 @@ public final class JsDocInfoParserTest extends BaseJSTypeTestCase {
     extraAnnotations =
         new HashSet<>(
             ParserRunner.createConfig(LanguageMode.ECMASCRIPT3, null, StrictMode.SLOPPY)
-                .annotationNames
-                .keySet());
+                .annotationNames());
     extraSuppressions =
         new HashSet<>(
             ParserRunner.createConfig(LanguageMode.ECMASCRIPT3, null, StrictMode.SLOPPY)
-                .suppressionNames);
+                .suppressionNames());
 
     extraSuppressions.add("x");
     extraSuppressions.add("y");
@@ -1761,14 +1760,6 @@ public final class JsDocInfoParserTest extends BaseJSTypeTestCase {
     parse(
         "@inheritDoc\n@inheritDoc*/",
         "Bad type annotation. extra @override/@inheritDoc tag." + BAD_TYPE_WIKI_LINK);
-  }
-
-  public void testParseNoAlias1() {
-    assertThat(parse("@noalias*/").isNoAlias()).isTrue();
-  }
-
-  public void testParseNoAlias2() {
-    parse("@noalias\n@noalias*/", "extra @noalias tag");
   }
 
   public void testParseDeprecated1() {
@@ -4242,10 +4233,6 @@ public final class JsDocInfoParserTest extends BaseJSTypeTestCase {
       "* @id \n" +
       "* @ignore \n" +
       "* @inner \n" +
-      "* @jaggerInject \n" +
-      "* @jaggerModule \n" +
-      "* @jaggerProvide \n" +
-      "* @jaggerProvidePromise \n" +
       "* @lends {string} \n" +
       "* @link \n" +
       "* @member \n" +
@@ -4300,38 +4287,6 @@ public final class JsDocInfoParserTest extends BaseJSTypeTestCase {
 
   public void testParseNgInject2() {
     parse("@ngInject \n@ngInject*/", "extra @ngInject tag");
-  }
-
-  public void testParseJaggerInject() {
-    assertThat(parse("@jaggerInject*/").isJaggerInject()).isTrue();
-  }
-
-  public void testParseJaggerInjectExtra() {
-    parse("@jaggerInject \n@jaggerInject*/", "extra @jaggerInject tag");
-  }
-
-  public void testParseJaggerModule() {
-    assertThat(parse("@jaggerModule*/").isJaggerModule()).isTrue();
-  }
-
-  public void testParseJaggerModuleExtra() {
-    parse("@jaggerModule \n@jaggerModule*/", "extra @jaggerModule tag");
-  }
-
-  public void testParseJaggerProvide() {
-    assertThat(parse("@jaggerProvide*/").isJaggerProvide()).isTrue();
-  }
-
-  public void testParseJaggerProvideExtra() {
-    parse("@jaggerProvide \n@jaggerProvide*/", "extra @jaggerProvide tag");
-  }
-
-  public void testParseJaggerProvidePromise() {
-    assertThat(parse("@jaggerProvidePromise*/").isJaggerProvidePromise()).isTrue();
-  }
-
-  public void testParseJaggerProvidePromiseExtra() {
-    parse("@jaggerProvidePromise \n@jaggerProvidePromise*/", "extra @jaggerProvidePromise tag");
   }
 
   public void testParsePolymerBehavior() {
@@ -4728,14 +4683,15 @@ public final class JsDocInfoParserTest extends BaseJSTypeTestCase {
   private Node parseFull(String code, String... warnings) {
     TestErrorReporter testErrorReporter = new TestErrorReporter(null, warnings);
     Config config =
-        new Config(
-            extraAnnotations,
-            JsDocParsing.INCLUDE_DESCRIPTIONS_NO_WHITESPACE,
-            RunMode.KEEP_GOING,
-            extraSuppressions,
-            LanguageMode.ECMASCRIPT3,
-            true,
-            StrictMode.SLOPPY);
+        Config.builder()
+            .setExtraAnnotationNames(extraAnnotations)
+            .setJsDocParsingMode(JsDocParsing.INCLUDE_DESCRIPTIONS_NO_WHITESPACE)
+            .setRunMode(RunMode.KEEP_GOING)
+            .setSuppressionNames(extraSuppressions)
+            .setLanguageMode(LanguageMode.ECMASCRIPT3)
+            .setParseInlineSourceMaps(true)
+            .setStrictMode(StrictMode.SLOPPY)
+            .build();
 
     ParseResult result = ParserRunner.parse(
         new SimpleSourceFile("source", false), code, config, testErrorReporter);
@@ -4780,14 +4736,14 @@ public final class JsDocInfoParserTest extends BaseJSTypeTestCase {
     TestErrorReporter errorReporter = new TestErrorReporter(null, warnings);
 
     Config config =
-        new Config(
-            extraAnnotations,
-            parseDocumentation,
-            RunMode.STOP_AFTER_ERROR,
-            extraSuppressions,
-            LanguageMode.ECMASCRIPT3,
-            true,
-            Config.StrictMode.SLOPPY);
+        Config.builder()
+            .setExtraAnnotationNames(extraAnnotations)
+            .setJsDocParsingMode(parseDocumentation)
+            .setSuppressionNames(extraSuppressions)
+            .setLanguageMode(LanguageMode.ECMASCRIPT3)
+            .setParseInlineSourceMaps(true)
+            .setStrictMode(Config.StrictMode.SLOPPY)
+            .build();
 
     StaticSourceFile file = new SimpleSourceFile("testcode", false);
     Node templateNode = IR.script();

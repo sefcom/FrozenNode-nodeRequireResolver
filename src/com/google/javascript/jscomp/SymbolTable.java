@@ -38,6 +38,7 @@ import com.google.javascript.rhino.StaticScope;
 import com.google.javascript.rhino.StaticSlot;
 import com.google.javascript.rhino.StaticSourceFile;
 import com.google.javascript.rhino.StaticSymbolTable;
+import com.google.javascript.rhino.Token;
 import com.google.javascript.rhino.jstype.EnumType;
 import com.google.javascript.rhino.jstype.FunctionType;
 import com.google.javascript.rhino.jstype.JSType;
@@ -147,12 +148,12 @@ public final class SymbolTable {
     return Collections.unmodifiableCollection(symbol.references.values());
   }
 
-  public List<Reference> getReferenceList(Symbol symbol) {
+  public ImmutableList<Reference> getReferenceList(Symbol symbol) {
     return ImmutableList.copyOf(symbol.references.values());
   }
 
-  public Iterable<Symbol> getAllSymbols() {
-    return Collections.unmodifiableCollection(symbols.values());
+  public ImmutableList<Symbol> getAllSymbols() {
+    return ImmutableList.copyOf(symbols.values());
   }
 
   /**
@@ -642,9 +643,19 @@ public final class SymbolTable {
         sym.getJSDocInfo());
   }
 
+  /**
+   * Replace all \ with \\ so there will be no \0 or \n in the string, then replace all '\0'
+   * (NULL) with \0 and all '\n' (newline) with \n.
+   */
+  private static String sanitizeSpecialChars(String s) {
+    return s.replace("\\", "\\\\").replace("\0", "\\0").replace("\n", "\\n");
+  }
+
   private Symbol addSymbol(
       String name, JSType type, boolean inferred, SymbolScope scope,
       Node declNode) {
+    name = sanitizeSpecialChars(name);
+
     Symbol symbol = new Symbol(name, type, inferred, scope);
     Symbol replacedSymbol = symbols.put(declNode, name, symbol);
     Preconditions.checkState(
@@ -698,7 +709,7 @@ public final class SymbolTable {
    * because that would be redundant.
    */
   void fillNamespaceReferences() {
-    for (Symbol symbol : getAllSymbolsSorted()) {
+    for (Symbol symbol : getAllSymbols()) {
       String qName = symbol.getName();
       int rootIndex = qName.indexOf('.');
       if (rootIndex == -1) {
@@ -884,7 +895,8 @@ public final class SymbolTable {
    * at "A", and we built a property scope for "A" above.
    */
   void pruneOrphanedNames() {
-    nextSymbol: for (Symbol s : getAllSymbolsSorted()) {
+    nextSymbol:
+    for (Symbol s : getAllSymbols()) {
       if (s.isProperty()) {
         continue;
       }
@@ -897,9 +909,9 @@ public final class SymbolTable {
         Symbol owner = s.scope.getQualifiedSlot(currentName);
         if (owner != null
             && getType(owner) != null
-            && (getType(owner).isNominalConstructor() ||
-                getType(owner).isFunctionPrototypeType() ||
-                getType(owner).isEnumType())) {
+            && (getType(owner).isNominalConstructor()
+                || getType(owner).isFunctionPrototypeType()
+                || getType(owner).isEnumType())) {
           removeSymbol(s);
           continue nextSymbol;
         }
@@ -946,7 +958,7 @@ public final class SymbolTable {
     t.traverseRoots(externs, root);
 
     // Create references to parameters in the JSDoc.
-    for (Symbol sym : getAllSymbolsSorted()) {
+    for (Symbol sym : getAllSymbols()) {
       JSDocInfo info = sym.getJSDocInfo();
       if (info == null) {
         continue;
@@ -1129,13 +1141,68 @@ public final class SymbolTable {
    * symbols that correspond to a symbol in original source code (before transpilation).
    */
   void removeGeneratedSymbols() {
+    IdentityHashMap<Node, Symbol> nodeToSymbol = null;
     // Need to iterate over copy of values list because removeSymbol() will change the map
     // and we'll get ConcurrentModificationException
     for (Symbol symbol : ImmutableList.copyOf(symbols.values())) {
       if (isSymbolGeneratedAndShouldNotBeIndexed(symbol)) {
         removeSymbol(symbol);
+      } else if (symbol.getDeclaration() != null
+          && symbol.getDeclaration().getNode().getBooleanProp(Node.MODULE_EXPORT)) {
+
+        // Lazy initialize nodeToSymbol map as it's needed only when ES6 modules are used.
+        if (nodeToSymbol == null) {
+          nodeToSymbol = new IdentityHashMap<>();
+          for (Symbol s : symbols.values()) {
+            for (Node node : s.references.keySet()) {
+              nodeToSymbol.put(node, s);
+            }
+          }
+        }
+
+        inlineEs6ExportProperty(symbol, nodeToSymbol);
       }
     }
+  }
+
+  /**
+   * Removes a layer of indirection introduced by ES6 module rewriting. Following example:
+   *
+   * <pre>
+   *   // a.js
+   *   export const foo = 1;
+   *
+   *   // b.js
+   *   import {foo} from './a';
+   *   console.log(foo);
+   * </pre>
+   *
+   * <p>Is rewritten to
+   *
+   * <pre>
+   *   // a.js
+   *   const foo = 1; module$a$exports = {}; module$a$exports.foo = foo;
+   *
+   *   // b.js
+   *   console.log(module$a$exports.foo);
+   * </pre>
+   *
+   * <p>So 'foo' in b.js now points to the generated property instead of original foo variable. This
+   * method removes module$a$exports.foo symbol and changes its references to point to foo.
+   */
+  private void inlineEs6ExportProperty(
+      Symbol exportPropertySymbol, IdentityHashMap<Node, Symbol> nodeToSymbol) {
+    // decl is module$a$exports.foo node from the example above.
+    Node decl = exportPropertySymbol.getDeclaration().getNode();
+    if (decl.getToken() != Token.GETPROP || decl.getParent().getToken() != Token.ASSIGN) {
+      return;
+    }
+    // originalSymbol is symbol declared by "const foo = 1";
+    Symbol originalSymbol = nodeToSymbol.get(decl.getNext());
+    for (Node nodeToMove : exportPropertySymbol.references.keySet()) {
+      originalSymbol.defineReferenceAt(nodeToMove);
+    }
+    removeSymbol(exportPropertySymbol);
   }
 
   /**
@@ -1719,10 +1786,19 @@ public final class SymbolTable {
       if (result == null) {
         // If we can't find this type, it might be a reference to a
         // primitive type (like {string}). Autobox it to check.
+        // Alternatively it can be a type from externs.
         JSType type = typeRegistry.getType(dottedName);
         JSType autobox = type == null ? null : type.autoboxesTo();
         result = autobox == null
-            ? null : getSymbolForTypeHelper(autobox, true);
+            ? getSymbolForTypeHelper(type, true) : getSymbolForTypeHelper(autobox, true);
+      }
+      if (result == null) {
+        // dotted name might be a type/variable declared in externs. In that case look it up in
+        // global scope.
+        result = globalScope.getSlot(dottedName);
+        if (result != null && !result.getDeclarationNode().getStaticSourceFile().isExtern()) {
+          result = null;
+        }
       }
       return result;
     }

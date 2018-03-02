@@ -90,10 +90,11 @@ class RhinoErrorReporter {
       DiagnosticType.warning("INVALID_OCTAL_LITERAL",
           "This style of octal literal is not supported in strict mode.");
 
-  static final DiagnosticType ES6_FEATURE =
-      DiagnosticType.error("ES6_FEATURE",
-          "{0}. Use --language_in=ECMASCRIPT6 or ECMASCRIPT6_STRICT " +
-          "or higher to enable ES6 features.");
+  static final DiagnosticType STRING_CONTINUATION =
+      DiagnosticType.warning("JSC_STRING_CONTINUATION", "{0}");
+
+  static final DiagnosticType LANGUAGE_FEATURE =
+      DiagnosticType.error("JSC_LANGUAGE_FEATURE", "{0}.");
 
   static final DiagnosticType ES6_TYPED =
       DiagnosticType.error("ES6_TYPED",
@@ -168,12 +169,14 @@ class RhinoErrorReporter {
             // Parse tree too deep.
             .put(Pattern.compile("Too deep recursion while parsing"), PARSE_TREE_TOO_DEEP)
 
-            // Octal literals
+            // Old-style octal literals
             .put(Pattern.compile("^Octal .*literal.*"), INVALID_OCTAL_LITERAL)
 
+            .put(Pattern.compile("^String continuations.*"), STRING_CONTINUATION)
+
             .put(
-                Pattern.compile("^this language feature is only supported for ECMASCRIPT6 mode.*"),
-                ES6_FEATURE)
+                Pattern.compile("^This language feature is only supported for .*"),
+                LANGUAGE_FEATURE)
 
             .put(Pattern.compile("^type syntax is only supported in ES6 typed mode.*"), ES6_TYPED)
 

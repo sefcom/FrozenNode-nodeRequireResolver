@@ -20,6 +20,8 @@ import static com.google.javascript.jscomp.CollapseProperties.NAMESPACE_REDEFINE
 import static com.google.javascript.jscomp.CollapseProperties.UNSAFE_NAMESPACE_WARNING;
 
 import com.google.javascript.jscomp.CompilerOptions.LanguageMode;
+import com.google.javascript.jscomp.CompilerOptions.PropertyCollapseLevel;
+import java.util.ArrayList;
 
 /**
  * Tests {@link CollapseProperties}.
@@ -35,13 +37,15 @@ public final class CollapsePropertiesTest extends CompilerTestCase {
       + "/** @constructor */ function String() {};\n"
       + "var arguments";
 
+  private PropertyCollapseLevel propertyCollapseLevel = PropertyCollapseLevel.ALL;
+
   public CollapsePropertiesTest() {
     super(EXTERNS);
   }
 
   @Override
   protected CompilerPass getProcessor(final Compiler compiler) {
-    return new CollapseProperties(compiler);
+    return new CollapseProperties(compiler, propertyCollapseLevel);
   }
 
   @Override
@@ -53,6 +57,14 @@ public final class CollapsePropertiesTest extends CompilerTestCase {
   @Override
   protected int getNumRepetitions() {
     return 1;
+  }
+
+  private void setupModuleExportsOnly() {
+    this.setAcceptedLanguage(LanguageMode.ECMASCRIPT_2015);
+    this.setLanguageOut(LanguageMode.ECMASCRIPT5);
+    enableProcessCommonJsModules();
+    enableTranspile();
+    propertyCollapseLevel = PropertyCollapseLevel.MODULE_EXPORT;
   }
 
   public void testMultiLevelCollapse() {
@@ -406,7 +418,7 @@ public final class CollapsePropertiesTest extends CompilerTestCase {
 
   public void testAliasCreatedForClassDepth2_1() {
     test(
-        LINE_JOINER.join(
+        lines(
             "var a = {};",
             "a.b = {};",
             "/** @constructor */",
@@ -414,7 +426,7 @@ public final class CollapsePropertiesTest extends CompilerTestCase {
             "var d = 1;",
             "d = a.b;",
             "a.b.c != d.c;"),
-        LINE_JOINER.join(
+        lines(
             "var a$b = {}; ",
             "/** @constructor */",
             "var a$b$c = function(){};",
@@ -424,7 +436,7 @@ public final class CollapsePropertiesTest extends CompilerTestCase {
         warning(UNSAFE_NAMESPACE_WARNING));
 
     test(
-        LINE_JOINER.join(
+        lines(
             "var a = {};",
             "a.b = {};",
             " /** @constructor @nocollapse */",
@@ -432,7 +444,7 @@ public final class CollapsePropertiesTest extends CompilerTestCase {
             "var d = 1;",
             " d = a.b; ",
             "a.b.c == d.c;"),
-        LINE_JOINER.join(
+        lines(
             "var a$b = {};",
             "/** @constructor @nocollapse */",
             "a$b.c = function(){};",
@@ -465,7 +477,7 @@ public final class CollapsePropertiesTest extends CompilerTestCase {
         + "a.b.c = {d: 3}; new f(a.b.c); a.b.c.d;");
 
     test(
-        LINE_JOINER.join(
+        lines(
             "var a = {};",
             "/** @constructor */",
             "a.b = function(){};",
@@ -473,7 +485,7 @@ public final class CollapsePropertiesTest extends CompilerTestCase {
             " a.b.c = {d: 3};",
             " new f(a.b.c);",
             " a.b.c.d;"),
-        LINE_JOINER.join(
+        lines(
             "/** @constructor */",
             " var a$b = function(){};",
             " /** @nocollapse */",
@@ -1036,6 +1048,14 @@ public final class CollapsePropertiesTest extends CompilerTestCase {
          "var x$y$z; var a = b = x$y$z = 0;");
   }
 
+  public void testChainedVarAssignments6() {
+    testSame("var a = x = 0; var x;");
+  }
+
+  public void testChainedVarAssignments7() {
+    testSame("x = {}; var a = x.y = 0; var x;");
+  }
+
   public void testPeerAndSubpropertyOfUncollapsibleProperty() {
     test("var x = {}; var a = x.y = 0; x.w = 1; x.y.z = 2;"
          + "b = x.w; c = x.y.z;",
@@ -1150,6 +1170,46 @@ public final class CollapsePropertiesTest extends CompilerTestCase {
         "var Foo$A = {c: 2}; var Foo$B = {c: 3};"
             + "/** @enum {Object} */ var Foo = {A: Foo$A, B: Foo$B};"
             + "for (var key in Foo) {}");
+  }
+
+  public void testHasOwnProperty() {
+    testSame("var a = {b: 3}; if (a.hasOwnProperty(foo)) { alert('ok'); }");
+    testSame("var a = {b: 3}; if (a.hasOwnProperty(foo)) { alert('ok'); } a.b;");
+  }
+
+  public void testHasOwnPropertyOnNonGlobalName() {
+    testSame(lines(
+        "/** @constructor */",
+        "function A() {",
+        "  this.foo = {a: 1, b: 1};",
+        "}",
+        "A.prototype.bar = function(prop) {",
+        "  return this.foo.hasOwnProperty(prop);",
+        "}"));
+    testSame("var a = {'b': {'c': 1}}; a['b'].hasOwnProperty('c');");
+    testSame("var a = {b: 3}; if (Object.prototype.hasOwnProperty.call(a, 'b')) { alert('ok'); }");
+  }
+
+  public void testHasOwnPropertyNested() {
+    test(
+        "var a = {b: {c: 3}}; if (a.b.hasOwnProperty('c')) { alert('ok'); }",
+        "var a$b =   {c: 3};  if (a$b.hasOwnProperty('c')) { alert('ok'); }");
+    test(
+        "var a = {b: {c: 3}}; if (a.b.hasOwnProperty('c')) { alert('ok'); } a.b.c;",
+        "var a$b =   {c: 3};  if (a$b.hasOwnProperty('c')) { alert('ok'); } a$b.c;");
+    test("var a = {}; a.b = function(p) { log(a.b.c.hasOwnProperty(p)); }; a.b.c = {};",
+        "var a$b = function(p) { log(a$b$c.hasOwnProperty(p)); }; var a$b$c = {};");
+}
+
+  public void testHasOwnPropertyMultiple() {
+    testSame("var a = {b: 3, c: 4, d: 5}; if (a.hasOwnProperty(prop)) { alert('ok'); }");
+  }
+
+  public void testObjectStaticMethodsPreventCollapsing() {
+    testSame("var a = {b: 3}; alert(Object.getOwnPropertyDescriptor(a, 'b'));");
+    testSame("var a = {b: 3}; alert(Object.getOwnPropertyDescriptors(a));");
+    testSame("var a = {b: 3}; alert(Object.getOwnPropertyNames(a));");
+    testSame("var a = {b: 3, [Symbol('c')]: 4}; alert(Object.getOwnPropertySymbols(a));");
   }
 
   private static final String COMMON_ENUM =
@@ -1590,12 +1650,12 @@ public final class CollapsePropertiesTest extends CompilerTestCase {
 
   public void testCollapsedNameAlreadyTaken() {
     test(
-        LINE_JOINER.join(
+        lines(
             "/** @constructor */ function Funny$Name(){};",
             "function Funny(){};",
             "Funny.Name = 5;",
             "var x = new Funny$Name();"),
-        LINE_JOINER.join(
+        lines(
             "/** @constructor */ function Funny$Name(){};",
             "function Funny(){};",
             "var Funny$Name$1 = 5;",
@@ -1669,13 +1729,13 @@ public final class CollapsePropertiesTest extends CompilerTestCase {
     // follow the assumptions of the pass and thus produces the following output.
 
     test(
-        LINE_JOINER.join(
+        lines(
             "var a = {",
             "  ['val' + ++i]: i,",
             "  ['val' + ++i]: i",
             "};",
             "a.val1;"),
-        LINE_JOINER.join(
+        lines(
             "var a = {",
             "  ['val' + ++i]: i,",
             "  ['val' + ++i]: i",
@@ -1688,7 +1748,7 @@ public final class CollapsePropertiesTest extends CompilerTestCase {
 
     // Computed property method name in class
     testSame(
-        LINE_JOINER.join(
+        lines(
             "class Bar {",
             "  constructor(){}",
             "  ['f'+'oo']() {",
@@ -1700,7 +1760,7 @@ public final class CollapsePropertiesTest extends CompilerTestCase {
 
     // Computed property method name in class - no concatenation
     testSame(
-        LINE_JOINER.join(
+        lines(
             "class Bar {",
             "  constructor(){}",
             "  ['foo']() {",
@@ -1714,7 +1774,7 @@ public final class CollapsePropertiesTest extends CompilerTestCase {
   public void testClassGetSetMembers() {
     // Get and set methods
     testSame(
-        LINE_JOINER.join(
+        lines(
             "class Bar {",
             "  constructor(x) {",
             "    this.x = x;",
@@ -1734,7 +1794,7 @@ public final class CollapsePropertiesTest extends CompilerTestCase {
   public void testClassNonStaticMembers() {
     // Call class method inside class scope
     testSame(
-        LINE_JOINER.join(
+        lines(
             "function getA() {};",
             "class Bar {",
             "  constructor(){}",
@@ -1748,7 +1808,7 @@ public final class CollapsePropertiesTest extends CompilerTestCase {
 
     // Call class method outside class scope
     testSame(
-        LINE_JOINER.join(
+        lines(
             "class Bar {",
             "  constructor(){}",
             "  getB(x) {}",
@@ -1759,7 +1819,7 @@ public final class CollapsePropertiesTest extends CompilerTestCase {
 
     // Non-static method
     testSame(
-        LINE_JOINER.join(
+        lines(
             "class Bar {",
             "  constructor(x){",
             "    this.x = x;",
@@ -1777,18 +1837,138 @@ public final class CollapsePropertiesTest extends CompilerTestCase {
     // TODO (simranarora) Make the pass collapse for static methods. Currently we have backed off
     // because we will need to handle super and this occurrences within the method.
     testSame(
-        LINE_JOINER.join(
+        lines(
             "class Bar {",
             "  static double(n) {",
             "    return n*2",
             "  }",
             "}",
             "Bar.double(1);"));
+
+    // If we add a static function to the class after the class definition, we still collapse it, as
+    // we don't detect that it's specifically a static class function.
+    // TODO(b/68948902): Consider adding a warning for this kind of class static method declaration.
+    test(
+        lines(
+            "class Bar {}",
+            "Bar.double = function(n) {",
+            "  return n*2",
+            "}",
+            "Bar.double(1);"),
+        lines(
+            "class Bar {}",
+            "var Bar$double = function(n) {",
+            "  return n*2",
+            "}",
+            "Bar$double(1);"));
+  }
+
+  public void testClassStaticProperties() {
+    test("class A {} A.foo = 'bar'; use(A.foo);",
+        "class A {} var A$foo = 'bar'; use(A$foo);");
+
+    // Collapsing A.foo is known to be unsafe.
+    test(
+        "class A { static useFoo() { alert(this.foo); } } A.foo = 'bar'; A.useFoo();",
+        "class A { static useFoo() { alert(this.foo); } } var A$foo = 'bar'; A.useFoo();");
+
+    testSame(
+        lines(
+            "class A {",
+            "  static useFoo() {",
+            "    alert(this.foo);",
+            "  }",
+            "};",
+            "/** @nocollapse */",
+            "A.foo = 'bar';",
+            "A.useFoo();"));
+  }
+
+  public void testClassStaticProperties_locallyDeclared1() {
+    test(
+        lines(
+            "class A {}",
+            "function addStaticPropToA() {",
+            "  A.staticProp = 5;",
+            "}",
+            "if (A.staticProp) {",
+            "  use(A.staticProp);",
+            "}"),
+        lines(
+            "class A {}",
+            "var A$staticProp;",
+            "function addStaticPropToA() {",
+            "  A$staticProp = 5;",
+            "}",
+            "if (A$staticProp) {",
+            "  use(A$staticProp);",
+            "}"));
+  }
+
+  public void testClassStaticProperties_locallyDeclared2() {
+    test(
+        lines(
+            "const A = class {}",
+            "function addStaticPropToA() {",
+            "  A.staticProp = 5;",
+            "}",
+            "if (A.staticProp) {",
+            "  use(A.staticProp);",
+            "}"),
+        lines(
+            "const A = class {}",
+            "var A$staticProp;",
+            "function addStaticPropToA() {",
+            "  A$staticProp = 5;",
+            "}",
+            "if (A$staticProp) {",
+            "  use(A$staticProp);",
+            "}"));
+  }
+
+  public void testEs6ClassStaticInheritance() {
+    test("class A {} A.foo = 5; use(A.foo); class B extends A {}",
+        "class A {} var A$foo = 5; use(A$foo); class B extends A {}");
+
+    // We potentially collapse unsafely when the subclass accesses a static property on its
+    // superclass. However, AggressiveInlineAliases tries to rewrite inherited accesses to make this
+    // collapsing safe. See InlineAndCollapsePropertiesTests for examples.
+    test(
+        "class A {}     A.foo = 5; use(A.foo); class B extends A {} use(B.foo);",
+        "class A {} var A$foo = 5; use(A$foo); class B extends A {} use(B.foo);");
+
+    test(
+        "class A {}     A.foo = 5; class B extends A {} use(B.foo);     B.foo = 6; use(B.foo);",
+        "class A {} var A$foo = 5; class B extends A {} use(B$foo); var B$foo = 6; use(B$foo);");
+
+    testSame(lines(
+        "class A {}",
+        "/** @nocollapse */",
+        "A.foo = 5;",
+    "class B extends A {}",
+        "use(B.foo);",
+        "/** @nocollapse */",
+        "B.foo = 6;",
+        "use(B.foo);"));
+  }
+
+  public void testEs6ClassExtendsChildClass() {
+    test(
+        lines(
+            "class Thing {}",
+            "Thing.Builder = class {};",
+            "class Subthing {}",
+            "Subthing.Builder = class extends Thing.Builder {}"),
+        lines(
+            "class Thing {}",
+            "var Thing$Builder = class {};",
+            "class Subthing {}",
+            "var Subthing$Builder = class extends Thing$Builder {}"));
   }
 
   public void testSuperExtern() {
     testSame(
-        LINE_JOINER.join(
+        lines(
             "class Foo {",
             "  constructor(){",
             "    this.x = x; ",
@@ -1815,7 +1995,7 @@ public final class CollapsePropertiesTest extends CompilerTestCase {
     // ES5 version
     setLanguage(LanguageMode.ECMASCRIPT3, LanguageMode.ECMASCRIPT3);
     test(
-        LINE_JOINER.join(
+        lines(
             "var foo = { ",
             "  bar: 1, ",
             "  myFunc: function myFunc() {",
@@ -1823,7 +2003,7 @@ public final class CollapsePropertiesTest extends CompilerTestCase {
             "  }",
             "};",
             "foo.myFunc();"),
-        LINE_JOINER.join(
+        lines(
             "var foo$bar = 1;",
             "var foo$myFunc = function myFunc() {",
             "  return this.bar",
@@ -1834,7 +2014,7 @@ public final class CollapsePropertiesTest extends CompilerTestCase {
     // ES6 version
     setLanguage(LanguageMode.ECMASCRIPT_2015, LanguageMode.ECMASCRIPT_2015);
     test(
-        LINE_JOINER.join(
+        lines(
             "var foo = { ",
             "  bar: 1, ",
             "  myFunc() {",
@@ -1842,7 +2022,7 @@ public final class CollapsePropertiesTest extends CompilerTestCase {
             "  }",
             "};",
             "foo.myFunc();"),
-        LINE_JOINER.join(
+        lines(
             "var foo$bar = 1;",
             "var foo$myFunc = function() {",
             "  return this.bar",
@@ -1852,14 +2032,14 @@ public final class CollapsePropertiesTest extends CompilerTestCase {
 
     // "this" is lexically scoped in arrow functions so collapsing is safe.
     test(
-        LINE_JOINER.join(
+        lines(
             "var foo = { ",
             "  myFunc: () => {",
             "    return this;",
             "  }",
             "};",
             "foo.myFunc();"),
-        LINE_JOINER.join(
+        lines(
             "var foo$myFunc = () => {",
             "  return this",
             "};",
@@ -1870,7 +2050,7 @@ public final class CollapsePropertiesTest extends CompilerTestCase {
     // ES5 Version
     setLanguage(LanguageMode.ECMASCRIPT3, LanguageMode.ECMASCRIPT3);
     test(
-        LINE_JOINER.join(
+        lines(
             "var foo = { ",
             "  bar: 1, ",
             "  myFunc: function myFunc() {",
@@ -1878,7 +2058,7 @@ public final class CollapsePropertiesTest extends CompilerTestCase {
             "  }",
             "};",
             "foo.myFunc();"),
-        LINE_JOINER.join(
+        lines(
             "var foo$bar = 1;",
             "var foo$myFunc = function myFunc() {",
             "    return 5;",
@@ -1888,7 +2068,7 @@ public final class CollapsePropertiesTest extends CompilerTestCase {
     // ES6 version
     setLanguage(LanguageMode.ECMASCRIPT_2015, LanguageMode.ECMASCRIPT_2015);
     test(
-        LINE_JOINER.join(
+        lines(
             "var foo = { ",
             "  bar: 1, ",
             "  myFunc() {",
@@ -1896,10 +2076,28 @@ public final class CollapsePropertiesTest extends CompilerTestCase {
             "  }",
             "};",
             "foo.myFunc();"),
-        LINE_JOINER.join(
+        lines(
             "var foo$bar = 1;",
             "var foo$myFunc = function() {",
             "    return 5;",
+            "};",
+            "foo$myFunc();"));
+  }
+
+  public void testMethodPropertyShorthand() {
+    test(
+        lines(
+            "var foo = { ",
+            "  bar: 1, ",
+            "   myFunc() {",
+            "    return 2",
+            "  }",
+            "};",
+            "foo.myFunc();"),
+        lines(
+            "var foo$bar = 1;",
+            "var foo$myFunc = function() {",
+            "    return 2;",
             "};",
             "foo$myFunc();"));
   }
@@ -1925,11 +2123,11 @@ public final class CollapsePropertiesTest extends CompilerTestCase {
 
   public void testTemplateStrings() {
     test(
-        LINE_JOINER.join(
+        lines(
             "var a = {};",
             "a.b = 'foo';",
             "var c = `Hi ${a.b}`;"),
-        LINE_JOINER.join(
+        lines(
             "var a$b = 'foo';",
             "var c = `Hi ${a$b}`;"));
   }
@@ -1944,5 +2142,173 @@ public final class CollapsePropertiesTest extends CompilerTestCase {
         "import * as a$jscomp$1 from './a.js'; let b = a$jscomp$1.b;",
         "var a$b = 5;"
     });
+  }
+
+  public void testDefaultParameters() {
+    testSame("var a = {b: 5}; function f(x=a) { alert(x.b); }");
+
+    test(
+        "var a = {b: {c: 5}}; function f(x=a.b) { alert(x.c); }",
+        "var a$b = {c: 5}; function f(x=a$b) { alert(x.c); }");
+
+    test(
+        "var a = {b: 5}; function f(x=a.b) { alert(x); }",
+        "var a$b = 5; function f(x=a$b) { alert(x); }");
+  }
+
+  public void testModuleExportsBasicCommonJs() {
+    this.setupModuleExportsOnly();
+
+    ArrayList<SourceFile> inputs = new ArrayList<>();
+    inputs.add(SourceFile.fromCode("mod1.js", "module.exports = 123;"));
+    inputs.add(SourceFile.fromCode("entry.js", "var mod = require('./mod1.js'); alert(mod);"));
+
+    ArrayList<SourceFile> expected = new ArrayList<>();
+    expected.add(
+        SourceFile.fromCode(
+            "mod1.js",
+            "/** @const */ var module$mod1={}; /** @const */ var module$mod1$default = 123;"));
+    expected.add(
+        SourceFile.fromCode(
+            "entry.js", "var mod = module$mod1$default; alert(module$mod1$default);"));
+
+    test(inputs, expected);
+  }
+
+  public void testModuleExportsBasicEsm() {
+    this.setupModuleExportsOnly();
+
+    ArrayList<SourceFile> inputs = new ArrayList<>();
+    inputs.add(SourceFile.fromCode("mod1.js", "export default 123; export var bar = 'bar'"));
+    inputs.add(
+        SourceFile.fromCode(
+            "entry.js", "import mod, {bar} from './mod1.js'; alert(mod); alert(bar)"));
+
+    ArrayList<SourceFile> expected = new ArrayList<>();
+    expected.add(
+        SourceFile.fromCode(
+            "mod1.js",
+            LINE_JOINER.join(
+                "var $jscompDefaultExport$$module$mod1=123;",
+                "var bar$$module$mod1 = 'bar';",
+                "/** @const */ var module$mod1={};",
+                "var module$mod1$default = $jscompDefaultExport$$module$mod1;",
+                "var module$mod1$bar = bar$$module$mod1")));
+    expected.add(
+        SourceFile.fromCode("entry.js", "alert(module$mod1$default); alert(module$mod1$bar);"));
+
+    test(inputs, expected);
+  }
+
+  public void testMutableModuleExportsBasicEsm() {
+    this.setupModuleExportsOnly();
+
+    ArrayList<SourceFile> inputs = new ArrayList<>();
+    inputs.add(
+        SourceFile.fromCode(
+            "mod1.js",
+            lines(
+                "export default 123;", "export var bar = 'ba';", "function f() { bar += 'r'; }")));
+    inputs.add(
+        SourceFile.fromCode(
+            "entry.js", "import mod, {bar} from './mod1.js'; alert(mod); alert(bar)"));
+
+    ArrayList<SourceFile> expected = new ArrayList<>();
+    expected.add(
+        SourceFile.fromCode(
+            "mod1.js",
+            LINE_JOINER.join(
+                "var $jscompDefaultExport$$module$mod1=123;",
+                "var bar$$module$mod1 = 'ba';",
+                "function f$$module$mod1() { bar$$module$mod1 += 'r'; }",
+                "/** @const */ var module$mod1= {",
+                "  /** @return {?} */ get bar() { return bar$$module$mod1; },",
+                "};",
+                "var module$mod1$default = $jscompDefaultExport$$module$mod1;")));
+    expected.add(
+        SourceFile.fromCode("entry.js", "alert(module$mod1$default); alert(module$mod1.bar);"));
+
+    test(inputs, expected);
+  }
+
+  public void testModuleExportsObjectCommonJs() {
+    this.setupModuleExportsOnly();
+
+    ArrayList<SourceFile> inputs = new ArrayList<>();
+    inputs.add(
+        SourceFile.fromCode(
+            "mod1.js",
+            LINE_JOINER.join(
+                "var foo ={};", "foo.bar = {};", "foo.bar.baz = 123;", "module.exports = foo;")));
+    inputs.add(
+        SourceFile.fromCode("entry.js", "var mod = require('./mod1.js'); alert(mod.bar.baz);"));
+
+    ArrayList<SourceFile> expected = new ArrayList<>();
+    expected.add(
+        SourceFile.fromCode(
+            "mod1.js",
+            LINE_JOINER.join(
+                "/** @const */ var module$mod1={};",
+                " /** @const */ var module$mod1$default = {};",
+                "module$mod1$default.bar = {};",
+                "module$mod1$default.bar.baz = 123;")));
+    expected.add(
+        SourceFile.fromCode(
+            "entry.js", "var mod = module$mod1$default; alert(module$mod1$default.bar.baz);"));
+
+    test(inputs, expected);
+  }
+
+  public void testModuleExportsObjectEsm() {
+    this.setupModuleExportsOnly();
+
+    ArrayList<SourceFile> inputs = new ArrayList<>();
+    inputs.add(
+        SourceFile.fromCode(
+            "mod1.js",
+            LINE_JOINER.join(
+                "var foo ={};", "foo.bar = {};", "foo.bar.baz = 123;", "export default foo;")));
+    inputs.add(SourceFile.fromCode("entry.js", "import mod from './mod1.js'; alert(mod.bar.baz);"));
+
+    ArrayList<SourceFile> expected = new ArrayList<>();
+    expected.add(
+        SourceFile.fromCode(
+            "mod1.js",
+            LINE_JOINER.join(
+                "var foo$$module$mod1 = {};",
+                "foo$$module$mod1.bar = {};",
+                "foo$$module$mod1.bar.baz = 123;",
+                "var $jscompDefaultExport$$module$mod1 = foo$$module$mod1;",
+                "/** @const */ var module$mod1={};",
+                "var module$mod1$default = $jscompDefaultExport$$module$mod1;")));
+    expected.add(SourceFile.fromCode("entry.js", "alert(module$mod1$default.bar.baz);"));
+
+    test(inputs, expected);
+  }
+
+  public void testModuleExportsObjectSubPropertyCommonJs() {
+    this.setupModuleExportsOnly();
+
+    ArrayList<SourceFile> inputs = new ArrayList<>();
+    inputs.add(
+        SourceFile.fromCode(
+            "mod1.js",
+            LINE_JOINER.join(
+                "var foo ={};", "module.exports = foo;", "module.exports.bar = 'bar';")));
+    inputs.add(SourceFile.fromCode("entry.js", "var mod = require('./mod1.js'); alert(mod.bar);"));
+
+    ArrayList<SourceFile> expected = new ArrayList<>();
+    expected.add(
+        SourceFile.fromCode(
+            "mod1.js",
+            LINE_JOINER.join(
+                "/** @const */ var module$mod1={};",
+                " /** @const */ var module$mod1$default = {};",
+                "module$mod1$default.bar = 'bar';")));
+    expected.add(
+        SourceFile.fromCode(
+            "entry.js", "var mod = module$mod1$default; alert(module$mod1$default.bar);"));
+
+    test(inputs, expected);
   }
 }

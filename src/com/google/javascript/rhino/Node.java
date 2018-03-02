@@ -69,98 +69,100 @@ public class Node implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-  public static final byte
-      JSDOC_INFO_PROP   = 29,     // contains a JSDocInfo object
-
-      VAR_ARGS_NAME     = 30,     // the name node is a variable length
-                                  // argument placeholder.
-      INCRDECR_PROP      = 32,    // whether incrdecr is pre (false) or post (true)
-      QUOTED_PROP        = 36,    // set to indicate a quoted object lit key
-      OPT_ARG_NAME       = 37,    // The name node is an optional argument.
-      SYNTHETIC_BLOCK_PROP = 38,  // A synthetic block. Used to make
-                                  // processing simpler, and does not
-                                  // represent a real block in the source.
-      ADDED_BLOCK        = 39,    // Used to indicate BLOCK that is added
-      ORIGINALNAME_PROP  = 40,    // The original name of the node, before
-                                  // renaming.
-      SIDE_EFFECT_FLAGS  = 42,    // Function or constructor call side effect
-                                  // flags
+  public static final byte JSDOC_INFO_PROP = 29, // contains a JSDocInfo object
+      VAR_ARGS_NAME = 30, // the name node is a variable length
+      // argument placeholder.
+      INCRDECR_PROP = 32, // whether incrdecr is pre (false) or post (true)
+      QUOTED_PROP = 36, // set to indicate a quoted object lit key
+      OPT_ARG_NAME = 37, // The name node is an optional argument.
+      SYNTHETIC_BLOCK_PROP = 38, // A synthetic block. Used to make
+      // processing simpler, and does not
+      // represent a real block in the source.
+      ADDED_BLOCK = 39, // Used to indicate BLOCK that is added
+      ORIGINALNAME_PROP = 40, // The original name of the node, before
+      // renaming.
+      SIDE_EFFECT_FLAGS = 42, // Function or constructor call side effect
+      // flags
       // Coding convention props
-      IS_CONSTANT_NAME   = 43,    // The variable or property is constant.
-      IS_NAMESPACE       = 46,    // The variable creates a namespace.
-      DIRECTIVES         = 48,    // The ES5 directives on this node.
-      DIRECT_EVAL        = 49,    // ES5 distinguishes between direct and
-                                  // indirect calls to eval.
-      FREE_CALL          = 50,    // A CALL without an explicit "this" value.
-      STATIC_SOURCE_FILE = 51,    // A StaticSourceFile indicating the file
-                                  // where this node lives.
-      INPUT_ID           = 53,    // The id of the input associated with this
-                                  // node.
-      SLASH_V            = 54,    // Whether a STRING node contains a \v
-                                  // vertical tab escape. This is a total hack.
-                                  // See comments in IRFactory about this.
-      INFERRED_FUNCTION  = 55,    // Marks a function whose parameter types
-                                  // have been inferred.
-      CHANGE_TIME        = 56,    // For passes that work only on changed funs.
-      REFLECTED_OBJECT   = 57,    // An object that's used for goog.object.reflect-style reflection.
-      STATIC_MEMBER      = 58,    // Set if class member definition is static
-      GENERATOR_FN       = 59,    // Set if the node is a Generator function or
-                                  // member method.
-      ARROW_FN           = 60,
-      ASYNC_FN           = 61, // http://tc39.github.io/ecmascript-asyncawait/
-      YIELD_ALL          = 62, // Set if a yield is a "yield all"
-      EXPORT_DEFAULT     = 63, // Set if a export is a "default" export
-      EXPORT_ALL_FROM    = 64, // Set if an export is a "*"
-      IS_CONSTANT_VAR    = 65, // A lexical variable is inferred const
-      GENERATOR_MARKER   = 66, // Used by the ES6-to-ES3 translator.
-      GENERATOR_SAFE     = 67, // Used by the ES6-to-ES3 translator.
-
-      RAW_STRING_VALUE   = 71,    // Used to support ES6 tagged template literal.
-      COMPUTED_PROP_METHOD = 72,  // A computed property that has the method
-                                  // syntax ( [prop]() {...} ) rather than the
-                                  // property definition syntax ( [prop]: value ).
-      COMPUTED_PROP_GETTER = 73,  // A computed property in a getter, e.g.
-                                  // var obj = { get [prop]() {...} };
-      COMPUTED_PROP_SETTER = 74,  // A computed property in a setter, e.g.
-                                  // var obj = { set [prop](val) {...} };
+      IS_CONSTANT_NAME = 43, // The variable or property is constant.
+      IS_NAMESPACE = 46, // The variable creates a namespace.
+      DIRECTIVES = 48, // The ES5 directives on this node.
+      DIRECT_EVAL = 49, // ES5 distinguishes between direct and
+      // indirect calls to eval.
+      FREE_CALL = 50, // A CALL without an explicit "this" value.
+      STATIC_SOURCE_FILE = 51, // A StaticSourceFile indicating the file
+      // where this node lives.
+      INPUT_ID = 53, // The id of the input associated with this
+      // node.
+      SLASH_V = 54, // Whether a STRING node contains a \v
+      // vertical tab escape. This is a total hack.
+      // See comments in IRFactory about this.
+      INFERRED_FUNCTION = 55, // Marks a function whose parameter types
+      // have been inferred.
+      CHANGE_TIME = 56, // For passes that work only on changed funs.
+      REFLECTED_OBJECT = 57, // An object that's used for goog.object.reflect-style reflection.
+      STATIC_MEMBER = 58, // Set if class member definition is static
+      GENERATOR_FN = 59, // Set if the node is a Generator function or
+      // member method.
+      ARROW_FN = 60,
+      ASYNC_FN = 61, // http://tc39.github.io/ecmascript-asyncawait/
+      YIELD_ALL = 62, // Set if a yield is a "yield all"
+      EXPORT_DEFAULT = 63, // Set if a export is a "default" export
+      EXPORT_ALL_FROM = 64, // Set if an export is a "*"
+      IS_CONSTANT_VAR = 65, // A lexical variable is inferred const
+      GENERATOR_MARKER = 66, // Used by the ES6-to-ES3 translator.
+      GENERATOR_SAFE = 67, // Used by the ES6-to-ES3 translator.
+      RAW_STRING_VALUE = 71, // Used to support ES6 tagged template literal.
+      COMPUTED_PROP_METHOD = 72, // A computed property that has the method
+      // syntax ( [prop]() {...} ) rather than the
+      // property definition syntax ( [prop]: value ).
+      COMPUTED_PROP_GETTER = 73, // A computed property in a getter, e.g.
+      // var obj = { get [prop]() {...} };
+      COMPUTED_PROP_SETTER = 74, // A computed property in a setter, e.g.
+      // var obj = { set [prop](val) {...} };
       COMPUTED_PROP_VARIABLE = 75, // A computed property that's a variable, e.g. [prop]: string;
-      ANALYZED_DURING_GTI  = 76,  // In GlobalTypeInfo, we mark some AST nodes
-                                  // to avoid analyzing them during
-                                  // NewTypeInference. We remove this attribute
-                                  // in the fwd direction of NewTypeInference.
+      ANALYZED_DURING_GTI = 76, // In GlobalTypeInfo, we mark some AST nodes
+      // to avoid analyzing them during
+      // NewTypeInference. We remove this attribute
+      // in the fwd direction of NewTypeInference.
       CONSTANT_PROPERTY_DEF = 77, // Used to communicate information between
-                                  // GlobalTypeInfo and NewTypeInference.
-                                  // We use this to tag getprop nodes that
-                                  // declare properties.
-      DECLARED_TYPE_EXPR = 78,    // Used to attach TypeDeclarationNode ASTs to
-                                  // Nodes which represent a typed NAME or
-                                  // FUNCTION.
-                                  //
-      TYPE_BEFORE_CAST = 79,      // The type of an expression before the cast.
-                                  // This will be present only if the expression is casted.
-      OPT_ES6_TYPED = 80,         // The node is an optional parameter or property
-                                  // in ES6 Typed syntax.
-      GENERIC_TYPE_LIST = 81,     // Generic type list in ES6 typed syntax.
-      IMPLEMENTS = 82,            // "implements" clause in ES6 typed syntax.
-      CONSTRUCT_SIGNATURE = 83,   // This node is a TypeScript ConstructSignature
-      ACCESS_MODIFIER = 84,       // TypeScript accessibility modifiers (public, protected, private)
-      NON_INDEXABLE = 85,         // Indicates the node should not be indexed by analysis tools.
-      PARSE_RESULTS = 86,         // Parse results stored on SCRIPT nodes to allow replaying
-                                  // parse warnings/errors when cloning cached ASTs.
-      GOOG_MODULE = 87,           // Indicates that a SCRIPT node is a goog.module. Remains set
-                                  // after the goog.module is desugared.
-      GOOG_MODULE_REQUIRE = 88,   // Node is a goog.require() as desugared by goog.module()
-      FEATURE_SET = 89,           // Attaches a FeatureSet to SCRIPT nodes.
-      IS_MODULE_NAME = 90,        // Indicates that a STRING node represents a namespace from
-                                  // goog.module() or goog.require() call.
+      // GlobalTypeInfo and NewTypeInference.
+      // We use this to tag getprop nodes that
+      // declare properties.
+      DECLARED_TYPE_EXPR = 78, // Used to attach TypeDeclarationNode ASTs to
+      // Nodes which represent a typed NAME or
+      // FUNCTION.
+      //
+      TYPE_BEFORE_CAST = 79, // The type of an expression before the cast.
+      // This will be present only if the expression is casted.
+      OPT_ES6_TYPED = 80, // The node is an optional parameter or property
+      // in ES6 Typed syntax.
+      GENERIC_TYPE_LIST = 81, // Generic type list in ES6 typed syntax.
+      IMPLEMENTS = 82, // "implements" clause in ES6 typed syntax.
+      CONSTRUCT_SIGNATURE = 83, // This node is a TypeScript ConstructSignature
+      ACCESS_MODIFIER = 84, // TypeScript accessibility modifiers (public, protected, private)
+      NON_INDEXABLE = 85, // Indicates the node should not be indexed by analysis tools.
+      PARSE_RESULTS = 86, // Parse results stored on SCRIPT nodes to allow replaying
+      // parse warnings/errors when cloning cached ASTs.
+      GOOG_MODULE = 87, // Indicates that a SCRIPT node is a goog.module. Remains set
+      // after the goog.module is desugared.
+      GOOG_MODULE_REQUIRE = 88, // Node is a goog.require() as desugared by goog.module()
+      FEATURE_SET = 89, // Attaches a FeatureSet to SCRIPT nodes.
+      IS_MODULE_NAME = 90, // Indicates that a STRING node represents a namespace from
+      // goog.module() or goog.require() call.
       WAS_PREVIOUSLY_PROVIDED = 91, // Indicates a namespace that was provided at some point in the
-                                  // past.
-      IS_ES6_CLASS = 92,          // Indicates that a FUNCTION node is converted from an ES6 class
-      TRANSPILED = 93,            // Indicates that a SCRIPT represents a transpiled file
-      DELETED = 94,               // For passes that work only on deleted funs.
-      GOOG_MODULE_ALIAS = 95;     // Indicates that the node is an alias of goog.require'd module.
-                                  // Aliases are desugared and inlined by compiler passes but we
-                                  // need to preserve them for building index.
+      // past.
+      IS_ES6_CLASS = 92, // Indicates that a FUNCTION node is converted from an ES6 class
+      TRANSPILED = 93, // Indicates that a SCRIPT represents a transpiled file
+      DELETED = 94, // For passes that work only on deleted funs.
+      MODULE_ALIAS = 95, // Indicates that the node is an alias or a name from goog.require'd module
+      // or ES6 module. Aliases are desugared and inlined by compiler passes but we
+      // need to preserve them for building index.
+      IS_UNUSED_PARAMETER = 96, // Mark a parameter as unused. Used to defer work from
+      // RemovedUnusedVars to OptimizeParameters.
+      MODULE_EXPORT = 97, // Mark a property as a module export so that collase properties
+      // can act on it.
+      IS_SHORTHAND_PROPERTY = 98; // Indicates that a property {x:x} was originally parsed as {x}.
 
   private static final String propToString(byte propType) {
       switch (propType) {
@@ -221,7 +223,12 @@ public class Node implements Serializable {
         case IS_ES6_CLASS:       return "is_es6_class";
         case TRANSPILED:         return "transpiled";
         case DELETED:            return "DELETED";
-        case GOOG_MODULE_ALIAS:  return "goog_module_alias";
+        case MODULE_ALIAS:       return "module_alias";
+        case IS_UNUSED_PARAMETER: return "is_unused_parameter";
+        case MODULE_EXPORT:
+          return "module_export";
+        case IS_SHORTHAND_PROPERTY:
+          return "is_shorthand_property";
         default:
           throw new IllegalStateException("unexpected prop id " + propType);
       }
@@ -314,6 +321,11 @@ public class Node implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    // Only for cloneNode
+    private StringNode(Token token) {
+      super(token);
+    }
+
     StringNode(Token token, String str) {
       super(token);
       setString(str);
@@ -347,10 +359,11 @@ public class Node implements Serializable {
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality")
     public boolean isEquivalentTo(
         Node node, boolean compareType, boolean recur, boolean jsDoc, boolean sideEffect) {
       return (super.isEquivalentTo(node, compareType, recur, jsDoc, sideEffect)
-          && this.str.equals(((StringNode) node).str));
+          && this.str == (((StringNode) node).str));
     }
 
     /**
@@ -376,7 +389,9 @@ public class Node implements Serializable {
 
     @Override
     public StringNode cloneNode(boolean cloneTypeExprs) {
-      return copyNodeFields(new StringNode(token, str), cloneTypeExprs);
+      StringNode clone = new StringNode(token);
+      clone.str = str;
+      return copyNodeFields(clone, cloneTypeExprs);
     }
 
     @GwtIncompatible("ObjectInputStream")
@@ -730,10 +745,21 @@ public class Node implements Serializable {
     child.parent = this;
   }
 
-  public final void addChildrenToFront(Node children) {
+  /**
+   * Add all children to the front of this node.
+   *
+   * @param children first of a list of sibling nodes who have no parent.
+   *    NOTE: Usually you would get this argument from a removeChildren() call.
+   *    A single detached node will not work because its sibling pointers will not be
+   *    correctly initialized.
+   */
+  public final void addChildrenToFront(@Nullable Node children) {
     if (children == null) {
       return; // removeChildren() returns null when there are none
     }
+    // NOTE: If there is only one sibling, its previous pointer must point to itself.
+    // Null indicates a fully detached node.
+    checkNotNull(children.previous, children);
     for (Node child = children; child != null; child = child.next) {
       checkArgument(child.parent == null);
       child.parent = this;
@@ -776,9 +802,9 @@ public class Node implements Serializable {
   }
 
   /**
-   * Add 'child' after 'node'.
+   * Add 'newChild' after 'node'.  If 'node' is null, add it to the front of this node.
    */
-  public final void addChildAfter(Node newChild, Node node) {
+  public final void addChildAfter(Node newChild, @Nullable Node node) {
     checkArgument(newChild.next == null, "The new child node has next siblings.");
     checkArgument(newChild.previous == null, "The new child node has previous siblings.");
     // NOTE: newChild.next remains null
@@ -786,13 +812,22 @@ public class Node implements Serializable {
     addChildrenAfter(newChild, node);
   }
 
-  /** Add all children after 'node'. */
+  /**
+   * Add all children after 'node'. If 'node' is null, add them to the front of this node.
+   *
+   * @param children first of a list of sibling nodes who have no parent.
+   *    NOTE: Usually you would get this argument from a removeChildren() call.
+   *    A single detached node will not work because its sibling pointers will not be
+   *    correctly initialized.
+   */
   public final void addChildrenAfter(@Nullable Node children, @Nullable Node node) {
     if (children == null) {
       return; // removeChildren() returns null when there are none
     }
     checkArgument(node == null || node.parent == this);
-    checkNotNull(children.previous);
+    // NOTE: If there is only one sibling, its previous pointer must point to itself.
+    // Null indicates a fully detached node.
+    checkNotNull(children.previous, children);
     if (node == null) {
       addChildrenToFront(children);
       return;
@@ -926,15 +961,15 @@ public class Node implements Serializable {
     return this;
   }
 
+  public final boolean hasProps() {
+    return propListHead != null;
+  }
+
   public final void removeProp(byte propType) {
     PropListItem result = removeProp(propListHead, propType);
     if (result != propListHead) {
       propListHead = result;
     }
-  }
-
-  public final boolean hasProps() {
-    return propListHead != null;
   }
 
   /**
@@ -1344,6 +1379,13 @@ public class Node implements Serializable {
 
   public final void makeNonIndexable() {
     this.putBooleanProp(NON_INDEXABLE, true);
+  }
+
+  public final void makeNonIndexableRecursive() {
+    this.makeNonIndexable();
+    for (Node child : children()) {
+      child.makeNonIndexableRecursive();
+    }
   }
 
   public final boolean isFromExterns() {
@@ -1786,11 +1828,6 @@ public class Node implements Serializable {
     return null;
   }
 
-  /** Returns true if this node is equivalent semantically to another */
-  public final boolean isEquivalentTo(Node node) {
-    return isEquivalentTo(node, false, true, false, false);
-  }
-
   /** Checks equivalence without going into child nodes */
   public final boolean isEquivalentToShallow(Node node) {
     return isEquivalentTo(node, false, false, false, false);
@@ -1811,6 +1848,11 @@ public class Node implements Serializable {
    */
   public final boolean isEquivalentToTyped(Node node) {
     return isEquivalentTo(node, true, true, true, false);
+  }
+
+  /** Returns true if this node is equivalent semantically to another */
+  public final boolean isEquivalentTo(Node node) {
+    return isEquivalentTo(node, false, true, false, false);
   }
 
   /**
@@ -1889,6 +1931,10 @@ public class Node implements Serializable {
 
     if (sideEffect) {
       if (this.getSideEffectFlags() != node.getSideEffectFlags()) {
+        return false;
+      }
+
+      if (this.isUnusedParameter() != node.isUnusedParameter()) {
         return false;
       }
     }
@@ -2056,18 +2102,21 @@ public class Node implements Serializable {
    * Returns whether a node matches a simple or a qualified name, such as <code>x</code> or <code>
    * a.b.c</code> or <code>this.a</code>.
    */
+  @SuppressWarnings("ReferenceEquality")
   public final boolean matchesQualifiedName(Node n) {
     if (n == null || n.token != token) {
       return false;
     }
     switch (token) {
       case NAME:
-        return !getString().isEmpty() && getString().equals(n.getString());
+        // ==, rather than equal as it is intern'd in setString
+        return !getString().isEmpty() && getString() == n.getString();
       case THIS:
       case SUPER:
         return true;
       case GETPROP:
-        return getLastChild().getString().equals(n.getLastChild().getString())
+        // ==, rather than equal as it is intern'd in setString
+        return getLastChild().getString() == n.getLastChild().getString()
             && getFirstChild().matchesQualifiedName(n.getFirstChild());
       default:
         return false;
@@ -2247,30 +2296,6 @@ public class Node implements Serializable {
   }
 
   /**
-   * Copies source file and name information from the other node to the
-   * entire tree rooted at this node.
-   * @return this
-   */
-  // TODO(nicksantos): The semantics of this method are ill-defined. Delete it.
-  @Deprecated
-  public final Node useSourceInfoWithoutLengthIfMissingFromForTree(Node other) {
-    if (getStaticSourceFile() == null) {
-      setStaticSourceFileFrom(other);
-      sourcePosition = other.sourcePosition;
-    }
-
-    if (getProp(ORIGINALNAME_PROP) == null) {
-      putProp(ORIGINALNAME_PROP, other.getProp(ORIGINALNAME_PROP));
-    }
-
-    for (Node child = first; child != null; child = child.next) {
-      child.useSourceInfoWithoutLengthIfMissingFromForTree(other);
-    }
-
-    return this;
-  }
-
-  /**
    * Overwrite all the source information in this node with
    * that of {@code other}.
    */
@@ -2342,7 +2367,7 @@ public class Node implements Serializable {
    * #getDeclaredTypeExpression()} which returns the syntactically specified type.
    */
   @Nullable
-  public JSType getJSType() {  // TODO(johnlenz): make this final
+  public final JSType getJSType() {
     return typei instanceof JSType ? (JSType) typei : null;
   }
 
@@ -2407,6 +2432,27 @@ public class Node implements Serializable {
 
   public final boolean isDeleted() {
     return getBooleanProp(DELETED);
+  }
+
+  public final void setUnusedParameter(boolean unused) {
+    putBooleanProp(IS_UNUSED_PARAMETER, unused);
+  }
+
+  /**
+   * @return Whether a parameter was function to be unused. Set by RemoveUnusedVars
+   */
+  public final boolean isUnusedParameter() {
+    return getBooleanProp(IS_UNUSED_PARAMETER);
+  }
+
+  /** Sets the isShorthandProperty annotation. */
+  public final void setShorthandProperty(boolean shorthand) {
+    putBooleanProp(IS_SHORTHAND_PROPERTY, shorthand);
+  }
+
+  /** Whether this {x:x} property was originally parsed as {x}. */
+  public final boolean isShorthandProperty() {
+    return getBooleanProp(IS_SHORTHAND_PROPERTY);
   }
 
   /**
@@ -2536,14 +2582,18 @@ public class Node implements Serializable {
   }
 
   /**
-   * Sets whether this node is a marker used in the translation of generators.
+   * Sets whether this node subtree contains YIELD nodes.
+   *
+   * <p> It's used in the translation of generators.
    */
   public final void setGeneratorMarker(boolean isGeneratorMarker) {
     putBooleanProp(GENERATOR_MARKER, isGeneratorMarker);
   }
 
   /**
-   * Returns whether this node is a marker used in the translation of generators.
+   * Returns whether this node was marked as containing YIELD nodes.
+   *
+   * <p> It's used in the translation of generators.
    */
   public final boolean isGeneratorMarker() {
     return getBooleanProp(GENERATOR_MARKER);
@@ -2646,9 +2696,9 @@ public class Node implements Serializable {
    */
   public final void setSideEffectFlags(int flags) {
     checkArgument(
-        this.isCall() || this.isNew(),
-        "setIsNoSideEffectsCall only supports CALL and NEW nodes, got %s",
-        this.getToken());
+        this.isCall() || this.isNew() || this.isTaggedTemplateLit(),
+        "setIsNoSideEffectsCall only supports call-like nodes, got %s",
+        this);
 
     putIntProp(SIDE_EFFECT_FLAGS, flags);
   }
@@ -2893,6 +2943,10 @@ public class Node implements Serializable {
 
   public final boolean isRoot() {
     return this.token == Token.ROOT;
+  }
+
+  public final boolean isAwait() {
+    return this.token == Token.AWAIT;
   }
 
   public final boolean isBreak() {

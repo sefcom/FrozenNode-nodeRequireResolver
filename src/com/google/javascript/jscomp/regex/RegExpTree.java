@@ -590,7 +590,7 @@ public abstract class RegExpTree {
     }
 
     @Override
-    public final List<? extends RegExpTree> children() {
+    public final ImmutableList<? extends RegExpTree> children() {
       return ImmutableList.of();
     }
   }
@@ -870,7 +870,7 @@ public abstract class RegExpTree {
     }
 
     @Override
-    public List<? extends RegExpTree> children() {
+    public ImmutableList<? extends RegExpTree> children() {
       return ImmutableList.of(body);
     }
 
@@ -1118,7 +1118,7 @@ public abstract class RegExpTree {
     }
 
     @Override
-    public List<? extends RegExpTree> children() {
+    public ImmutableList<? extends RegExpTree> children() {
       return alternatives;
     }
 
@@ -1189,7 +1189,7 @@ public abstract class RegExpTree {
     }
 
     @Override
-    public List<? extends RegExpTree> children() {
+    public ImmutableList<? extends RegExpTree> children() {
       return ImmutableList.of(body);
     }
 
@@ -1246,7 +1246,7 @@ public abstract class RegExpTree {
     }
 
     @Override
-    public List<? extends RegExpTree> children() {
+    public ImmutableList<? extends RegExpTree> children() {
       return ImmutableList.of(body);
     }
 
@@ -1460,15 +1460,6 @@ public abstract class RegExpTree {
       return new DecomposedCharset(inverted, ranges, namedGroups.toString());
     }
 
-    @Override
-    protected void appendSourceCode(StringBuilder sb) {
-      if (DOT_CHARSET.ranges.equals(ranges)) {
-        sb.append('.');
-        return;
-      }
-      decompose().appendSourceCode(sb);
-    }
-
     DecomposedCharset decompose() {
       CharRanges negRanges = CharRanges.ALL_CODE_UNITS.difference(ranges);
       if (!ieExplicits.isEmpty()) {
@@ -1480,8 +1471,16 @@ public abstract class RegExpTree {
       }
       DecomposedCharset positive = decompose(ranges, false);
       DecomposedCharset negative = decompose(negRanges, true);
-      return positive.complexity() <= negative.complexity()
-          ? positive : negative;
+      return positive.complexity() <= negative.complexity() ? positive : negative;
+    }
+
+    @Override
+    protected void appendSourceCode(StringBuilder sb) {
+      if (DOT_CHARSET.ranges.equals(ranges)) {
+        sb.append('.');
+        return;
+      }
+      decompose().appendSourceCode(sb);
     }
 
     @Override
@@ -1746,7 +1745,7 @@ public abstract class RegExpTree {
     }
 
     @Override
-    public List<? extends RegExpTree> children() {
+    public ImmutableList<? extends RegExpTree> children() {
       return elements;
     }
 

@@ -51,7 +51,7 @@ $jscomp.polyfill('Promise',
     /**
      * Batch of functions to execute.
      *
-     * Will be {@code null} initially and immediately after a batch finishes
+     * Will be `null` initially and immediately after a batch finishes
      * executing.
      * @private {?Array<function():?>}
      */
@@ -82,7 +82,7 @@ $jscomp.polyfill('Promise',
   };
 
   /**
-   * Schedule execution of the jobs in {@code this.batch_}.
+   * Schedule execution of the jobs in `this.batch_`.
    * @private
    */
   AsyncExecutor.prototype.asyncExecuteBatch_ = function() {
@@ -244,6 +244,7 @@ $jscomp.polyfill('Promise',
   /**
    * @private
    * @param {!Object} obj
+   * @suppress {strictMissingProperties} obj.then
    */
   PolyfillPromise.prototype.resolveToNonPromiseObj_ = function(obj) {
     var thenMethod = undefined;
@@ -307,7 +308,7 @@ $jscomp.polyfill('Promise',
   PolyfillPromise.prototype.settle_ = function(settledState, valueOrReason) {
     if (this.state_ != PromiseState.PENDING) {
       throw new Error(
-          'Cannot settle(' + settledState + ', ' + valueOrReason |
+          'Cannot settle(' + settledState + ', ' + valueOrReason +
           '): Promise already settled in state' + this.state_);
     }
     this.state_ = settledState;
@@ -406,7 +407,7 @@ $jscomp.polyfill('Promise',
 
   PolyfillPromise.prototype.callWhenSettled_ = function(
       onFulfilled, onRejected) {
-    var thisPromise = this;
+    var /** !PolyfillPromise */ thisPromise = this;
     function callback() {
       switch (thisPromise.state_) {
         case PromiseState.FULFILLED:

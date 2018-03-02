@@ -312,7 +312,7 @@ public final class FunctionType implements Serializable {
     checkState(isUniqueConstructor());
     NominalType nt = getNominalTypeIfSingletonObj(this.nominalType);
     NominalType superClass = nt.getInstantiatedSuperclass();
-    return superClass == null ? null : superClass.getPrototypePropertyOfCtor();
+    return superClass == null ? null : superClass.getPrototypeObject();
   }
 
   /**
@@ -350,11 +350,11 @@ public final class FunctionType implements Serializable {
   /**
    * Returns the formal parameter in the given (0-indexed) position,
    * or null if the position is past the end of the parameter list.
-   *
-   * @throws IllegalStateException if this is the top function (rather than returning bottom).
    */
   public JSType getFormalType(int argpos) {
-    checkState(!isTopFunction());
+    if (isTopFunction()) {
+      return this.commonTypes.UNKNOWN;
+    }
     int numReqFormals = requiredFormals.size();
     if (argpos < numReqFormals) {
       return requiredFormals.get(argpos);
@@ -444,6 +444,15 @@ public final class FunctionType implements Serializable {
     return nominal == null
         ? null
         : nominal.substituteGenerics(this.commonTypes.MAP_TO_UNKNOWN).getInstanceAsJSType();
+  }
+
+  /**
+   * If this type is a constructor, this method returns the prototype object of the
+   * new instances.
+   */
+  JSType getPrototypeOfNewInstances() {
+    checkState(isSomeConstructorOrInterface());
+    return this.nominalType.getPrototypeObject();
   }
 
   /**
@@ -619,7 +628,7 @@ public final class FunctionType implements Serializable {
   public boolean isValidOverride(FunctionType other) {
     // Note: SubtypeCache.create() is cheap, since the data structure is persistent.
     // The cache is used to handle cycles in types' dependencies.
-    return isSubtypeOfHelper(other, false, SubtypeCache.create(), null);
+    return isSubtypeOfHelper(other, true, SubtypeCache.create(), null);
   }
 
   // We want to warn about argument mismatch, so we don't consider a function
@@ -629,7 +638,7 @@ public final class FunctionType implements Serializable {
 
   /** Returns true if this function is a subtype of {@code other}. */
   boolean isSubtypeOf(FunctionType other, SubtypeCache subSuperMap) {
-    return isSubtypeOfHelper(other, true, subSuperMap, null);
+    return isSubtypeOfHelper(other, false, subSuperMap, null);
   }
 
   /**
@@ -639,7 +648,7 @@ public final class FunctionType implements Serializable {
   static void whyNotSubtypeOf(FunctionType f1, FunctionType f2,
       SubtypeCache subSuperMap, MismatchInfo[] boxedInfo) {
     checkArgument(boxedInfo.length == 1);
-    f1.isSubtypeOfHelper(f2, true, subSuperMap, boxedInfo);
+    f1.isSubtypeOfHelper(f2, false, subSuperMap, boxedInfo);
   }
 
   /**
@@ -650,7 +659,7 @@ public final class FunctionType implements Serializable {
    * it to represent, for example, a constructor of Foos with whatever
    * arguments.
    */
-  private boolean acceptsAnyArguments() {
+  public boolean acceptsAnyArguments() {
     return this.requiredFormals.isEmpty() && this.optionalFormals.isEmpty()
         && this.restFormals != null && this.restFormals.isUnknown();
   }
@@ -659,11 +668,11 @@ public final class FunctionType implements Serializable {
    * Recursively checks that this is a subtype of other: this's parameter
    * types are supertypes of other's corresponding parameters (contravariant),
    * and this's return type is a subtype of other's return type (covariant).
-   * Additionally, any 'this' type must be contravariant and any 'new' type
-   * must be covariant.  A cache is used to resolve cycles, and details
-   * about some mismatched types are written to boxedInfo[0].
+   * Additionally, any 'new' type must be covariant.
+   * A cache is used to resolve cycles, and details about some mismatched types
+   * are written to boxedInfo[0].
    */
-  private boolean isSubtypeOfHelper(FunctionType other, boolean checkThisType,
+  private boolean isSubtypeOfHelper(FunctionType other, boolean isMethodOverrideCheck,
       SubtypeCache subSuperMap, MismatchInfo[] boxedInfo) {
     if (other.isTopFunction() ||
         other.isQmarkFunction() || this.isQmarkFunction()) {
@@ -684,7 +693,7 @@ public final class FunctionType implements Serializable {
       // and the fix is not trivial, so for now we decided to not fix.
       // See unit tests in NewTypeInferenceTest#testGenericsSubtyping
       return instantiateGenericsWithUnknown()
-          .isSubtypeOfHelper(other, checkThisType, subSuperMap, boxedInfo);
+          .isSubtypeOfHelper(other, isMethodOverrideCheck, subSuperMap, boxedInfo);
     }
 
     if (!other.acceptsAnyArguments()) {
@@ -710,8 +719,7 @@ public final class FunctionType implements Serializable {
       }
 
       if (other.restFormals != null) {
-        int thisMaxTotalArity =
-            this.requiredFormals.size() + this.optionalFormals.size();
+        int thisMaxTotalArity = this.requiredFormals.size() + this.optionalFormals.size();
         if (this.restFormals != null) {
           thisMaxTotalArity++;
         }
@@ -734,17 +742,28 @@ public final class FunctionType implements Serializable {
       return false;
     }
 
-    if (checkThisType) {
-      // A function without @this can be a subtype of a function with @this.
-      if (!this.commonTypes.allowMethodsAsFunctions
-          && this.receiverType != null && other.receiverType == null) {
-        return false;
-      }
-      if (this.receiverType != null && other.receiverType != null
-          // Contravariance for the receiver type
-          && !other.receiverType.isSubtypeOf(this.receiverType, subSuperMap)) {
-        return false;
-      }
+    // A function without @this can be a subtype of a function with @this.
+    if (!this.commonTypes.allowMethodsAsFunctions
+        // For method overrides, we allow a function with @this to be a subtype of a function
+        // without @this, but we don't allow it for general function subtyping.
+        && !isMethodOverrideCheck
+        && this.receiverType != null
+        && other.receiverType == null) {
+      return false;
+    }
+    if (this.receiverType != null && other.receiverType != null
+        // Checking of @this is unfortunately loose, because it covers two different cases.
+        // 1) When a method overrides another method from a supertype, we only require
+        //    that the new @this meets with the @this from the supertype, e.g., see the typing
+        //    of toString in the externs. This is unsafe, but that's how we have typed it.
+        // 2) When checking for subtyping of two arbitrary function types, the correct semantics
+        //    would be to check @this in a contravariant way, but we allow looseness in order to
+        //    handle cases like using a Foo that overrides toString as an IObject<?,?>.
+        // It would be possible to add special-case code here and in ObjectType#isSubtypeOf
+        // to allow us to be loose for #1 but stricter for #2, but it's awkward and doesn't seem
+        // worth doing.
+        && !JSType.haveCommonSubtype(this.receiverType, other.receiverType)) {
+      return false;
     }
 
     // covariance in the return type
@@ -947,8 +966,7 @@ public final class FunctionType implements Serializable {
       builder.addOptFormal(optFormalType);
     }
     if (f1.restFormals != null || f2.restFormals != null) {
-      JSType restFormalsType =
-          JSType.nullAcceptingJoin(f1.restFormals, f2.restFormals);
+      JSType restFormalsType = JSType.nullAcceptingJoin(f1.restFormals, f2.restFormals);
       if (restFormalsType.isBottom()) {
         return commonTypes.BOTTOM_FUNCTION;
       }
@@ -1005,16 +1023,16 @@ public final class FunctionType implements Serializable {
   }
 
   /**
-   * Returns all the non-instantiated type parameter names.
-   * (Note: if this type is the result of a generic function type that has been
-   * instantiated, the type parameters have already been substituted away.)
+   * Returns all the non-instantiated type parameter names. (Note: if this type is the result of a
+   * generic function type that has been instantiated, the type parameters have already been
+   * substituted away.)
    */
-  public List<String> getTypeParameters() {
+  public ImmutableList<String> getTypeParameters() {
     return this.typeParameters.asList();
   }
 
   /** Always returns a non-null map. */
-  public Map<String, Node> getTypeTransformations() {
+  public ImmutableMap<String, Node> getTypeTransformations() {
     return this.typeParameters.getTypeTransformations();
   }
 
@@ -1437,13 +1455,12 @@ public final class FunctionType implements Serializable {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj == null) {
+    if (!(obj instanceof FunctionType)) {
       return false;
     }
     if (this == obj) {
       return true;
     }
-    Preconditions.checkArgument(obj instanceof FunctionType, "obj is: %s", obj);
     FunctionType f2 = (FunctionType) obj;
     return Objects.equals(this.requiredFormals, f2.requiredFormals)
         && Objects.equals(this.optionalFormals, f2.optionalFormals)

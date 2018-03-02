@@ -29,8 +29,10 @@ import com.google.javascript.jscomp.DiagnosticType;
 import com.google.javascript.jscomp.ErrorHandler;
 import com.google.javascript.jscomp.JSError;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import javax.annotation.Nullable;
 
@@ -51,6 +53,8 @@ public final class ModuleLoader {
   /** The default module root, the current directory. */
   public static final String DEFAULT_FILENAME_PREFIX = "." + MODULE_SLASH;
 
+  public static final String JSC_BROWSER_BLACKLISTED_MARKER = "$jscomp$browser$blacklisted";
+
   public static final DiagnosticType LOAD_WARNING =
       DiagnosticType.error("JSC_JS_MODULE_LOAD_WARNING", "Failed to load module \"{0}\"");
 
@@ -58,7 +62,7 @@ public final class ModuleLoader {
       DiagnosticType.error(
           "JSC_INVALID_MODULE_PATH", "Invalid module path \"{0}\" for resolution mode \"{1}\"");
 
-  private final ErrorHandler errorHandler;
+  private ErrorHandler errorHandler;
 
   /** Root URIs to match module roots against. */
   private final ImmutableList<String> moduleRootPaths;
@@ -81,7 +85,7 @@ public final class ModuleLoader {
       Iterable<? extends DependencyInfo> inputs,
       PathResolver pathResolver,
       ResolutionMode resolutionMode,
-      Map<String, String> packageJsonMainEntries) {
+      Map<String, String> lookupMap) {
     checkNotNull(moduleRoots);
     checkNotNull(inputs);
     checkNotNull(pathResolver);
@@ -101,7 +105,21 @@ public final class ModuleLoader {
       case NODE:
         this.moduleResolver =
             new NodeModuleResolver(
-                this.modulePaths, this.moduleRootPaths, packageJsonMainEntries, this.errorHandler);
+                this.modulePaths, this.moduleRootPaths, lookupMap, this.errorHandler);
+        break;
+      case WEBPACK:
+        Map<String, String> normalizedPathsById = new HashMap<>();
+        for (Entry<String, String> moduleEntry : lookupMap.entrySet()) {
+          String canonicalizedPath =
+              normalize(ModuleNames.escapePath(moduleEntry.getValue()), moduleRootPaths);
+          if (isAmbiguousIdentifier(canonicalizedPath)) {
+            canonicalizedPath = MODULE_SLASH + canonicalizedPath;
+          }
+          normalizedPathsById.put(moduleEntry.getKey(), canonicalizedPath);
+        }
+        this.moduleResolver =
+            new WebpackModuleResolver(
+                this.modulePaths, this.moduleRootPaths, normalizedPathsById, this.errorHandler);
         break;
       default:
         throw new RuntimeException("Unexpected resolution mode " + resolutionMode);
@@ -306,6 +324,19 @@ public final class ModuleLoader {
     return path;
   }
 
+  public void setErrorHandler(ErrorHandler errorHandler) {
+    if (errorHandler == null) {
+      this.errorHandler = new NoopErrorHandler();
+    } else {
+      this.errorHandler = errorHandler;
+    }
+    this.moduleResolver.setErrorHandler(this.errorHandler);
+  }
+
+  public ErrorHandler getErrorHandler() {
+    return this.errorHandler;
+  }
+
   /** An enum indicating whether to absolutize paths. */
   public enum PathResolver implements Function<String, String> {
     RELATIVE {
@@ -355,12 +386,16 @@ public final class ModuleLoader {
     /**
      * Uses the node module resolution algorithm.
      *
-     * Modules which do not begin with a "." or "/" character are looked up from the appropriate
-     * node_modules folder.
-     * Includes the ability to require directories and JSON files.
-     * Exact match, then ".js", then ".json" file extensions are searched.
+     * <p>Modules which do not begin with a "." or "/" character are looked up from the appropriate
+     * node_modules folder. Includes the ability to require directories and JSON files. Exact match,
+     * then ".js", then ".json" file extensions are searched.
      */
-    NODE
+    NODE,
+
+    /**
+     * Uses a lookup map provided by webpack to locate modules from a numeric id used during import
+     */
+    WEBPACK
   }
 
   private static final class NoopErrorHandler implements ErrorHandler {

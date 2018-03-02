@@ -22,7 +22,7 @@ package com.google.javascript.jscomp;
 public final class MinimizeExitPointsTest extends CompilerTestCase {
   @Override
   protected CompilerPass getProcessor(final Compiler compiler) {
-    return new MinimizeExitPoints(compiler).asCompilerPass();
+    return new PeepholeOptimizationsPass(compiler, getName(), new MinimizeExitPoints());
   }
 
   @Override
@@ -71,6 +71,9 @@ public final class MinimizeExitPointsTest extends CompilerTestCase {
     fold(
         "function f() { a: break a; }",
         "function f() {}");
+    fold(
+        "function f() { a: { break a; } }",
+        "function f() { a: {} }");
   }
 
   public void testFunctionReturnOptimization1() throws Exception {
@@ -99,7 +102,7 @@ public final class MinimizeExitPointsTest extends CompilerTestCase {
          "function f(){if(a()){}else{return;b()}}");
     fold(
         "function f(){ if (x) return; if (y) return; if (z) return; w(); }",
-        LINE_JOINER.join(
+        lines(
             "function f() {",
             "  if (x) {} else { if (y) {} else { if (z) {} else w(); }}",
             "}"));
@@ -300,5 +303,52 @@ public final class MinimizeExitPointsTest extends CompilerTestCase {
     fold(
         "switch (x) { case 1: if (x) { f(); break; } break; default: g(); break; }",
         "switch (x) { case 1: if (x) { f();        } break; default: g();        }");
+  }
+
+  public void testFoldBlockScopedVariables() {
+    // When moving block-scoped variable declarations into inner blocks, first convert them to
+    // "var" declarations to avoid breaking any references in inner functions.
+
+    // For example, in the following test case, moving "let c = 3;" directly inside the else block
+    // would break the function "g"'s reference to "c".
+    fold(
+        "function f() { function g() { return c; } if (x) {return;} let c = 3; }",
+        "function f() { function g() { return c; } if (x){} else {var c = 3;} }");
+    fold(
+        "function f() { function g() { return c; } if (x) {return;} const c = 3; }",
+        "function f() { function g() { return c; } if (x) {} else {var c = 3;} }");
+    // Convert let and const even they're if not referenced by any functions.
+    fold(
+        "function f() { if (x) {return;} const c = 3; }",
+        "function f() { if (x) {} else { var c = 3; } }");
+    fold(
+        "function f() { if (x) {return;} let a = 3; let b = () => a; }",
+        "function f() { if (x) {} else { var a = 3; var b = () => a;} }");
+    fold(
+        "function f() { if (x) { if (y) {return;} let c = 3; } }",
+        "function f() { if (x) { if (y) {} else { var c = 3; } } }");
+  }
+
+  public void testDontFoldBlockScopedVariablesInLoops() {
+    // Don't move block-scoped declarations into inner blocks inside a loop, since converting
+    // let/const declarations to vars in a loop can cause incorrect semantics.
+    // See the following test case for an example.
+    foldSame(
+        lines(
+            "function f(param) {",
+            "  let arr = [];",
+            "  for (let x of param) {",
+            "    if (x < 0) continue;",
+            "    let y = x * 2;",
+            "    arr.push(() => y);", // If y was a var, this would capture the wrong value.
+            "   }",
+            "  return arr;",
+            "}"));
+
+    // Additional tests for different kinds of loops.
+    foldSame("function f() { while (true) { if (true) {return;} let c = 3; } }");
+    foldSame("function f() { do { if (true) {return;} let c = 3; } while (x); }");
+    foldSame("function f() { for (;;) { if (true) { return; } let c = 3; } }");
+    foldSame("function f(y) { for(x in []){ if(x) { return; } let c = 3; } }");
   }
 }

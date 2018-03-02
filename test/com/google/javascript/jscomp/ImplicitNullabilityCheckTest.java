@@ -68,7 +68,7 @@ public final class ImplicitNullabilityCheckTest extends TypeICompilerTestCase {
   }
 
   public void testParameterizedObject() {
-    warnImplicitlyNullable(LINE_JOINER.join(
+    warnImplicitlyNullable(lines(
         "/** @param {Object<string, string>=} opt_values */",
         "function getMsg(opt_values) {};"));
   }
@@ -83,14 +83,16 @@ public final class ImplicitNullabilityCheckTest extends TypeICompilerTestCase {
   public void testUnknownTypenameDoesntWarn() {
     // Different warnings in OTI and NTI
     this.mode = TypeInferenceMode.OTI_ONLY;
-    testSame(
-        DEFAULT_EXTERNS, "/** @type {gibberish} */ var x;",
-        RhinoErrorReporter.UNRECOGNIZED_TYPE_ERROR);
+    test(
+        externs(DEFAULT_EXTERNS),
+        srcs("/** @type {gibberish} */ var x;"),
+        warning(RhinoErrorReporter.UNRECOGNIZED_TYPE_ERROR));
 
     this.mode = TypeInferenceMode.NTI_ONLY;
-    testSame(
-        DEFAULT_EXTERNS, "/** @type {gibberish} */ var x;",
-        GlobalTypeInfoCollector.UNRECOGNIZED_TYPE_NAME);
+    test(
+        externs(DEFAULT_EXTERNS),
+        srcs("/** @type {gibberish} */ var x;"),
+        warning(GlobalTypeInfoCollector.UNRECOGNIZED_TYPE_NAME));
   }
 
   public void testThrowsDoesntWarn() {
@@ -99,13 +101,13 @@ public final class ImplicitNullabilityCheckTest extends TypeICompilerTestCase {
   }
 
   public void testUserDefinedClass() {
-    warnImplicitlyNullable(LINE_JOINER.join(
+    warnImplicitlyNullable(lines(
         "/** @constructor */",
         "function Foo() {}",
         "/** @type {Foo} */ var x;"));
 
     // TODO(aravindpg): this ought to warn under both, or at any rate NTI.
-    noWarning(LINE_JOINER.join(
+    noWarning(lines(
         "function f() {",
         "  /** @constructor */",
         "  function Foo() {}",
@@ -114,7 +116,7 @@ public final class ImplicitNullabilityCheckTest extends TypeICompilerTestCase {
   }
 
   public void testNamespacedTypeDoesntCrash() {
-    warnImplicitlyNullable(LINE_JOINER.join(
+    warnImplicitlyNullable(lines(
         "/** @const */ var a = {};",
         "/** @const */ a.b = {};",
         "/** @constructor */ a.b.Foo = function() {};",
@@ -122,10 +124,13 @@ public final class ImplicitNullabilityCheckTest extends TypeICompilerTestCase {
   }
 
   private void warnImplicitlyNullable(String js) {
-    testSame(DEFAULT_EXTERNS, js, ImplicitNullabilityCheck.IMPLICITLY_NULLABLE_JSDOC);
+    test(
+        externs(DEFAULT_EXTERNS),
+        srcs(js),
+        warning(ImplicitNullabilityCheck.IMPLICITLY_NULLABLE_JSDOC));
   }
 
   private void noWarning(String js) {
-    testSame(DEFAULT_EXTERNS, js);
+    testSame(externs(DEFAULT_EXTERNS), srcs(js));
   }
 }

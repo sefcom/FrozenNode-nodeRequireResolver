@@ -24,6 +24,7 @@ import com.google.common.annotations.GwtIncompatible;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -617,7 +618,7 @@ public abstract class JSType implements TypeI, FunctionTypeI, ObjectTypeI {
     return result;
   }
 
-  // When joining w/ TOP or UNKNOWN, avoid setting more fields on them, eg, obj.
+  // When joining w/ TOP or UNKNOWN, avoid setting more fields on them, e.g., obj.
   public static JSType join(JSType lhs, JSType rhs) {
     checkNotNull(lhs);
     checkNotNull(rhs);
@@ -652,15 +653,13 @@ public abstract class JSType implements TypeI, FunctionTypeI, ObjectTypeI {
         ObjectType.joinSets(lhs.getObjs(), rhs.getObjs());
     String newTypevar =
         lhs.getTypeVar() != null ? lhs.getTypeVar() : rhs.getTypeVar();
-    ImmutableSet<EnumType> newEnums =
-        EnumType.union(lhs.getEnums(), rhs.getEnums());
+    ImmutableSet<EnumType> newEnums = EnumType.union(lhs.getEnums(), rhs.getEnums());
     if (newEnums.isEmpty()) {
       return makeType(commonTypes, newMask, newObjs, newTypevar, NO_ENUMS);
     }
-    JSType tmpJoin =
-        makeType(commonTypes, newMask & ~ENUM_MASK, newObjs, newTypevar, NO_ENUMS);
-    return makeType(commonTypes, newMask, newObjs,
-        newTypevar, EnumType.normalizeForJoin(newEnums, tmpJoin));
+    JSType tmpJoin = makeType(commonTypes, newMask & ~ENUM_MASK, newObjs, newTypevar, NO_ENUMS);
+    return makeType(
+        commonTypes, newMask, newObjs, newTypevar, EnumType.normalizeForJoin(newEnums, tmpJoin));
   }
 
   /**
@@ -710,30 +709,10 @@ public abstract class JSType implements TypeI, FunctionTypeI, ObjectTypeI {
     return substituteGenerics(this.commonTypes.MAP_TO_UNKNOWN);
   }
 
-  /**
-   * Given an generic supertype of this,
-   * returns the type argument as instantiated by this type.
-   *
-   * Parameter supertype has to be a type with a single type parameter.
-   *
-   * For example,<pre>   {@code
-   *   (Iterable<Foo>).getInstantiatedTypeArgument(Iterable<?>) returns Foo,
-   *   and
-   *   /** {@literal @}template A * /
-   *   class Foo {}
-   *   /**
-   *    * {@literal @}template B
-   *    * {@literal @}extends {Foo<Array<B>>}
-   *    * /
-   *   class Bar {}
-   *   (Bar<string>).getInstantiatedTypeArguments(Bar<?>) returns string
-   *   (Bar<string>).getInstantiatedTypeArguments(Foo<?>) returns Array<string>
-   * }</pre>
-   * This is used, for example, in type-checking for-of and yield.
-   */
-  public JSType getInstantiatedTypeArgument(JSType supertype) {
+  @Override
+  public JSType getInstantiatedTypeArgument(TypeI supertype) {
     RawNominalType rawType =
-        supertype.getNominalTypeIfSingletonObj().getRawNominalType();
+        ((JSType) supertype).getNominalTypeIfSingletonObj().getRawNominalType();
     List<String> typeParameters = rawType.getTypeParameters();
     checkState(typeParameters.size() == 1);
 
@@ -1227,11 +1206,6 @@ public abstract class JSType implements TypeI, FunctionTypeI, ObjectTypeI {
     return isSubtypeOfHelper(false, other, SubtypeCache.create(), null);
   }
 
-  @Override
-  public final boolean isSubtypeOf(TypeI other) {
-    return isSubtypeOf(other, SubtypeCache.create());
-  }
-
   public static MismatchInfo whyNotSubtypeOf(JSType found, JSType expected) {
     if (found.isSingletonObj() && expected.isSingletonObj()) {
       MismatchInfo[] boxedInfo = new MismatchInfo[1];
@@ -1249,6 +1223,11 @@ public abstract class JSType implements TypeI, FunctionTypeI, ObjectTypeI {
       return boxedInfo[0];
     }
     return null;
+  }
+
+  @Override
+  public final boolean isSubtypeOf(TypeI other) {
+    return isSubtypeOf(other, SubtypeCache.create());
   }
 
   final boolean isSubtypeOf(TypeI other, SubtypeCache subSuperMap) {
@@ -1896,7 +1875,7 @@ public abstract class JSType implements TypeI, FunctionTypeI, ObjectTypeI {
   }
 
   @Override
-  public final Collection<FunctionTypeI> getDirectSubTypes() {
+  public final ImmutableCollection<FunctionTypeI> getDirectSubTypes() {
     Preconditions.checkState(this.isConstructor() || this.isInterface());
     ImmutableList.Builder<FunctionTypeI> result = ImmutableList.builder();
     NominalType nt =
@@ -2041,19 +2020,8 @@ public abstract class JSType implements TypeI, FunctionTypeI, ObjectTypeI {
   @Override
   public final JSType getPrototypeObject() {
     checkState(this.isSingletonObj());
-    JSType proto = getNominalTypeIfSingletonObj().getPrototypePropertyOfCtor();
-    if (this.equals(proto)) {
-      // In JS's dynamic semantics, the only object without a __proto__ is
-      // Object.prototype, but it's not representable in NTI.
-      // Object.prototype is the only case where we are equal to our own prototype.
-      // In this case, we should return null.
-      Preconditions.checkState(
-          isBuiltinObjectPrototype(),
-          "Failed to reach Object.prototype in prototype chain, unexpected self-link found at %s",
-          this);
-      return null;
-    }
-    return proto;
+    ObjectType proto = getObjTypeIfSingletonObj().getPrototypeObject();
+    return proto != null ? fromObjectType(proto) : null;
   }
 
   @Override
@@ -2101,11 +2069,6 @@ public abstract class JSType implements TypeI, FunctionTypeI, ObjectTypeI {
     return obj != null && obj.isAmbiguousObject();
   }
 
-  final boolean isBuiltinObjectPrototype() {
-    ObjectType obj = getObjTypeIfSingletonObj();
-    return obj != null && obj.getNominalType().isBuiltinObject() && obj.isPrototypeObject();
-  }
-
   @Override
   public final boolean isLiteralObject() {
     return isSingletonObj() && getNominalTypeIfSingletonObj().isLiteralObject();
@@ -2115,7 +2078,7 @@ public abstract class JSType implements TypeI, FunctionTypeI, ObjectTypeI {
   public final boolean isInstanceofObject() {
     if (isSingletonObj()) {
       NominalType nt = getNominalTypeIfSingletonObj();
-      return nt.isLiteralObject() || nt.isBuiltinObject();
+      return nt.isLiteralObject() || nt.isBuiltinObject() || nt.isIObject();
     }
     return false;
   }
@@ -2143,7 +2106,7 @@ public abstract class JSType implements TypeI, FunctionTypeI, ObjectTypeI {
   }
 
   @Override
-  public final Iterable<JSType> getUnionMembers() {
+  public final ImmutableCollection<JSType> getUnionMembers() {
     if (!isUnion()) {
       return ImmutableList.of(this);
     }
@@ -2390,6 +2353,23 @@ public abstract class JSType implements TypeI, FunctionTypeI, ObjectTypeI {
   }
 
   @Override
+  public ObjectTypeI withoutStrayProperties() {
+    ObjectType obj = getObjTypeIfSingletonObj();
+    NominalType nt = getNominalTypeIfSingletonObj();
+    if (nt.isLiteralObject()) {
+      return this;
+    }
+    if (obj.isPrototypeObject()) {
+      // The canonical prototype, without any specialized properties
+      return obj.getOwnerFunction().getInstanceTypeOfCtor().getPrototypeObject();
+    }
+    if (obj.isNamespace()) {
+      return obj.getNamespaceType();
+    }
+    return nt.getInstanceAsJSType();
+  }
+
+  @Override
   public TypeInference typeInference() {
     return TypeInference.NTI;
   }
@@ -2465,6 +2445,7 @@ public abstract class JSType implements TypeI, FunctionTypeI, ObjectTypeI {
       out.writeObject(new ArrayList<>(this.enums));
     }
 
+    @SuppressWarnings("unchecked")
     @GwtIncompatible("ObjectInputStream")
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
       in.defaultReadObject();
@@ -2540,6 +2521,7 @@ public abstract class JSType implements TypeI, FunctionTypeI, ObjectTypeI {
       out.writeObject(new ArrayList<>(this.objs));
     }
 
+    @SuppressWarnings("unchecked")
     @GwtIncompatible("ObjectInputStream")
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
       in.defaultReadObject();
@@ -2585,6 +2567,7 @@ public abstract class JSType implements TypeI, FunctionTypeI, ObjectTypeI {
       out.writeObject(new ArrayList<>(this.objs));
     }
 
+    @SuppressWarnings("unchecked")
     @GwtIncompatible("ObjectInputStream")
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
       in.defaultReadObject();

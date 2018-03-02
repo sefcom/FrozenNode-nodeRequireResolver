@@ -44,14 +44,14 @@ public final class DenormalizeTest extends CompilerTestCase {
 
   public void testInlineVarKeyword1() {
     test(
-        LINE_JOINER.join(
+        lines(
             "function f() {",
             "  var x;",
             "  function g() { x = 2; }",
             "  if (y) { x = -1; }",
             "  alert(x);",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "function f() {",
             "  function g() { x = 2; }",
             "  if (y) { var x = -1; }",
@@ -61,14 +61,14 @@ public final class DenormalizeTest extends CompilerTestCase {
 
   public void testInlineVarKeyword2() {
     test(
-        LINE_JOINER.join(
+        lines(
             "function f() {",
             "  var x;",
             "  function g() { x = 2; }",
             "  if (y) { x = -1; } else { x = 3; }",
             "  alert(x);",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "function f() {",
             "  function g() { x = 2; }",
             "  if (y) { var x = -1; } else { x = 3; }",
@@ -78,14 +78,14 @@ public final class DenormalizeTest extends CompilerTestCase {
 
   public void testInlineVarKeywordArrowFunc1() {
     test(
-        LINE_JOINER.join(
+        lines(
             "var f = () => {",
             "  var x;",
             "  var g = () => { x = 2; }",
             "  if (y) { x = -1; }",
             "  alert(x);",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "var f = () => {",
             "  var g = () => { x = 2; }",
             "  if (y) { var x = -1; }",
@@ -95,14 +95,14 @@ public final class DenormalizeTest extends CompilerTestCase {
 
   public void testInlineVarKeywordArrowFunc2() {
     test(
-        LINE_JOINER.join(
+        lines(
             "var f = () => {",
             "  var x;",
             "  var g = () => { x = 2; }",
             "  if (y) { x = -1; } else { x = 3; }",
             "  alert(x);",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "var f = () => {",
             "  var g = () => { x = 2; }",
             "  if (y) { var x = -1; } else { x = 3; }",
@@ -112,12 +112,12 @@ public final class DenormalizeTest extends CompilerTestCase {
 
   public void testNotInlineConstLet() {
     testSame(
-        LINE_JOINER.join(
+        lines(
             "let x;",
             "if (y) { x = -1; }"));
 
     testSame(
-        LINE_JOINER.join(
+        lines(
             "const x = 1;",
             "if (y) { x = -1; }"));
   }
@@ -150,6 +150,13 @@ public final class DenormalizeTest extends CompilerTestCase {
     test("function f(){ var a; for(; a < 2 ; a++) foo() }",
          "function f(){ for(var a; a < 2 ; a++) foo() }");
     testSame("function f(){ return; for(; a < 2 ; a++) foo() }");
+
+    // Verify destructuring assignments are moved.
+    test("[a, b] = [1, 2]; for (; a < 2; a = b++) foo();",
+        "for ([a, b] = [1, 2]; a < 2; a = b++) foo();");
+
+    test("var [a, b] = [1, 2]; for (; a < 2; a = b++) foo();",
+        "for (var [a, b] = [1, 2]; a < 2; a = b++) foo();");
   }
 
   public void testForIn() {
@@ -170,6 +177,9 @@ public final class DenormalizeTest extends CompilerTestCase {
 
     // Other statements are left as is.
     testSame("function f(){ return; for(a in b) foo() }");
+
+    // We don't handle destructuring patterns yet.
+    testSame("var a; var b; for ([a, b] in c) foo();");
   }
 
   public void testForOf() {
@@ -190,6 +200,9 @@ public final class DenormalizeTest extends CompilerTestCase {
 
     // Other statements are left as is.
     testSame("function f() { return; for (a of b) foo() }");
+
+    // We don't handle destructuring patterns yet.
+    testSame("var a; var b; for ([a, b] of c) foo();");
   }
 
   public void testInOperatorNotInsideFor() {
@@ -230,14 +243,14 @@ public final class DenormalizeTest extends CompilerTestCase {
 
   public void testNoCrashOnEs6Features() {
     test(
-        LINE_JOINER.join(
+        lines(
             "class C {",
             "  constructor() {",
             "    var x;",
             "    if (y) { x = -1; }",
             "  }",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "class C {",
             "  constructor() {",
             "    if (y) { var x = -1; }",
@@ -245,13 +258,13 @@ public final class DenormalizeTest extends CompilerTestCase {
             "}"));
 
     test(
-        LINE_JOINER.join(
+        lines(
             "var obj = {",
             "  method() {",
             "    var c; for (; c < b ; c++) foo()",
             "  },",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "var obj = {",
             "  method() {",
             "    for (var c; c < b ; c++) foo()",
@@ -259,30 +272,30 @@ public final class DenormalizeTest extends CompilerTestCase {
             "}"));
 
     testSame(
-        LINE_JOINER.join(
+        lines(
             "var obj = {",
             "  ['computed' + 'prop']: 42",
             "}"));
 
     // Denormalize does not revert shorthand object literals that were expanded in Normalize
     test(
-        LINE_JOINER.join(
+        lines(
             "var obj = {",
             "  key",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "var obj = {",
             "  key: key",
             "}"));
 
     test(
-        LINE_JOINER.join(
+        lines(
             "function tag(strings) {",
             "  var x;",
             "  if (y) { x = x + 1; }",
             "}",
             "tag`template`"),
-        LINE_JOINER.join(
+        lines(
             "function tag(strings) {",
             "  var x;",
             "  if (y) { x += 1; }",
@@ -290,7 +303,7 @@ public final class DenormalizeTest extends CompilerTestCase {
             "tag`template`"));
 
     testSame(
-        LINE_JOINER.join(
+        lines(
             "var x;",
             "var y;",
             "if (y) { [x, y] = [1, 2]; }"));

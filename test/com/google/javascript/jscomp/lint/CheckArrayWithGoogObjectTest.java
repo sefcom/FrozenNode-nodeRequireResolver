@@ -16,6 +16,8 @@
 
 package com.google.javascript.jscomp.lint;
 
+import static com.google.javascript.jscomp.lint.CheckArrayWithGoogObject.ARRAY_PASSED_TO_GOOG_OBJECT;
+
 import com.google.javascript.jscomp.CheckLevel;
 import com.google.javascript.jscomp.Compiler;
 import com.google.javascript.jscomp.CompilerOptions;
@@ -29,7 +31,7 @@ import com.google.javascript.jscomp.TypeICompilerTestCase;
  */
 public final class CheckArrayWithGoogObjectTest extends TypeICompilerTestCase {
 
-  private static final String GOOG_OBJECT = LINE_JOINER.join(
+  private static final String GOOG_OBJECT = lines(
       "var goog = {};",
       "goog.object = {};",
       "goog.object.forEach = function(obj, f, opt_this) {}");
@@ -53,14 +55,14 @@ public final class CheckArrayWithGoogObjectTest extends TypeICompilerTestCase {
   }
 
   public void testGoogObjectForEach1() {
-    testGoogObjectWarning(LINE_JOINER.join(
+    testGoogObjectWarning(lines(
         GOOG_OBJECT,
         "var arr = [1, 2, 3];",
         "goog.object.forEach(arr, alert);"));
   }
 
   public void testGoogObjectForEach2() {
-    testGoogObjectWarning(LINE_JOINER.join(
+    testGoogObjectWarning(lines(
         GOOG_OBJECT,
         "function f(/** Array<number>|number */ n) {",
         "  if (typeof n == 'number')",
@@ -71,7 +73,7 @@ public final class CheckArrayWithGoogObjectTest extends TypeICompilerTestCase {
   }
 
   public void testGoogObjectForEach3() {
-    testGoogObjectWarning(LINE_JOINER.join(
+    testGoogObjectWarning(lines(
         GOOG_OBJECT,
         "function f(/** !Array<number> */ arr) {",
         "  goog.object.forEach(arr, alert);",
@@ -79,7 +81,7 @@ public final class CheckArrayWithGoogObjectTest extends TypeICompilerTestCase {
   }
 
   public void testGoogObjectForEach4() {
-    testNoGoogObjectWarning(LINE_JOINER.join(
+    testNoGoogObjectWarning(lines(
         GOOG_OBJECT,
         "function f(/** Object<string, number> */ obj) {",
         "  goog.object.forEach(obj, alert);",
@@ -87,10 +89,10 @@ public final class CheckArrayWithGoogObjectTest extends TypeICompilerTestCase {
   }
 
   private void testGoogObjectWarning(String js) {
-    testSame(DEFAULT_EXTERNS, js, CheckArrayWithGoogObject.ARRAY_PASSED_TO_GOOG_OBJECT);
+    test(externs(DEFAULT_EXTERNS), srcs(js), warning(ARRAY_PASSED_TO_GOOG_OBJECT));
   }
 
   private void testNoGoogObjectWarning(String js) {
-    testSame(DEFAULT_EXTERNS, js);
+    testSame(externs(DEFAULT_EXTERNS), srcs(js));
   }
 }

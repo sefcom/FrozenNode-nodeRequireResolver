@@ -22,6 +22,7 @@ import static com.google.common.base.Preconditions.checkState;
 import com.google.common.base.Ascii;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.SetMultimap;
 import com.google.javascript.jscomp.AbstractCompiler;
@@ -60,13 +61,21 @@ public final class SuggestedFix {
   // for errors that have multiple fixes.
   @Nullable private final String description;
 
+  // Alternative fixes for the same problem. The fix itself is always the first entry in this list.
+  // If you cannot ask the developer which fix is appropriate, apply the first fix instead of
+  // any alternatives.
+  private final ImmutableList<SuggestedFix> alternatives;
+
   private SuggestedFix(
       MatchedNodeInfo matchedNodeInfo,
       SetMultimap<String, CodeReplacement> replacements,
-      @Nullable String description) {
+      @Nullable String description,
+      ImmutableList<SuggestedFix> alternatives) {
     this.matchedNodeInfo = matchedNodeInfo;
     this.replacements = replacements;
     this.description = description;
+    this.alternatives =
+        ImmutableList.<SuggestedFix>builder().add(this).addAll(alternatives).build();
   }
 
   /**
@@ -87,6 +96,16 @@ public final class SuggestedFix {
 
   @Nullable public String getDescription() {
     return description;
+  }
+
+  /** Get all possible fixes for this problem, including this fix. */
+  public ImmutableList<SuggestedFix> getAlternatives() {
+    return alternatives;
+  }
+
+  /** Get all alternative fixes, excluding this fix. */
+  public ImmutableList<SuggestedFix> getNonDefaultAlternatives() {
+    return alternatives.subList(1, alternatives.size());
   }
 
   @Override public String toString() {
@@ -143,6 +162,7 @@ public final class SuggestedFix {
     private MatchedNodeInfo matchedNodeInfo = null;
     private final ImmutableSetMultimap.Builder<String, CodeReplacement> replacements =
         ImmutableSetMultimap.builder();
+    private final ImmutableList.Builder<SuggestedFix> alternatives = ImmutableList.builder();
     private String description = null;
 
     /**
@@ -156,6 +176,14 @@ public final class SuggestedFix {
               node.getLineno(),
               node.getCharno(),
               isInClosurizedFile(node, new NodeMetadata(compiler)));
+      return this;
+    }
+
+    public Builder addAlternative(SuggestedFix alternative) {
+      checkState(
+          alternative.getNonDefaultAlternatives().isEmpty(),
+          "Alternative SuggestedFix must have no alternatives of their own.");
+      alternatives.add(alternative);
       return this;
     }
 
@@ -224,23 +252,7 @@ public final class SuggestedFix {
       return delete(n, true);
     }
 
-    /**
-     * Deletes a node and its contents from the source file.
-     */
-    public Builder deleteWithoutRemovingWhitespaceBefore(Node n) {
-      return delete(n, false);
-    }
-
-    /** Deletes a node without touching any surrounding whitespace. */
-    public Builder deleteWithoutRemovingWhitespace(Node n) {
-      replacements.put(
-          n.getSourceFileName(), CodeReplacement.create(n.getSourceOffset(), n.getLength(), ""));
-      return this;
-    }
-
-    /**
-     * Deletes a node and its contents from the source file.
-     */
+    /** Deletes a node and its contents from the source file. */
     private Builder delete(Node n, boolean deleteWhitespaceBefore) {
       int startPosition = n.getSourceOffset();
       int length;
@@ -275,8 +287,8 @@ public final class SuggestedFix {
             startPosition -= startPositionDiff;
             length += startPositionDiff;
           } else {
-            int startPositionDiff = startPosition - (
-                previousSibling.getSourceOffset() + previousSibling.getLength());
+            int startPositionDiff =
+                startPosition - (previousSibling.getSourceOffset() + previousSibling.getLength());
             startPosition -= startPositionDiff;
             length += startPositionDiff;
           }
@@ -296,6 +308,18 @@ public final class SuggestedFix {
         }
       }
       replacements.put(n.getSourceFileName(), CodeReplacement.create(startPosition, length, ""));
+      return this;
+    }
+
+    /** Deletes a node and its contents from the source file. */
+    public Builder deleteWithoutRemovingWhitespaceBefore(Node n) {
+      return delete(n, false);
+    }
+
+    /** Deletes a node without touching any surrounding whitespace. */
+    public Builder deleteWithoutRemovingWhitespace(Node n) {
+      replacements.put(
+          n.getSourceFileName(), CodeReplacement.create(n.getSourceOffset(), n.getLength(), ""));
       return this;
     }
 
@@ -399,6 +423,27 @@ public final class SuggestedFix {
       if (newCode.endsWith(";") && !needsSemicolon) {
         newCode = newCode.substring(0, newCode.length() - 1);
       }
+
+      // If the replacement has lower precedence then we may need to add parentheses.
+      if (parent != null && IR.mayBeExpression(parent)) {
+        Node replacement = newNode;
+        while ((replacement.isNormalBlock() || replacement.isScript() || replacement.isModuleBody())
+            && replacement.hasOneChild()) {
+          replacement = replacement.getOnlyChild();
+        }
+        if (replacement.isExprResult()) {
+          replacement = replacement.getOnlyChild();
+        }
+        if (IR.mayBeExpression(replacement)) {
+          int outer = NodeUtil.precedence(parent.getToken());
+          int inner = NodeUtil.precedence(original.getToken());
+          int newInner = NodeUtil.precedence(replacement.getToken());
+          if (newInner < NodeUtil.precedence(Token.CALL) && newInner <= outer && inner >= outer) {
+            newCode = "(" + newCode + ")";
+          }
+        }
+      }
+
       replacements.put(
           original.getSourceFileName(),
           CodeReplacement.create(original.getSourceOffset(), original.getLength(), newCode));
@@ -705,7 +750,7 @@ public final class SuggestedFix {
           return this;
         } else {
           // The file has no goog.provide or goog.require nodes.
-          if (script.getFirstChild() != null) {
+          if (script.hasChildren()) {
             nodeToInsertBefore = script.getFirstChild();
           } else {
             replacements.put(
@@ -766,23 +811,29 @@ public final class SuggestedFix {
       return this;
     }
 
+    /**
+     * Find the goog.require node for the given namespace (or null if there isn't one).
+     * If there is more than one, this will return the first standalone goog.require statement.
+     */
+    @Nullable
     private static Node findGoogRequireNode(Node n, NodeMetadata metadata, String namespace) {
       Node script = NodeUtil.getEnclosingScript(n);
       if (script.getFirstChild().isModuleBody()) {
         script = script.getFirstChild();
       }
 
-      if (script != null) {
-        Node child = script.getFirstChild();
-        while (child != null) {
-          if ((NodeUtil.isExprCall(child)
-                  && Matchers.googRequire(namespace).matches(child.getFirstChild(), metadata))
-              || (NodeUtil.isNameDeclaration(child)
-                  && child.getFirstFirstChild() != null && Matchers.googRequire(namespace)
-                      .matches(child.getFirstFirstChild(), metadata))) {
-            return child;
-          }
-          child = child.getNext();
+      for (Node child : script.children()) {
+        if (NodeUtil.isExprCall(child)
+            && Matchers.googRequire(namespace).matches(child.getFirstChild(), metadata)) {
+          return child;
+        }
+      }
+
+      for (Node child : script.children()) {
+        if (NodeUtil.isNameDeclaration(child)
+            && child.getFirstFirstChild() != null
+            && Matchers.googRequire(namespace).matches(child.getFirstFirstChild(), metadata)) {
+          return child;
         }
       }
       return null;
@@ -815,7 +866,8 @@ public final class SuggestedFix {
     }
 
     public SuggestedFix build() {
-      return new SuggestedFix(matchedNodeInfo, replacements.build(), description);
+      return new SuggestedFix(
+          matchedNodeInfo, replacements.build(), description, alternatives.build());
     }
 
     /** Looks for a goog.require(), goog.provide() or goog.module() call in the fix's file. */

@@ -17,7 +17,7 @@
 package com.google.javascript.jscomp;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.javascript.jscomp.CompilerTestCase.LINE_JOINER;
+import static com.google.javascript.jscomp.CompilerTestCase.lines;
 import static com.google.javascript.jscomp.testing.NodeSubject.assertNode;
 
 import com.google.common.collect.ImmutableList;
@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import junit.framework.TestCase;
 
 /**
@@ -120,17 +121,16 @@ public final class NodeTraversalTest extends TestCase {
       NodeTraversal.traverseEs6(compiler, tree, cb);
       fail("Expected RuntimeException");
     } catch (RuntimeException e) {
-      assertThat(e.getMessage())
-          .startsWith("INTERNAL COMPILER ERROR.\n"
-              + "Please report this problem.\n\n"
-              + "test me");
+      assertThat(e)
+          .hasMessageThat()
+          .startsWith("INTERNAL COMPILER ERROR.\nPlease report this problem.\n\ntest me");
     }
   }
 
 
   public void testGetScopeRoot() {
     Compiler compiler = new Compiler();
-    String code = LINE_JOINER.join(
+    String code = lines(
         "var a;",
         "function foo() {",
         "  var b",
@@ -164,7 +164,7 @@ public final class NodeTraversalTest extends TestCase {
 
   public void testGetHoistScopeRoot() {
     Compiler compiler = new Compiler();
-    String code = LINE_JOINER.join(
+    String code = lines(
         "function foo() {",
         "  if (true) { var XXX; }",
         "}");
@@ -209,7 +209,7 @@ public final class NodeTraversalTest extends TestCase {
   }
 
   public void testReportChange1() {
-    String code = LINE_JOINER.join(
+    String code = lines(
         "var change;",
         "function foo() {",
         "  var b",
@@ -218,7 +218,7 @@ public final class NodeTraversalTest extends TestCase {
   }
 
   public void testReportChange2() {
-    String code = LINE_JOINER.join(
+    String code = lines(
         "var a;",
         "function foo() {",
         "  var change",
@@ -227,7 +227,7 @@ public final class NodeTraversalTest extends TestCase {
   }
 
    public void testReportChange3() {
-    String code = LINE_JOINER.join(
+    String code = lines(
         "var a;",
         "function foo() {",
         "  var b",
@@ -237,7 +237,7 @@ public final class NodeTraversalTest extends TestCase {
   }
 
   public void testReportChange4() {
-    String code = LINE_JOINER.join(
+    String code = lines(
         "function foo() {",
         "  function bar() {",
         "    var change",
@@ -299,23 +299,23 @@ public final class NodeTraversalTest extends TestCase {
 
     // Note the char numbers are 0-indexed but the line numbers are 1-indexed.
     String expectedResult =
-        ""
-            + "visit NAME a [source_file: [testcode]] @1:4\n"
-            + "visit VAR [source_file: [testcode]] @1:0\n"
-            + "visit NAME foo [source_file: [testcode]] @2:9\n"
-            + "visit PARAM_LIST [source_file: [testcode]] @2:12\n"
-            + "visit NAME b [source_file: [testcode]] @3:6\n"
-            + "visit VAR [source_file: [testcode]] @3:2\n"
-            + "visit NAME a [source_file: [testcode]] @4:6\n"
-            + "visit NAME c [source_file: [testcode]] @4:15\n"
-            + "visit VAR [source_file: [testcode]] @4:11\n"
-            + "visit BLOCK [source_file: [testcode]] @4:9\n"
-            + "visit IF [source_file: [testcode]] @4:2\n"
-            + "visit BLOCK [source_file: [testcode]] @2:15\n"
-            + "visit FUNCTION foo [source_file: [testcode]] @2:0\n"
-            + "visit SCRIPT [source_file: [testcode]] "
-            + "[input_id: InputId: [testcode]] "
-            + "[feature_set: [block function]] @1:0\n";
+        lines(
+            "visit NAME a [source_file: [testcode]] @1:4",
+            "visit VAR [source_file: [testcode]] @1:0",
+            "visit NAME foo [source_file: [testcode]] @2:9",
+            "visit PARAM_LIST [source_file: [testcode]] @2:12",
+            "visit NAME b [source_file: [testcode]] @3:6",
+            "visit VAR [source_file: [testcode]] @3:2",
+            "visit NAME a [source_file: [testcode]] @4:6",
+            "visit NAME c [source_file: [testcode]] @4:15",
+            "visit VAR [source_file: [testcode]] @4:11",
+            "visit BLOCK [source_file: [testcode]] @4:9",
+            "visit IF [source_file: [testcode]] @4:2",
+            "visit BLOCK [source_file: [testcode]] @2:15",
+            "visit FUNCTION foo [source_file: [testcode]] @2:0",
+            "visit SCRIPT [source_file: [testcode]]"
+                + " [input_id: InputId: [testcode]]"
+                + " [feature_set: []] @1:0\n");
 
     assertEquals(expectedResult, builder.toString());
   }
@@ -326,14 +326,14 @@ public final class NodeTraversalTest extends TestCase {
     ExpectNodeOnEnterScope callback = new ExpectNodeOnEnterScope();
     NodeTraversal t = new NodeTraversal(compiler, callback, creator);
 
-    String code = LINE_JOINER.join(
+    String code = lines(
         "var a;",
         "function foo() {",
         "  var b;",
         "}");
 
     Node tree = parse(compiler, code);
-    Scope topScope = creator.createScope(tree, null);
+    Scope topScope = (Scope) creator.createScope(tree, null);
 
     // Calling #traverseWithScope uses the given scope but starts traversal at
     // the given node.
@@ -348,7 +348,7 @@ public final class NodeTraversalTest extends TestCase {
 
     // Calling #traverseAtScope starts traversal from the scope's root.
     Node fn = tree.getSecondChild();
-    Scope fnScope = creator.createScope(fn, topScope);
+    Scope fnScope = (Scope) creator.createScope(fn, topScope);
     callback.expect(fn, fn);
     t.traverseAtScope(fnScope);
     callback.assertEntered();
@@ -359,11 +359,11 @@ public final class NodeTraversalTest extends TestCase {
     CompilerOptions options = new CompilerOptions();
     options.setLanguageIn(LanguageMode.ECMASCRIPT_NEXT);
     compiler.initOptions(options);
-    ScopeCreator creator = new Es6SyntacticScopeCreator(compiler);
+    Es6SyntacticScopeCreator creator = new Es6SyntacticScopeCreator(compiler);
     ExpectNodeOnEnterScope callback = new ExpectNodeOnEnterScope();
     NodeTraversal t = new NodeTraversal(compiler, callback, creator);
 
-    String code = LINE_JOINER.join(
+    String code = lines(
         "function foo() {",
         "  if (bar) {",
         "    let x;",
@@ -390,12 +390,12 @@ public final class NodeTraversalTest extends TestCase {
     CompilerOptions options = new CompilerOptions();
     options.setLanguageIn(LanguageMode.ECMASCRIPT_2015);
     compiler.initOptions(options);
-    ScopeCreator creator = new Es6SyntacticScopeCreator(compiler);
+    Es6SyntacticScopeCreator creator = new Es6SyntacticScopeCreator(compiler);
     ExpectNodeOnEnterScope callback = new ExpectNodeOnEnterScope();
     NodeTraversal t = new NodeTraversal(compiler, callback, creator);
 
     String code =
-        LINE_JOINER.join(
+        lines(
             "function foo() {",
             "  var b = [0];",
             "  for (let a of b) {",
@@ -426,12 +426,12 @@ public final class NodeTraversalTest extends TestCase {
     CompilerOptions options = new CompilerOptions();
     options.setLanguageIn(LanguageMode.ECMASCRIPT_2015);
     compiler.initOptions(options);
-    ScopeCreator creator = new Es6SyntacticScopeCreator(compiler);
+    Es6SyntacticScopeCreator creator = new Es6SyntacticScopeCreator(compiler);
     ExpectNodeOnEnterScope callback = new ExpectNodeOnEnterScope();
     NodeTraversal t = new NodeTraversal(compiler, callback, creator);
 
     String code =
-        LINE_JOINER.join(
+        lines(
             "function foo() {",
             "  var b = [0];",
             "  switch(b) {",
@@ -461,11 +461,11 @@ public final class NodeTraversalTest extends TestCase {
     CompilerOptions options = new CompilerOptions();
     options.setLanguageIn(LanguageMode.ECMASCRIPT_NEXT);
     compiler.initOptions(options);
-    ScopeCreator creator = new Es6SyntacticScopeCreator(compiler);
+    Es6SyntacticScopeCreator creator = new Es6SyntacticScopeCreator(compiler);
     ExpectNodeOnEnterScope callback = new ExpectNodeOnEnterScope();
     NodeTraversal t = new NodeTraversal(compiler, callback, creator);
 
-    String code = LINE_JOINER.join(
+    String code = lines(
         "goog.module('example.module');",
         "",
         "var x;");
@@ -487,13 +487,13 @@ public final class NodeTraversalTest extends TestCase {
     CompilerOptions options = new CompilerOptions();
     options.setLanguageIn(LanguageMode.ECMASCRIPT_2015);
     compiler.initOptions(options);
-    ScopeCreator creator = new Es6SyntacticScopeCreator(compiler);
+    Es6SyntacticScopeCreator creator = new Es6SyntacticScopeCreator(compiler);
     AccessibleCallback callback = new AccessibleCallback();
     NodeTraversal t = new NodeTraversal(compiler, callback, creator);
 
     // variables are hoisted to their enclosing scope
     String code =
-        LINE_JOINER.join(
+        lines(
             "var varDefinedInScript;",
             "var foo = function(param) {",
             "  var varDefinedInFoo;",
@@ -528,7 +528,7 @@ public final class NodeTraversalTest extends TestCase {
 
     // let and const variables are block scoped
     code =
-        LINE_JOINER.join(
+        lines(
             "var foo = function() {",
             "  var varDefinedInFoo;",
             "  var baz = function() {",
@@ -565,7 +565,7 @@ public final class NodeTraversalTest extends TestCase {
     StringAccumulator callback = new StringAccumulator();
 
     String code =
-        LINE_JOINER.join(
+        lines(
             "function foo() {",
             "  'string in foo';",
             "  function baz() {",
@@ -597,7 +597,7 @@ public final class NodeTraversalTest extends TestCase {
     LexicallyScopedVarsAccumulator callback = new LexicallyScopedVarsAccumulator();
 
     String code =
-        LINE_JOINER.join(
+        lines(
             "var varDefinedInScript;",
             "var foo = function() {",
             "  var varDefinedInFoo;",
@@ -632,7 +632,7 @@ public final class NodeTraversalTest extends TestCase {
     Compiler compiler = new Compiler();
     EnterFunctionAccumulator callback = new EnterFunctionAccumulator();
 
-    String code = LINE_JOINER.join(
+    String code = lines(
         "function foo() {}",
         "function bar() {}",
         "function baz() {}");
@@ -688,6 +688,34 @@ public final class NodeTraversalTest extends TestCase {
         callback,
         true);
     assertThat(scopesEntered).hasSize(3);  // Function, function's body, and the block inside it.
+  }
+
+  public void testNodeTraversalInterruptable() {
+    Compiler compiler = new Compiler();
+    String code = "var a; \n";
+    Node tree = parse(compiler, code);
+
+    final AtomicInteger counter = new AtomicInteger(0);
+    NodeTraversal.Callback countingCallback =
+        new NodeTraversal.AbstractPostOrderCallback() {
+          @Override
+          public void visit(NodeTraversal t, Node n, Node parent) {
+            counter.incrementAndGet();
+          }
+        };
+
+    NodeTraversal.traverseEs6(compiler, tree, countingCallback);
+    assertThat(counter.get()).isEqualTo(3);
+
+    counter.set(0);
+    Thread.currentThread().interrupt();
+
+    try {
+      NodeTraversal.traverseEs6(compiler, tree, countingCallback);
+      fail("Expected a RuntimeException;");
+    } catch (RuntimeException e) {
+      assertThat(e).hasCauseThat().hasCauseThat().isInstanceOf(InterruptedException.class);
+    }
   }
 
   private static final class EnterFunctionAccumulator extends AbstractPostOrderCallback
@@ -814,4 +842,3 @@ public final class NodeTraversalTest extends TestCase {
     return IR.root(IR.root(extern), IR.root(main));
   }
 }
-

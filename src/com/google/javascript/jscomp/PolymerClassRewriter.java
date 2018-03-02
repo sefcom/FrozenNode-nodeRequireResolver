@@ -45,7 +45,7 @@ final class PolymerClassRewriter {
   private final boolean propertyRenamingEnabled;
   static final String POLYMER_ELEMENT_PROP_CONFIG = "Polymer.ElementProperties";
 
-  private Node polymerElementExterns;
+  private final Node polymerElementExterns;
 
   PolymerClassRewriter(
       AbstractCompiler compiler,
@@ -69,10 +69,6 @@ final class PolymerClassRewriter {
   void rewritePolymerCall(
       Node exprRoot, final PolymerClassDefinition cls, boolean isInGlobalScope) {
     Node objLit = checkNotNull(cls.descriptor);
-    if (hasShorthandAssignment(objLit)) {
-      compiler.report(JSError.make(objLit, PolymerPassErrors.POLYMER_SHORTHAND_NOT_SUPPORTED));
-      return;
-    }
 
     // Add {@code @lends} to the object literal.
     JSDocInfoBuilder objLitDoc = new JSDocInfoBuilder(true);
@@ -143,7 +139,7 @@ final class PolymerClassRewriter {
     if (this.polymerVersion == 1 && !isInGlobalScope && !cls.target.isGetProp()) {
       Node scriptNode = NodeUtil.getEnclosingScript(parent);
       scriptNode.addChildrenToFront(statements);
-      compiler.reportChangeToEnclosingScope(scriptNode);
+      compiler.reportChangeToChangeScope(scriptNode);
     } else {
       Node beforeRoot = exprRoot.getPrevious();
       if (beforeRoot == null) {
@@ -155,14 +151,16 @@ final class PolymerClassRewriter {
     }
     compiler.reportChangeToEnclosingScope(statements);
 
-    // Since behavior files might contain more language features than the class file, we need to
-    // update the feature sets.
-    FeatureSet newFeatures = cls.features;
-    if (newFeatures != null) {
+    // Since behavior files might contain language features that aren't present in the class file,
+    // we might need to update the FeatureSet.
+    if (cls.features != null) {
       Node scriptNode = NodeUtil.getEnclosingScript(parent);
       FeatureSet oldFeatures = (FeatureSet) scriptNode.getProp(Node.FEATURE_SET);
-      scriptNode.putProp(Node.FEATURE_SET, oldFeatures.union(newFeatures));
-      compiler.reportChangeToEnclosingScope(scriptNode);
+      FeatureSet newFeatures = oldFeatures.union(cls.features);
+      if (!newFeatures.equals(oldFeatures)) {
+        scriptNode.putProp(Node.FEATURE_SET, newFeatures);
+        compiler.reportChangeToChangeScope(scriptNode);
+      }
     }
 
     if (NodeUtil.isNameDeclaration(exprRoot)) {
@@ -303,11 +301,6 @@ final class PolymerClassRewriter {
         PolymerPassStaticUtils.extractProperties(objLit, defType, compiler)) {
       if (!property.value.isObjectLit()) {
         continue;
-      }
-      if (hasShorthandAssignment(property.value)){
-        compiler.report(
-            JSError.make(property.value, PolymerPassErrors.POLYMER_SHORTHAND_NOT_SUPPORTED));
-        return;
       }
 
       Node defaultValue = NodeUtil.getFirstPropMatchingKey(property.value, "value");
@@ -596,21 +589,11 @@ final class PolymerClassRewriter {
     compiler.reportChangeToEnclosingScope(stmts);
   }
 
-  private static boolean hasShorthandAssignment(Node objLit) {
-    checkState(objLit.isObjectLit());
-    for (Node property : objLit.children()){
-      if (property.isStringKey() && !property.hasChildren()){
-        return true;
-      }
-    }
-    return false;
-  }
-
   /**
    * @return The name of the generated extern interface which the element implements.
    */
   private static String getInterfaceName(final PolymerClassDefinition cls) {
-    return "Polymer" + cls.target.getQualifiedName().replaceAll("\\.", "_") + "Interface";
+    return "Polymer" + cls.target.getQualifiedName().replace('.', '_') + "Interface";
   }
 
   /**

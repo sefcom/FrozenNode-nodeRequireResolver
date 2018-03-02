@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.google.javascript.jscomp;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * CompilerTestCase for passes that run after type checking and use type information.
@@ -26,6 +26,9 @@ import java.util.List;
  * @author dimvar@google.com (Dimitris Vardoulakis)
  */
 public abstract class TypeICompilerTestCase extends CompilerTestCase {
+
+  private static final Logger logger =
+      Logger.getLogger("com.google.javascript.jscomp.TypeICompilerTestCase");
 
   protected static enum TypeInferenceMode {
     NEITHER,
@@ -77,13 +80,16 @@ public abstract class TypeICompilerTestCase extends CompilerTestCase {
       Diagnostic diagnostic,
       List<Postcondition> postconditions) {
     if (this.mode.runsOTI()) {
+      logger.info("Running with OTI");
       testOTI(externs, js, expected, diagnostic, postconditions);
     }
     if (this.mode.runsNTI()) {
+      logger.info("Running with NTI");
       checkMinimalExterns(externs.externs);
       testNTI(externs, js, expected, diagnostic, postconditions);
     }
     if (this.mode.runsNeither()) {
+      logger.info("Running without typechecking");
       super.testInternal(externs, js, expected, diagnostic, postconditions);
     }
   }
@@ -142,6 +148,7 @@ public abstract class TypeICompilerTestCase extends CompilerTestCase {
       Expected expected,
       Diagnostic diagnostic,
       List<Postcondition> postconditions) {
+    /*
     TypeInferenceMode saved = this.mode;
     this.mode = TypeInferenceMode.NTI_ONLY;
     enableNewTypeInference();
@@ -150,6 +157,7 @@ public abstract class TypeICompilerTestCase extends CompilerTestCase {
     super.testInternal(externs, js, expected, nti, postconditions);
     disableNewTypeInference();
     this.mode = saved;
+    */
   }
 
   void testWarningOtiNti(
@@ -157,8 +165,10 @@ public abstract class TypeICompilerTestCase extends CompilerTestCase {
     TypeInferenceMode saved = this.mode;
     this.mode = TypeInferenceMode.OTI_ONLY;
     testWarning(js, otiWarning);
+    /*
     this.mode = TypeInferenceMode.NTI_ONLY;
     testWarning(js, ntiWarning);
+    */
     this.mode = saved;
   }
 

@@ -64,6 +64,9 @@ final class SimpleInference {
     if (decl == null) {
       return null;
     }
+    if (decl.getNamespace() != null && this.scopesAreFrozen) {
+      return decl.getNamespace().toJSType();
+    }
     // Namespaces (literals, enums, constructors) get populated during ProcessScope,
     // so it's generally NOT safe to convert them to jstypes until after ProcessScope is done.
     // However, we've seen examples where it is useful to use the constructor type
@@ -80,9 +83,6 @@ final class SimpleInference {
       }
       return this.commonTypes.fromFunctionType(ctorFn)
           .withProperty(CONST_INFERENCE_MARKER, this.commonTypes.UNKNOWN);
-    }
-    if (decl.getNamespace() != null && this.scopesAreFrozen) {
-      return decl.getNamespace().toJSType();
     }
     if (decl.getTypeOfSimpleDecl() != null) {
       return decl.getTypeOfSimpleDecl();
@@ -166,7 +166,7 @@ final class SimpleInference {
       case REGEXP:
         return this.commonTypes.getRegexpType();
       case CAST:
-        return this.gti.getCastTypes().get(n);
+        return (JSType) n.getTypeI();
       case ARRAYLIT: {
         if (!n.hasChildren()) {
           return this.commonTypes.getArrayInstance();
@@ -194,8 +194,11 @@ final class SimpleInference {
       case OBJECTLIT: {
         JSType objLitType = this.commonTypes.getEmptyObjectLiteral();
         for (Node prop : n.children()) {
-          JSType propType = inferExprRecur(prop.getFirstChild(), scope);
-          if (propType == null) {
+          JSType propType = null;
+          if (prop.hasChildren()) {
+            propType = inferExprRecur(prop.getFirstChild(), scope);
+          }
+          if (propType == null || prop.isComputedProp()) {
             return null;
           }
           objLitType = objLitType.withProperty(
@@ -270,7 +273,7 @@ final class SimpleInference {
       if (decl != null) {
         EnumType et = decl.getEnum();
         if (et != null && et.enumLiteralHasKey(pname)) {
-          return et.getEnumeratedType();
+          return et.getPropType();
         }
         Namespace ns = decl.getNamespace();
         if (ns != null) {

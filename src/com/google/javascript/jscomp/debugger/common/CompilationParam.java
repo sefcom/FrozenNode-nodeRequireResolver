@@ -19,7 +19,7 @@ package com.google.javascript.jscomp.debugger.common;
 import com.google.javascript.jscomp.AnonymousFunctionNamingPolicy;
 import com.google.javascript.jscomp.CheckLevel;
 import com.google.javascript.jscomp.CompilerOptions;
-import com.google.javascript.jscomp.CompilerOptions.J2clPassMode;
+import com.google.javascript.jscomp.CompilerOptions.PropertyCollapseLevel;
 import com.google.javascript.jscomp.CompilerOptions.Reach;
 import com.google.javascript.jscomp.DiagnosticGroup;
 import com.google.javascript.jscomp.DiagnosticGroups;
@@ -66,7 +66,7 @@ public enum CompilationParam {
   TRANSPILE(true, ParamGroup.TRANSPILATION) {
     @Override
     public void apply(CompilerOptions options, boolean value) {
-      options.setLanguageIn(CompilerOptions.LanguageMode.ECMASCRIPT_NEXT);
+      options.setLanguageIn(CompilerOptions.LanguageMode.ECMASCRIPT_2017);
       options.setLanguageOut(
           value
               ? CompilerOptions.LanguageMode.ECMASCRIPT5
@@ -168,6 +168,7 @@ public enum CompilationParam {
     @Override
     public void apply(CompilerOptions options, boolean value) {
       options.setNewTypeInference(value);
+      options.setRunOTIafterNTI(false);
     }
 
     @Override
@@ -401,18 +402,17 @@ public enum CompilationParam {
   INLINE_FUNCTIONS(ParamGroup.TYPE_CHECKING_OPTIMIZATION) {
     @Override
     public void apply(CompilerOptions options, boolean value) {
-      options.setInlineFunctions(value);
-      options.setInlineLocalFunctions(value);
+      options.setInlineFunctions(value ? Reach.ALL : Reach.NONE);
     }
 
     @Override
     public boolean isApplied(CompilerOptions options) {
-      return options.inlineLocalFunctions && options.inlineFunctions;
+      return options.getInlineFunctionsLevel() == Reach.ALL;
     }
 
     @Override
     public String getJavaInfo() {
-      return "options.setInlineFunctions(true) + options.setInlineLocalFunctions(true)";
+      return "options.setInlineFunctions(Reach.ALL)";
     }
   },
 
@@ -439,19 +439,6 @@ public enum CompilationParam {
     @Override
     public boolean isApplied(CompilerOptions options) {
       return options.inlineVariables;
-    }
-  },
-
-  /** Flowsenstive Inlines variables */
-  FLOW_SENSITIVE_INLINE_VARIABLES(ParamGroup.TYPE_CHECKING_OPTIMIZATION) {
-    @Override
-    public void apply(CompilerOptions options, boolean value) {
-      options.setFlowSensitiveInlineVariables(value);
-    }
-
-    @Override
-    public boolean isApplied(CompilerOptions options) {
-      return options.flowSensitiveInlineVariables;
     }
   },
 
@@ -570,6 +557,18 @@ public enum CompilationParam {
     }
   },
 
+  REMOVE_SUPER_METHODS(ParamGroup.TYPE_CHECKING_OPTIMIZATION) {
+    @Override
+    public void apply(CompilerOptions options, boolean value) {
+      options.setRemoveSuperMethods(value);
+    }
+
+    @Override
+    public boolean isApplied(CompilerOptions options) {
+      return options.getRemoveSuperMethods();
+    }
+  },
+
   /** Collapses multiple variable declarations into one */
   COLLAPSE_VARIABLE_DECLARATIONS(ParamGroup.TYPE_CHECKING_OPTIMIZATION) {
     @Override
@@ -682,12 +681,13 @@ public enum CompilationParam {
   COLLAPSE_PROPERTIES(ParamGroup.TYPE_CHECKING_OPTIMIZATION) {
     @Override
     public void apply(CompilerOptions options, boolean value) {
-      options.setCollapseProperties(value);
+      options.setCollapsePropertiesLevel(
+          value ? PropertyCollapseLevel.ALL : PropertyCollapseLevel.NONE);
     }
 
     @Override
     public boolean isApplied(CompilerOptions options) {
-      return options.collapseProperties;
+      return options.shouldCollapseProperties();
     }
   },
 
@@ -827,30 +827,6 @@ public enum CompilationParam {
     }
   },
 
-  OPTIMIZE_PARAMETERS(ParamGroup.TYPE_CHECKING_OPTIMIZATION) {
-    @Override
-    public void apply(CompilerOptions options, boolean value) {
-      options.setOptimizeParameters(value);
-    }
-
-    @Override
-    public boolean isApplied(CompilerOptions options) {
-      return options.optimizeParameters;
-    }
-  },
-
-  OPTIMIZE_RETURNS(ParamGroup.TYPE_CHECKING_OPTIMIZATION) {
-    @Override
-    public void apply(CompilerOptions options, boolean value) {
-      options.setOptimizeReturns(value);
-    }
-
-    @Override
-    public boolean isApplied(CompilerOptions options) {
-      return options.optimizeReturns;
-    }
-  },
-
   // --------------------------------
   // Special-purpose alterations
   // --------------------------------
@@ -984,13 +960,6 @@ public enum CompilationParam {
     @Override
     public void apply(CompilerOptions options, boolean value) {
       options.setChromePass(value);
-    }
-  },
-
-  J2CL_PASS(ParamGroup.SPECIAL_PASSES) {
-    @Override
-    public void apply(CompilerOptions options, boolean value) {
-      options.setJ2clPass(value ? J2clPassMode.ON : J2clPassMode.OFF);
     }
   },
 

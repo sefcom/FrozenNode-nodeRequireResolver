@@ -20,6 +20,8 @@ import com.google.javascript.jscomp.AstValidator.ViolationHandler;
 import com.google.javascript.jscomp.CompilerOptions.LanguageMode;
 import com.google.javascript.rhino.IR;
 import com.google.javascript.rhino.InputId;
+import com.google.javascript.rhino.JSDocInfoBuilder;
+import com.google.javascript.rhino.JSTypeExpression;
 import com.google.javascript.rhino.Node;
 import com.google.javascript.rhino.SimpleSourceFile;
 import com.google.javascript.rhino.Token;
@@ -59,11 +61,51 @@ public final class AstValidatorTest extends CompilerTestCase {
     disableLineNumberCheck();
   }
 
+  public void testClass() {
+    valid(lines(
+        "class C {",
+        "  get m1() {return 1}",
+        "  set m1(a) {}",
+        "  m2(a) {}",
+        "  ['m2']() {}",
+        "  [m2]() {}",
+        "}"));
+
+    Node c = new Node(Token.CLASS, IR.name("C"), IR.empty());
+    Node members = new Node(Token.CLASS_MEMBERS);
+    c.addChildToBack(members);
+    expectValid(c, Check.STATEMENT);
+    Node method1 = new Node(
+        Token.MEMBER_FUNCTION_DEF, IR.function(IR.name(""), IR.paramList(), IR.block()));
+    members.addChildToBack(method1);
+    expectInvalid(c, Check.STATEMENT);
+
+    members.detachChildren();
+
+    // Invalid empty string
+    Node method2 = Node.newString(Token.MEMBER_FUNCTION_DEF, "");
+    method2.addChildToBack(IR.function(IR.name(""), IR.paramList(), IR.block()));
+    members.addChildToBack(method2);
+
+    expectInvalid(c, Check.STATEMENT);
+  }
+
   public void testForIn() {
     valid("for(var a in b);");
+    valid("for(let a in b);");
+    valid("for(const a in b);");
     valid("for(a in b);");
     valid("for(a in []);");
     valid("for(a in {});");
+  }
+
+  public void testForOf() {
+    valid("for(var a of b);");
+    valid("for(let a of b);");
+    valid("for(const a of b);");
+    valid("for(a of b);");
+    valid("for(a of []);");
+    valid("for(a of {});");
   }
 
   public void testQuestionableForIn() {
@@ -107,9 +149,43 @@ public final class AstValidatorTest extends CompilerTestCase {
     expectInvalid(n, Check.SCRIPT);
   }
 
+  public void testValidConst() {
+    valid("const x = r;");
+    valid("const [x] = r;");
+    valid("const {x} = r;");
+    valid("const x = r, y = r;");
+    valid("const {x} = r, y = r;");
+    valid("const x = r, {y} = r;");
+  }
+
+  public void testInvalidConst() {
+    Node n = new Node(Token.CONST);
+    expectInvalid(n, Check.STATEMENT);
+
+    n.addChildToBack(IR.name("x"));
+    expectInvalid(n, Check.STATEMENT);
+
+    n = new Node(Token.CONST);
+    n.addChildToBack(new Node(Token.DESTRUCTURING_LHS));
+    n.getFirstChild().addChildToBack(new Node(Token.OBJECT_PATTERN));
+
+    expectInvalid(n, Check.STATEMENT);
+  }
+
   public void testNewTargetIsValidExpression() {
     Node n = new Node(Token.NEW_TARGET);
     expectValid(n, Check.EXPRESSION);
+  }
+
+  public void testCastOnLeftSideOfAssign() {
+    JSDocInfoBuilder jsdoc = new JSDocInfoBuilder(false);
+    jsdoc.recordType(new JSTypeExpression(IR.string("number"), "<AstValidatorTest>"));
+    Node n = IR.exprResult(
+        new Node(
+            Token.ASSIGN,
+            IR.cast(IR.name("x"), jsdoc.build()),
+            IR.number(0)));
+    expectValid(n, Check.STATEMENT);
   }
 
   public void testInvalidEmptyStatement() {
@@ -234,6 +310,20 @@ public final class AstValidatorTest extends CompilerTestCase {
     valid("({['a']:b['c'] = 1} = obj);");
     valid("({['a']:b()['c']} = obj);");
     valid("({['a']:b()['c'] = 1} = obj);");
+  }
+
+  public void testObjectRestAssignment() {
+    setAcceptedLanguage(LanguageMode.ECMASCRIPT_NEXT);
+    valid("var {a, ...rest} = obj;");
+    valid("({a:b, ...rest} = obj);");
+    valid("({a:b.c, ...rest} = obj);");
+    valid("({a:b().c, ...rest} = obj);");
+    valid("({a:b['c'], ...rest} = obj);");
+    valid("({a:b()['c'], ...rest} = obj);");
+    valid("({a:b.c = 1, ...rest} = obj);");
+    valid("({a:b().c = 1, ...rest} = obj);");
+    valid("({a:b['c'] = 1, ...rest} = obj);");
+    valid("({a:b()['c'] = 1, ...rest} = obj);");
   }
 
   public void testInvalidDestructuringAssignment() {

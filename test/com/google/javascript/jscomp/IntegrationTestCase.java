@@ -20,7 +20,7 @@ import static com.google.javascript.jscomp.testing.JSErrorSubject.assertError;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.google.javascript.jscomp.testing.BlackHoleErrorManager;
+import com.google.javascript.jscomp.CompilerTestCase.NoninjectingCompiler;
 import com.google.javascript.rhino.Node;
 import java.util.ArrayList;
 import java.util.List;
@@ -204,8 +204,12 @@ abstract class IntegrationTestCase extends TestCase {
                   "/** @param {...*} var_args */",
                   "Function.prototype.call = function (var_args) {};",
                   "",
-                  "/** @constructor */",
+                  "/**",
+                  " * @constructor",
+                  " * @template T",
+                  " */",
                   "function Arguments() {}",
+                  "",
                   "/**",
                   " * @constructor",
                   " * @implements {IteratorIterable<VALUE>}",
@@ -235,6 +239,7 @@ abstract class IntegrationTestCase extends TestCase {
   protected Compiler lastCompiler;
 
   protected boolean normalizeResults = false;
+  protected boolean useNoninjectingCompiler = false;
 
   protected String inputFileNamePrefix;
   protected String inputFileNameSuffix;
@@ -244,6 +249,7 @@ abstract class IntegrationTestCase extends TestCase {
     externs = DEFAULT_EXTERNS;
     lastCompiler = null;
     normalizeResults = false;
+    useNoninjectingCompiler = false;
     inputFileNamePrefix = "i";
     inputFileNameSuffix = ".js";
   }
@@ -333,6 +339,27 @@ abstract class IntegrationTestCase extends TestCase {
     }
   }
 
+  /** Asserts that when compiling with the given compiler options, there is an error or warning. */
+  protected void test(
+      CompilerOptions options, String[] original, String[] compiled, DiagnosticType[] warnings) {
+    Compiler compiler = compile(options, original);
+    checkUnexpectedErrorsOrWarnings(compiler, warnings.length);
+
+    if (compiled != null) {
+      Node root = compiler.getRoot().getLastChild();
+      Node expectedRoot = parseExpectedCode(compiled, options, normalizeResults);
+      String explanation = expectedRoot.checkTreeEquals(root);
+      assertNull(
+          "\nExpected: "
+              + compiler.toSource(expectedRoot)
+              + "\nResult:   "
+              + compiler.toSource(root)
+              + "\n"
+              + explanation,
+          explanation);
+    }
+  }
+
   /**
    * Asserts that there is at least one parse error.
    */
@@ -366,25 +393,6 @@ abstract class IntegrationTestCase extends TestCase {
     }
   }
 
-  /**
-   * Asserts that when compiling with the given compiler options,
-   * there is an error or warning.
-   */
-  protected void test(CompilerOptions options,
-      String[] original, String[] compiled, DiagnosticType[] warnings) {
-    Compiler compiler = compile(options, original);
-    checkUnexpectedErrorsOrWarnings(compiler, warnings.length);
-
-    if (compiled != null) {
-      Node root = compiler.getRoot().getLastChild();
-      Node expectedRoot = parseExpectedCode(compiled, options, normalizeResults);
-      String explanation = expectedRoot.checkTreeEquals(root);
-      assertNull("\nExpected: " + compiler.toSource(expectedRoot) +
-          "\nResult: " + compiler.toSource(root) +
-          "\n" + explanation, explanation);
-    }
-  }
-
   protected void checkUnexpectedErrorsOrWarnings(
       Compiler compiler, int expected) {
     int actual = compiler.getErrors().length + compiler.getWarnings().length;
@@ -406,12 +414,12 @@ abstract class IntegrationTestCase extends TestCase {
   }
 
   protected Compiler compile(CompilerOptions options, String[] original) {
-    return compile(options, original, new Compiler());
-  }
+    Compiler compiler =
+        useNoninjectingCompiler
+            ? new NoninjectingCompiler(new BlackHoleErrorManager())
+            : new Compiler(new BlackHoleErrorManager());
 
-  protected Compiler compile(CompilerOptions options, String[] original, Compiler compiler) {
     lastCompiler = compiler;
-    BlackHoleErrorManager.silence(compiler);
     compiler.compileModules(
         externs,
         ImmutableList.copyOf(

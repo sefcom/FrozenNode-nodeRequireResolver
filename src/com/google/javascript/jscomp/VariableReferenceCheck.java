@@ -132,7 +132,7 @@ class VariableReferenceCheck implements HotSwapCompilerPass {
    */
   private class ReferenceCheckingBehavior implements Behavior {
 
-    private Set<String> varsInFunctionBody;
+    private final Set<String> varsInFunctionBody;
 
     private ReferenceCheckingBehavior() {
       varsInFunctionBody = new HashSet<>();
@@ -324,7 +324,8 @@ class VariableReferenceCheck implements HotSwapCompilerPass {
    */
   private boolean checkRedeclaration(
       Var v, Reference reference, Node referenceNode, Reference hoistedFn, BasicBlock basicBlock) {
-    boolean allowDupe = VarCheck.hasDuplicateDeclarationSuppression(referenceNode, v);
+    boolean allowDupe =
+        VarCheck.hasDuplicateDeclarationSuppression(compiler, referenceNode, v.getNameNode());
     boolean letConstShadowsVar = v.getParentNode().isVar()
         && (reference.isLetDeclaration() || reference.isConstDeclaration());
     boolean isVarNodeSameAsReferenceNode = v.getNode() == reference.getNode();
@@ -341,8 +342,13 @@ class VariableReferenceCheck implements HotSwapCompilerPass {
           shadowDetected = true;
           DiagnosticType diagnosticType;
           Node warningNode = referenceNode;
-          if (v.isLet() || v.isConst() || v.isClass() || letConstShadowsVar || shadowCatchVar
-              || shadowParam) {
+          if (v.isLet()
+              || v.isConst()
+              || v.isClass()
+              || letConstShadowsVar
+              || shadowCatchVar
+              || shadowParam
+              || v.isImport()) {
             // These cases are all hard errors that violate ES6 semantics
             diagnosticType = REDECLARED_VARIABLE_ERROR;
           } else if (reference.getNode().getParent().isCatch() || allowDupe) {

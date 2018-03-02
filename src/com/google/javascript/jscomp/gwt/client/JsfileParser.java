@@ -76,6 +76,7 @@ public class JsfileParser implements EntryPoint {
    *   "requires": {?Array<string>},  note: look for goog.* for 'goog'
    *   "requires_css": {?Array<string>},  @fileoverview @requirecss {.*}
    *   "testonly": {?bool},  goog.setTestOnly
+   *   "type_requires": {?Array<string>},
    *   "visibility: {?Array<string>},  @fileoverview @visibility {.*}
    * }}</pre>
    * Any trivial values are omitted.
@@ -99,6 +100,7 @@ public class JsfileParser implements EntryPoint {
     // each copy so that calling code can choose how to handle it
     final Multiset<String> provides = TreeMultiset.create();
     final Multiset<String> requires = TreeMultiset.create();
+    final Multiset<String> typeRequires = TreeMultiset.create();
     final Multiset<String> requiresCss = TreeMultiset.create();
     final Multiset<String> visibility = TreeMultiset.create();
 
@@ -136,6 +138,7 @@ public class JsfileParser implements EntryPoint {
           .set("requires", requires)
           .set("requiresCss", requiresCss)
           .set("testonly", testonly)
+          .set("type_requires", typeRequires)
           .set("visibility", visibility)
           .object;
     }
@@ -340,6 +343,12 @@ public class JsfileParser implements EntryPoint {
                   info.requires.add(arg.getString());
                 } // TODO(sdh): else warning?
                 break;
+              case "requireType":
+                arg = parent.getSecondChild();
+                if (arg.isString()) {
+                  info.typeRequires.add(arg.getString());
+                } // TODO(blickly): else warning?
+                break;
               case "setTestOnly":
                 info.testonly = true;
                 break;
@@ -359,6 +368,10 @@ public class JsfileParser implements EntryPoint {
         info.importedModules.add(moduleSpecifier.getString());
       } else if (node.isExport()) {
         info.loadFlags.add(JsArray.of("module", "es6"));
+        // export from
+        if (node.hasTwoChildren() && node.getLastChild().isString()) {
+          info.importedModules.add(node.getLastChild().getString());
+        }
       }
     }
   }

@@ -285,6 +285,12 @@ md.$dialog.ConfirmConfig_.prototype.parent = function(parent) {};
  */
 md.$dialog.ConfirmConfig_.prototype.css = function(css) {};
 
+/**
+ * @param {boolean} scroll
+ * @return {!md.$dialog.ConfirmConfig_}
+ */
+md.$dialog.ConfirmConfig_.prototype.disableParentScroll = function(scroll) {};
+
 
 /** @interface */
 md.$dialog.PromptConfig_ = function() {};
@@ -387,6 +393,11 @@ md.$dialog.PromptConfig_.prototype.parent = function(parent) {};
  */
 md.$dialog.PromptConfig_.prototype.css = function(css) {};
 
+/**
+ * @param {boolean} required
+ * @return {!md.$dialog.PromptConfig_}
+ */
+md.$dialog.PromptConfig_.prototype.required = function(required) {};
 
 /** @typedef {!md.$dialog.options|!md.$dialog.ConfirmConfig_|
  *     !md.$dialog.AlertConfig_|!md.$dialog.PromptConfig_} */

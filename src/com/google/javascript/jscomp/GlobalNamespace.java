@@ -125,11 +125,6 @@ class GlobalNamespace
 
   @Override
   public TypeI getTypeOfThis() {
-    return getTypeIOfThis();
-  }
-
-  @Override
-  public final TypeI getTypeIOfThis() {
     return compiler.getTypeIRegistry().getNativeObjectType(GLOBAL_THIS);
   }
 
@@ -380,8 +375,11 @@ class GlobalNamespace
               type = Name.Type.OTHER;
               break;
             case CLASS:
-              isSet = true;
-              type = Name.Type.CLASS;
+              // The first child is the class name, and the second child is the superclass name.
+              if (parent.getFirstChild() == n) {
+                isSet = true;
+                type = Name.Type.CLASS;
+              }
               break;
             case ARRAY_PATTERN:
               // Specific case to handle inlining with array destructuring
@@ -426,6 +424,13 @@ class GlobalNamespace
           }
           name = n.getQualifiedName();
           break;
+        case CALL:
+          if (isObjectHasOwnPropertyCall(n)) {
+            String qname = n.getFirstFirstChild().getQualifiedName();
+            Name globalName = getOrCreateName(qname, true);
+            globalName.usedHasOwnProperty = true;
+          }
+          return;
         default:
           return;
       }
@@ -435,9 +440,12 @@ class GlobalNamespace
         return;
       }
 
-      scope = scope.getClosestHoistScope();
+
       if (isSet) {
-        if (scope.isGlobal()) {
+        // Use the closest hoist scope to select handleSetFromGlobal or handleSetFromLocal
+        // because they use the term 'global' in an ES5, pre-block-scoping sense.
+        Scope hoistScope = scope.getClosestHoistScope();
+        if (hoistScope.isGlobal()) {
           handleSetFromGlobal(module, scope, n, parent, name, isPropAssign, type, shouldCreateProp);
         } else {
           handleSetFromLocal(module, scope, n, parent, name, shouldCreateProp);
@@ -579,8 +587,9 @@ class GlobalNamespace
     }
 
     /**
-     * Updates our representation of the global namespace to reflect an
-     * assignment to a global name in global scope.
+     * Updates our representation of the global namespace to reflect an assignment to a global name
+     * in any scope where variables are hoisted to the global scope (i.e. the global scope in an ES5
+     * sense).
      *
      * @param module the current module
      * @param scope the current scope
@@ -600,6 +609,10 @@ class GlobalNamespace
 
       Name nameObj = getOrCreateName(name, shouldCreateProp);
       nameObj.type = type;
+      if (n.getBooleanProp(Node.MODULE_EXPORT)) {
+        nameObj.isModuleProp = true;
+      }
+      maybeRecordEs6Subclass(n, parent, nameObj);
 
       Ref set = new Ref(module, scope, n, nameObj, Ref.Type.SET_FROM_GLOBAL,
           currentPreOrderIndex++);
@@ -614,6 +627,45 @@ class GlobalNamespace
       } else if (isTypeDeclaration(n)) {
         // Names with a @constructor or @enum annotation are always collapsed
         nameObj.setDeclaredType();
+      }
+    }
+
+    /**
+     * Given a new node and its name that is an ES6 class, checks if it is an ES6 class with an ES6
+     * superclass. If the superclass is a simple or qualified names, adds itself to the parent's
+     * list of subclasses. Otherwise this does nothing.
+     *
+     * @param n The node being visited.
+     * @param parent {@code n}'s parent
+     * @param subclassNameObj The Name of the new node being visited.
+     */
+    private void maybeRecordEs6Subclass(Node n, Node parent, Name subclassNameObj) {
+      if (subclassNameObj.type != Name.Type.CLASS || parent == null) {
+        return;
+      }
+
+      Node superclass = null;
+      if (parent.isClass()) {
+        superclass = parent.getSecondChild();
+      } else {
+        Node classNode = NodeUtil.getAssignedValue(n);
+        if (classNode != null && classNode.isClass()) {
+          superclass = classNode.getSecondChild();
+        }
+      }
+      // If there's no superclass, or the superclass expression is more complicated than a simple
+      // or qualified name, return.
+      if (superclass == null
+          || superclass.isEmpty()
+          || !(superclass.isName() || superclass.isGetProp())) {
+        return;
+      }
+      String superclassName = superclass.getQualifiedName();
+
+      Name superclassNameObj = getOrCreateName(superclassName, true);
+      // If the superclass is an ES3/5 class we don't record its subclasses.
+      if (superclassNameObj != null && superclassNameObj.type == Name.Type.CLASS) {
+        superclassNameObj.addSubclass(subclassNameObj);
       }
     }
 
@@ -657,6 +709,9 @@ class GlobalNamespace
       Ref set = new Ref(module, scope, n, nameObj,
           Ref.Type.SET_FROM_LOCAL, currentPreOrderIndex++);
       nameObj.addRef(set);
+      if (n.getBooleanProp(Node.MODULE_EXPORT)) {
+        nameObj.isModuleProp = true;
+      }
 
       if (isNestedAssign(parent)) {
         // This assignment is both a set and a get that creates an alias.
@@ -730,12 +785,40 @@ class GlobalNamespace
         case DELPROP:
           type = Ref.Type.DELETE_PROP;
           break;
+        case CLASS:
+          // This node is the superclass in an extends clause.
+          type = Ref.Type.DIRECT_GET;
+          break;
         default:
           type = Ref.Type.ALIASING_GET;
           break;
       }
 
       handleGet(module, scope, n, parent, name, type, true);
+    }
+
+    /**
+     * Updates our representation of the global namespace to reflect a read of a global name.
+     *
+     * @param module The current module
+     * @param scope The current scope
+     * @param n The node currently being visited
+     * @param parent {@code n}'s parent
+     * @param name The global name (e.g. "a" or "a.b.c.d")
+     * @param type The reference type
+     */
+    void handleGet(
+        JSModule module,
+        Scope scope,
+        Node n,
+        Node parent,
+        String name,
+        Ref.Type type,
+        boolean shouldCreateProp) {
+      Name nameObj = getOrCreateName(name, shouldCreateProp);
+
+      // No need to look up additional ancestors, since they won't be used.
+      nameObj.addRef(new Ref(module, scope, n, nameObj, type, currentPreOrderIndex++));
     }
 
     private boolean isClassDefiningCall(Node callNode) {
@@ -750,6 +833,23 @@ class GlobalNamespace
       // Look for calls to goog.addSingletonGetter calls.
       String className = convention.getSingletonGetterClassName(callNode);
       return className != null;
+    }
+
+    /** Detect calls of the form a.b.hasOwnProperty(c); that prevent property collapsing on a.b */
+    private boolean isObjectHasOwnPropertyCall(Node callNode) {
+      checkArgument(callNode.isCall(), callNode);
+      if (!callNode.hasTwoChildren()) {
+        return false;
+      }
+      Node fn = callNode.getFirstChild();
+      if (!fn.isGetProp()) {
+        return false;
+      }
+      Node callee = fn.getFirstChild();
+      Node method = fn.getSecondChild();
+      return method.isString()
+          && "hasOwnProperty".equals(method.getString())
+          && callee.isQualifiedName();
     }
 
     /**
@@ -814,26 +914,6 @@ class GlobalNamespace
         prev = anc;
       }
       return Ref.Type.ALIASING_GET;
-    }
-
-    /**
-     * Updates our representation of the global namespace to reflect a read
-     * of a global name.
-     *
-     * @param module The current module
-     * @param scope The current scope
-     * @param n The node currently being visited
-     * @param parent {@code n}'s parent
-     * @param name The global name (e.g. "a" or "a.b.c.d")
-     * @param type The reference type
-     */
-    void handleGet(JSModule module, Scope scope, Node n, Node parent,
-        String name, Ref.Type type, boolean shouldCreateProp) {
-      Name nameObj = getOrCreateName(name, shouldCreateProp);
-
-      // No need to look up additional ancestors, since they won't be used.
-      nameObj.addRef(
-          new Ref(module, scope, n, nameObj, type, currentPreOrderIndex++));
     }
 
     /**
@@ -956,9 +1036,14 @@ class GlobalNamespace
     /** All references to a name. This must contain {@code declaration}. */
     private List<Ref> refs;
 
+    /** All Es6 subclasses of a name that is an Es6 class. Must be null if not an ES6 class. */
+    @Nullable List<Name> subclasses;
+
     Type type;
     private boolean declaredType = false;
     private boolean isDeclared = false;
+    private boolean isModuleProp = false;
+    private boolean usedHasOwnProperty = false;
     int globalSets = 0;
     int localSets = 0;
     int localSetsWithNoCollapse = 0;
@@ -988,6 +1073,15 @@ class GlobalNamespace
       return node;
     }
 
+    Name addSubclass(Name subclassName) {
+      checkArgument(this.type == Type.CLASS && subclassName.type == Type.CLASS);
+      if (subclasses == null) {
+        subclasses = new ArrayList<>();
+      }
+      subclasses.add(subclassName);
+      return subclassName;
+    }
+
     String getBaseName() {
       return baseName;
     }
@@ -1013,11 +1107,6 @@ class GlobalNamespace
 
     @Override
     public TypeI getType() {
-      return null;
-    }
-
-    @Override
-    public final TypeI getTypeI() {
       return null;
     }
 
@@ -1233,6 +1322,10 @@ class GlobalNamespace
         return false;
       }
 
+      if (usedHasOwnProperty) {
+        return false;
+      }
+
       if (declaredType) {
         return true;
       }
@@ -1348,6 +1441,10 @@ class GlobalNamespace
 
       return null;
     }
+
+    boolean isModuleExport() {
+      return isModuleProp;
+    }
   }
 
   // -------------------------------------------------------------------------
@@ -1401,11 +1498,14 @@ class GlobalNamespace
       DELETE_PROP,
     }
 
-
     Node node;
     final JSModule module;
     final Name name;
     final Type type;
+    /**
+     * The scope in which the reference is resolved. Note that for ALIASING_GETS like "var x = ns;"
+     * this scope may not be the correct hoist scope of the aliasing VAR.
+     */
     final Scope scope;
     final int preOrderIndex;
 

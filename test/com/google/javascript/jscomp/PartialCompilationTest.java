@@ -20,10 +20,15 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.javascript.jscomp.CompilerOptions.LanguageMode;
+import com.google.javascript.rhino.jstype.FunctionType;
 import com.google.javascript.rhino.jstype.JSType;
+import com.google.javascript.rhino.jstype.NamedType;
 import com.google.javascript.rhino.jstype.NoType;
 import com.google.javascript.rhino.jstype.ObjectType;
+import com.google.javascript.rhino.jstype.UnionType;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import junit.framework.TestCase;
@@ -149,6 +154,31 @@ public class PartialCompilationTest extends TestCase {
     assertThat(more.getReferenceName()).isEqualTo("More");
   }
 
+  public void testUnresolvedUnions() throws Exception {
+    assertPartialCompilationSucceeds("/** @type {some.thing.Foo|some.thing.Bar} */", "var x;");
+    TypedVar x = compiler.getTopScope().getSlot("x");
+    assertThat(x.getType().isUnionType()).named("type %s", x.getType()).isTrue();
+    UnionType unionType = (UnionType) x.getType();
+
+    Collection<JSType> alternatives = unionType.getAlternates();
+    assertThat(alternatives).hasSize(3);
+
+    int nullTypeCount = 0;
+    List<String> namedTypes = new ArrayList<>();
+    for (JSType alternative : alternatives) {
+      assertThat(alternative.isNamedType() || alternative.isNullType()).isTrue();
+      if (alternative.isNamedType()) {
+        assertThat(alternative.isNoResolvedType()).isTrue();
+        namedTypes.add(((NamedType) alternative).getReferenceName());
+      }
+      if (alternative.isNullType()) {
+        nullTypeCount++;
+      }
+    }
+    assertThat(nullTypeCount).isEqualTo(1);
+    assertThat(namedTypes).containsExactly("some.thing.Foo", "some.thing.Bar");
+  }
+
   public void testUnresolvedGenerics_defined() throws Exception {
     assertPartialCompilationSucceeds(
         "/** @param {!some.thing.Missing<string>} x */",
@@ -160,5 +190,20 @@ public class PartialCompilationTest extends TestCase {
         "function missingInside() {",
         "  useMissing(new some.thing.Missing());",
         "}");
+  }
+
+  public void testUnresolvedBaseClassDoesNotHideFields() throws Exception {
+    assertPartialCompilationSucceeds(
+        "/** @constructor @extends {MissingBase} */",
+        "var Klass = function () {",
+        "  /** @type {string} */",
+        "  this.foo;",
+        "};");
+    TypedVar x = compiler.getTopScope().getSlot("Klass");
+    JSType type = x.getType();
+    assertThat(type.isFunctionType()).isTrue();
+
+    FunctionType fType = (FunctionType) type;
+    assertThat(fType.getTypeOfThis().hasProperty("foo")).isTrue();
   }
 }

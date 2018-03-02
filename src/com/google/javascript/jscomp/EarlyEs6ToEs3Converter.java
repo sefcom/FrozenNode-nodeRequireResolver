@@ -19,6 +19,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.javascript.jscomp.CompilerOptions.LanguageMode;
 import com.google.javascript.jscomp.NodeTraversal.Callback;
+import com.google.javascript.jscomp.NodeUtil.Visitor;
+import com.google.javascript.jscomp.parsing.parser.FeatureSet;
 import com.google.javascript.rhino.IR;
 import com.google.javascript.rhino.JSDocInfo;
 import com.google.javascript.rhino.JSDocInfoBuilder;
@@ -53,6 +55,8 @@ public final class EarlyEs6ToEs3Converter implements Callback, HotSwapCompilerPa
   private static final String REST_PARAMS = "$jscomp$restParams";
 
   private static final String FRESH_SPREAD_VAR = "$jscomp$spread$args";
+  // Since there's currently no Feature for Symbol, run this pass if the code has any ES6 features.
+  private static final FeatureSet transpiledFeatures = FeatureSet.ES6.without(FeatureSet.ES5);
 
   public EarlyEs6ToEs3Converter(AbstractCompiler compiler) {
     this.compiler = compiler;
@@ -60,13 +64,13 @@ public final class EarlyEs6ToEs3Converter implements Callback, HotSwapCompilerPa
 
   @Override
   public void process(Node externs, Node root) {
-    TranspilationPasses.processTranspile(compiler, externs, this);
-    TranspilationPasses.processTranspile(compiler, root, this);
+    TranspilationPasses.processTranspile(compiler, externs, transpiledFeatures, this);
+    TranspilationPasses.processTranspile(compiler, root, transpiledFeatures, this);
   }
 
   @Override
   public void hotSwapScript(Node scriptRoot, Node originalRoot) {
-    TranspilationPasses.hotSwapTranspile(compiler, scriptRoot, this);
+    TranspilationPasses.hotSwapTranspile(compiler, scriptRoot, transpiledFeatures, this);
   }
 
   /**
@@ -85,12 +89,6 @@ public final class EarlyEs6ToEs3Converter implements Callback, HotSwapCompilerPa
         // but we want the runtime functions to be have TypeI applied to it by the type checker.
         Es6ToEs3Util.preloadEs6RuntimeFunction(compiler, "makeIterator");
         break;
-      case YIELD:
-        if (n.isYieldAll()) {
-          Es6ToEs3Util.preloadEs6RuntimeFunction(compiler, "makeIterator");
-        }
-        Es6ToEs3Util.preloadEs6Symbol(compiler);
-        break;
       case GETTER_DEF:
       case SETTER_DEF:
         if (compiler.getOptions().getLanguageOut() == LanguageMode.ECMASCRIPT3) {
@@ -102,6 +100,9 @@ public final class EarlyEs6ToEs3Converter implements Callback, HotSwapCompilerPa
       case FUNCTION:
         if (n.isAsyncFunction()) {
           throw new IllegalStateException("async functions should have already been converted");
+        }
+        if (n.isGeneratorFunction()) {
+          compiler.ensureLibraryInjected("es6/generator_engine", /* force= */ false);
         }
         break;
       default:
@@ -131,11 +132,6 @@ public final class EarlyEs6ToEs3Converter implements Callback, HotSwapCompilerPa
             visitArrayLitOrCallWithSpread(n, parent);
             break;
           }
-        }
-        break;
-      case FUNCTION:
-        if (n.isGeneratorFunction()) {
-          Es6RewriteGenerators.preloadGeneratorSkeletonAndReportChange(compiler);
         }
         break;
       default:
@@ -195,10 +191,10 @@ public final class EarlyEs6ToEs3Converter implements Callback, HotSwapCompilerPa
     // Make sure rest parameters are typechecked
     JSTypeExpression type = null;
     JSDocInfo info = restParam.getJSDocInfo();
+    JSDocInfo functionInfo = NodeUtil.getBestJSDocInfo(paramList.getParent());
     if (info != null) {
       type = info.getType();
     } else {
-      JSDocInfo functionInfo = NodeUtil.getBestJSDocInfo(paramList.getParent());
       if (functionInfo != null) {
         type = functionInfo.getParameterType(paramName);
       }
@@ -230,6 +226,9 @@ public final class EarlyEs6ToEs3Converter implements Callback, HotSwapCompilerPa
           typeNode.getToken() == Token.ELLIPSIS
               ? typeNode.getFirstChild().cloneTree()
               : typeNode.cloneTree();
+      if (functionInfo != null) {
+        memberType = replaceTypeVariablesWithUnknown(functionInfo, memberType);
+      }
       arrayType.addChildToFront(
           new Node(Token.BLOCK, memberType).useSourceInfoIfMissingFrom(typeNode));
       JSDocInfoBuilder builder = new JSDocInfoBuilder(false);
@@ -255,6 +254,22 @@ public final class EarlyEs6ToEs3Converter implements Callback, HotSwapCompilerPa
     // need to make sure changes don't invalidate the JSDoc annotations.
     // Therefore we keep the parameter list the same length and only initialize
     // the values if they are set to undefined.
+  }
+
+  private Node replaceTypeVariablesWithUnknown(JSDocInfo functionJsdoc, Node typeAst) {
+    final List<String> typeVars = functionJsdoc.getTemplateTypeNames();
+    if (typeVars.isEmpty()) {
+      return typeAst;
+    }
+    NodeUtil.visitPreOrder(typeAst, new Visitor(){
+      @Override
+      public void visit(Node n) {
+        if (n.isString() && n.getParent() != null && typeVars.contains(n.getString())) {
+          n.replaceWith(new Node(Token.QMARK));
+        }
+      }
+    });
+    return typeAst;
   }
 
   /**

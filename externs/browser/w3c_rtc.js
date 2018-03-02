@@ -246,6 +246,58 @@ MediaTrackSettings.prototype.torch
 
 /**
  * @interface
+ * @see https://w3c.github.io/mediacapture-main/#media-track-supported-constraints
+ */
+function MediaTrackSupportedConstraints() {}
+
+/** @type {boolean|undefined} */
+MediaTrackSupportedConstraints.prototype.width;
+
+/** @type {boolean|undefined} */
+MediaTrackSupportedConstraints.prototype.height;
+
+/** @type {boolean|undefined} */
+MediaTrackSupportedConstraints.prototype.aspectRatio;
+
+/** @type {boolean|undefined} */
+MediaTrackSupportedConstraints.prototype.frameRate;
+
+/** @type {boolean|undefined} */
+MediaTrackSupportedConstraints.prototype.facingMode;
+
+/** @type {boolean|undefined} */
+MediaTrackSupportedConstraints.prototype.volume;
+
+/** @type {boolean|undefined} */
+MediaTrackSupportedConstraints.prototype.sampleRate;
+
+/** @type {boolean|undefined} */
+MediaTrackSupportedConstraints.prototype.sampleSize;
+
+/** @type {boolean|undefined} */
+MediaTrackSupportedConstraints.prototype.echoCancellation;
+
+/** @type {boolean|undefined} */
+MediaTrackSupportedConstraints.prototype.autoGainControl;
+
+/** @type {boolean|undefined} */
+MediaTrackSupportedConstraints.prototype.noiseSuppression;
+
+/** @type {boolean|undefined} */
+MediaTrackSupportedConstraints.prototype.latency;
+
+/** @type {boolean|undefined} */
+MediaTrackSupportedConstraints.prototype.channelCount;
+
+/** @type {boolean|undefined} */
+MediaTrackSupportedConstraints.prototype.deviceId;
+
+/** @type {boolean|undefined} */
+MediaTrackSupportedConstraints.prototype.groupId;
+
+
+/**
+ * @interface
  * @extends {EventTarget}
  * @see https://www.w3.org/TR/mediacapture-streams/#mediastreamtrack
  */
@@ -621,6 +673,10 @@ RTCRtpReceiver.prototype.track;
  */
 RTCRtpReceiver.prototype.getContributingSources = function() {};
 
+/**
+ * @return {!Array<!RTCRtpContributingSource>}
+ */
+RTCRtpReceiver.prototype.getSynchronizationSources = function() {};
 
 /**
  * @interface
@@ -1222,6 +1278,12 @@ MediaDevices.prototype.enumerateDevices = function() {};
  * @return {!Promise<!MediaStream>}
  */
 MediaDevices.prototype.getUserMedia = function(constraints) {}
+
+/**
+ * @see https://w3c.github.io/mediacapture-main/#dom-mediadevices-getsupportedconstraints
+ * @return {!MediaTrackSupportedConstraints}
+ */
+MediaDevices.prototype.getSupportedConstraints = function()  {}
 
 /** @const {!MediaDevices} */
 Navigator.prototype.mediaDevices;
@@ -1880,6 +1942,16 @@ RTCPeerConnection.prototype.removeStream = function(stream) {};
  */
 RTCPeerConnection.prototype.addTrack = function(track, stream, var_args) {};
 
+/**
+ * @return {!RTCConfiguration}
+ */
+RTCPeerConnection.prototype.getConfiguration = function() {};
+
+/**
+ * @param {!RTCConfiguration} configuration
+ * @return {undefined}
+ */
+RTCPeerConnection.prototype.setConfiguration = function(configuration) {};
 
 /**
  * @param {!RTCRtpSender} sender

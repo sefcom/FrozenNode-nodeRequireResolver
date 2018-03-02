@@ -798,6 +798,56 @@ public class ErrorToFixMapperTest {
   }
 
   @Test
+  public void testBothFormsOfRequire1() {
+    assertChanges(
+        LINE_JOINER.join(
+            "goog.module('example');",
+            "",
+            "const SoyRenderer = goog.require('foo.bar.SoyRenderer');",
+            "goog.require('foo.bar.SoyRenderer');",
+            "",
+            "function setUp() {",
+            "  const soyService = new foo.bar.SoyRenderer();",
+            "}",
+            ""),
+        LINE_JOINER.join(
+            "goog.module('example');",
+            "",
+            "const SoyRenderer = goog.require('foo.bar.SoyRenderer');",
+            "function setUp() {",
+            "  const soyService = new SoyRenderer();",
+            "}",
+            ""));
+  }
+
+  @Test
+  public void testBothFormsOfRequire2() {
+    // After this change, a second run will remove the duplicate require.
+    // See testBothFormsOfRequire1
+    assertChanges(
+        LINE_JOINER.join(
+            "goog.module('example');",
+            "",
+            "goog.require('foo.bar.SoyRenderer');",
+            "const SoyRenderer = goog.require('foo.bar.SoyRenderer');",
+            "",
+            "function setUp() {",
+            "  const soyService = new foo.bar.SoyRenderer();",
+            "}",
+            ""),
+        LINE_JOINER.join(
+            "goog.module('example');",
+            "",
+            "const SoyRenderer = goog.require('foo.bar.SoyRenderer');",
+            "goog.require('foo.bar.SoyRenderer');",
+            "",
+            "function setUp() {",
+            "  const soyService = new SoyRenderer();",
+            "}",
+            ""));
+  }
+
+  @Test
   public void testStandaloneVarDoesntCrashMissingRequire() {
     assertChanges(
         LINE_JOINER.join(
@@ -1247,6 +1297,29 @@ public class ErrorToFixMapperTest {
             "var GoogWidget = goog.require('goog.Widget');",
             "",
             "alert(new GoogWidget());"));
+  }
+
+  /**
+   * Here, if the short name weren't provided the suggested fix would use 'Table' for both,
+   * but since there is a short name provided for each one, it uses those names.
+   */
+  @Test
+  public void testShortRequireInGoogModule7() {
+    assertChanges(
+        LINE_JOINER.join(
+            "goog.module('m');",
+            "",
+            "var CoffeeTable = goog.require('coffee.Table');",
+            "var KitchenTable = goog.require('kitchen.Table');",
+            "",
+            "alert(new coffee.Table(), new kitchen.Table());"),
+        LINE_JOINER.join(
+            "goog.module('m');",
+            "",
+            "var CoffeeTable = goog.require('coffee.Table');",
+            "var KitchenTable = goog.require('kitchen.Table');",
+            "",
+            "alert(new CoffeeTable(), new KitchenTable());"));
   }
 
   @Test

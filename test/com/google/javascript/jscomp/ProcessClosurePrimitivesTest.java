@@ -86,18 +86,16 @@ public final class ProcessClosurePrimitivesTest extends CompilerTestCase {
         public void process(Node externs, Node root) {
           // Process the original code.
           new ProcessClosurePrimitives(
-              compiler, null, CheckLevel.OFF, preserveGoogProvidesAndRequires)
+                  compiler, null, CheckLevel.OFF, preserveGoogProvidesAndRequires)
               .process(externs, root);
 
           // Inject additional code at the beginning.
           if (additionalCode != null) {
-            SourceFile file =
-                SourceFile.fromCode("additionalcode", additionalCode);
+            SourceFile file = SourceFile.fromCode("additionalcode", additionalCode);
             Node scriptNode = root.getFirstChild();
             Node newScriptNode = new CompilerInput(file).getAstRoot(compiler);
             if (addAdditionalNamespace) {
-              newScriptNode.getFirstChild()
-                  .putBooleanProp(Node.IS_NAMESPACE, true);
+              newScriptNode.getFirstChild().putBooleanProp(Node.IS_NAMESPACE, true);
             }
             while (newScriptNode.getLastChild() != null) {
               Node lastChild = newScriptNode.getLastChild();
@@ -108,15 +106,13 @@ public final class ProcessClosurePrimitivesTest extends CompilerTestCase {
 
           // Inject additional code at the end.
           if (additionalEndCode != null) {
-            SourceFile file =
-                SourceFile.fromCode("additionalendcode", additionalEndCode);
+            SourceFile file = SourceFile.fromCode("additionalendcode", additionalEndCode);
             Node scriptNode = root.getFirstChild();
             Node newScriptNode = new CompilerInput(file).getAstRoot(compiler);
             if (addAdditionalNamespace) {
-              newScriptNode.getFirstChild()
-                  .putBooleanProp(Node.IS_NAMESPACE, true);
+              newScriptNode.getFirstChild().putBooleanProp(Node.IS_NAMESPACE, true);
             }
-            while (newScriptNode.getFirstChild() != null) {
+            while (newScriptNode.hasChildren()) {
               Node firstChild = newScriptNode.getFirstChild();
               newScriptNode.removeChild(firstChild);
               scriptNode.addChildToBack(firstChild);
@@ -125,7 +121,7 @@ public final class ProcessClosurePrimitivesTest extends CompilerTestCase {
 
           // Process the tree a second time.
           new ProcessClosurePrimitives(
-              compiler, null, CheckLevel.ERROR, preserveGoogProvidesAndRequires)
+                  compiler, null, CheckLevel.ERROR, preserveGoogProvidesAndRequires)
               .process(externs, root);
         }
       };
@@ -140,6 +136,37 @@ public final class ProcessClosurePrimitivesTest extends CompilerTestCase {
     test(createModuleStar(moduleInputs), expected);
   }
 
+  public void testTypedefProvides() {
+    test(
+        lines(
+            "goog.provide('ns');",
+            "goog.provide('ns.SomeType');",
+            "goog.provide('ns.SomeType.EnumValue');",
+            "goog.provide('ns.SomeType.defaultName');",
+            // subnamespace assignment happens before parent.
+            "/** @enum {number} */",
+            "ns.SomeType.EnumValue = { A: 1, B: 2 };",
+            // parent namespace isn't ever actually assigned.
+            // we're relying on goog.provide to provide it.
+            "/** @typedef {{name: string, value: ns.SomeType.EnumValue}} */",
+            "ns.SomeType;",
+            "/** @const {string} */",
+            "ns.SomeType.defaultName = 'foobarbaz';"),
+        lines(
+            // Created from goog.provide
+            "/** @const */ var ns = {};",
+            // Created from goog.provide.
+            // Cast to unknown is necessary, because the type checker does not expect a symbol
+            // used as a typedef to have a value.
+            "ns.SomeType = /** @type {?} */ ({});", // created from goog.provide
+            "/** @enum {number} */",
+            "ns.SomeType.EnumValue = {A:1, B:2};",
+            "/** @typedef {{name: string, value: ns.SomeType.EnumValue}} */",
+            "ns.SomeType;",
+            "/** @const {string} */",
+            "ns.SomeType.defaultName = 'foobarbaz';"));
+  }
+
   public void testSimpleProvides() {
     test("goog.provide('foo');", "/** @const */ var foo={};");
     test("goog.provide('foo.bar');", "/** @const */ var foo={}; /** @const */ foo.bar={};");
@@ -148,7 +175,7 @@ public final class ProcessClosurePrimitivesTest extends CompilerTestCase {
         "/** @const */ var foo={}; /** @const */ foo.bar={}; /** @const */ foo.bar.baz={};");
     test(
         "goog.provide('foo.bar.baz.boo');",
-        LINE_JOINER.join(
+        lines(
             "/** @const */ var foo={};",
             "/** @const */ foo.bar={};",
             "/** @const */ foo.bar.baz={};",
@@ -163,7 +190,7 @@ public final class ProcessClosurePrimitivesTest extends CompilerTestCase {
 
     test(
         "goog.provide('foo.bar.baz'); goog.provide('foo.boo.foo');",
-        LINE_JOINER.join(
+        lines(
             "/** @const */",
             "var foo = {};",
             "/** @const */",
@@ -177,7 +204,7 @@ public final class ProcessClosurePrimitivesTest extends CompilerTestCase {
 
     test(
         "goog.provide('foo.bar.baz'); goog.provide('foo.bar.boo');",
-        LINE_JOINER.join(
+        lines(
             "/** @const */",
             "var foo = {};",
             "/** @const */",
@@ -189,7 +216,7 @@ public final class ProcessClosurePrimitivesTest extends CompilerTestCase {
 
     test(
         "goog.provide('foo.bar.baz'); goog.provide('goog.bar.boo');",
-        LINE_JOINER.join(
+        lines(
             "/** @const */",
             "var foo = {};",
             "/** @const */",
@@ -227,7 +254,7 @@ public final class ProcessClosurePrimitivesTest extends CompilerTestCase {
 
     test(
         "goog.provide('foo.bar.Baz'); foo.bar.Baz=function(){};",
-        LINE_JOINER.join(
+        lines(
             "/** @const */",
             "var foo={};",
             "/** @const */",
@@ -235,7 +262,7 @@ public final class ProcessClosurePrimitivesTest extends CompilerTestCase {
             "foo.bar.Baz=function(){};"));
     test(
         "goog.provide('foo.bar.moo'); foo.bar.moo={E:1,S:2};",
-        LINE_JOINER.join(
+        lines(
             "/** @const */",
             "var foo={};",
             "/** @const */",
@@ -244,7 +271,7 @@ public final class ProcessClosurePrimitivesTest extends CompilerTestCase {
 
     test(
         "goog.provide('foo.bar.moo'); foo.bar.moo={E:1}; foo.bar.moo={E:2};",
-        LINE_JOINER.join(
+        lines(
             "/** @const */",
             "var foo={};",
             "/** @const */",
@@ -324,7 +351,7 @@ public final class ProcessClosurePrimitivesTest extends CompilerTestCase {
   public void testRemovalMultipleAssignmentInIf4() {
     test(
         "goog.provide('foo.bar'); if (true) { foo.bar = 0 } else { foo.bar = 1 }",
-        LINE_JOINER.join(
+        lines(
             "/** @const */ var foo = {};",
             "if (true) {",
             "  foo.bar = 0;",
@@ -341,10 +368,10 @@ public final class ProcessClosurePrimitivesTest extends CompilerTestCase {
 
   public void testMultipleDeclarationError2() {
     test(
-        LINE_JOINER.join(
+        lines(
             "goog.provide('foo.bar');",
             "if (true) { var foo = {}; foo.bar = 0 } else { foo.bar = 1 }"),
-        LINE_JOINER.join(
+        lines(
             "var foo = {};",
             "if (true) {",
             "  var foo = {}; foo.bar = 0",
@@ -355,10 +382,10 @@ public final class ProcessClosurePrimitivesTest extends CompilerTestCase {
 
   public void testMultipleDeclarationError3() {
     test(
-        LINE_JOINER.join(
+        lines(
             "goog.provide('foo.bar');",
             "if (true) { foo.bar = 0 } else { var foo = {}; foo.bar = 1 }"),
-        LINE_JOINER.join(
+        lines(
             "var foo = {};",
             "if (true) {",
             "  foo.bar = 0",
@@ -472,10 +499,11 @@ public final class ProcessClosurePrimitivesTest extends CompilerTestCase {
     allowExternsChanges();
 
     test(
-        "/** @externs */ goog.provide('animals.Dog');"
-            + "/** @constructor */ animals.Dog = function() {}",
-        "goog.require('animals.Dog'); new animals.Dog()",
-        "new animals.Dog();");
+        externs(
+            "/** @externs */ goog.provide('animals.Dog');"
+                + "/** @constructor */ animals.Dog = function() {}"),
+        srcs("goog.require('animals.Dog'); new animals.Dog()"),
+        expected("new animals.Dog();"));
   }
 
   public void testAddDependency() {
@@ -618,7 +646,7 @@ public final class ProcessClosurePrimitivesTest extends CompilerTestCase {
   public void testSimpleDottedAdditionalProvide() {
     additionalCode = "goog.provide('a.b.B'); a.b.B = {};";
     test("goog.provide('c.d.D'); c.d.D = {};",
-        LINE_JOINER.join(
+        lines(
             "/** @const */",
             "var a={};",
             "/** @const */",
@@ -650,7 +678,7 @@ public final class ProcessClosurePrimitivesTest extends CompilerTestCase {
     additionalCode = "goog.provide('a.b.B'); a.b.B = {};";
     test(
         "goog.provide('a.b.C'); a.b.C = {};",
-        LINE_JOINER.join(
+        lines(
             "/** @const */",
             "var a={};",
             "/** @const */ a.b={};",
@@ -685,7 +713,7 @@ public final class ProcessClosurePrimitivesTest extends CompilerTestCase {
     addAdditionalNamespace = true;
     test(
         "goog.provide('a.A'); a.A = {};",
-        LINE_JOINER.join(
+        lines(
             "/** @const */",
             "var a = {};",
             "a.B = {};",
@@ -709,12 +737,12 @@ public final class ProcessClosurePrimitivesTest extends CompilerTestCase {
     // improperly removed, but this result isn't really what we want as the
     // reassign of a.b removes the definition of "a.b.c".
     test(
-        LINE_JOINER.join(
+        lines(
             "goog.provide('a.b');",
             "goog.provide('a.b.c');",
             "a.b.c;",
             "a.b = function(x,y) {};"),
-        LINE_JOINER.join(
+        lines(
             "/** @const */",
             "var a = {};",
             "/** @const */",
@@ -734,12 +762,12 @@ public final class ProcessClosurePrimitivesTest extends CompilerTestCase {
     // improperly removed, but this result isn't really what we want as
     // namespace placeholders for a.b and a.b.c remain.
     test(
-        LINE_JOINER.join(
+        lines(
             "goog.provide('a.b');",
             "goog.provide('a.b.c');",
             "a.b = function(x,y) {};",
             "a.b.c;"),
-        LINE_JOINER.join(
+        lines(
             "/** @const */",
             "var a = {};",
             "/** @const */",
@@ -754,12 +782,12 @@ public final class ProcessClosurePrimitivesTest extends CompilerTestCase {
   // parent namespace.
   public void testProvideOrder3a() {
     test(
-        LINE_JOINER.join(
+        lines(
             "goog.provide('a.b');",
             "a.b = function(x,y) {};",
             "goog.provide('a.b.c');",
             "a.b.c;"),
-        LINE_JOINER.join(
+        lines(
             "/** @const */",
             "var a = {};",
             "a.b = function(x,y) {};",
@@ -773,12 +801,12 @@ public final class ProcessClosurePrimitivesTest extends CompilerTestCase {
     addAdditionalNamespace = false;
     // This tests a cleanly provided name, below a function namespace.
     test(
-        LINE_JOINER.join(
+        lines(
             "goog.provide('a.b');",
             "a.b = function(x,y) {};",
             "goog.provide('a.b.c');",
             "a.b.c;"),
-        LINE_JOINER.join(
+        lines(
             "/** @const */",
             "var a = {};",
             "a.b = function(x,y) {};",
@@ -789,7 +817,7 @@ public final class ProcessClosurePrimitivesTest extends CompilerTestCase {
 
   public void testProvideOrder4a() {
     test(
-        LINE_JOINER.join(
+        lines(
             "goog.provide('goog.a');",
             "goog.provide('goog.a.b');",
             "if (x) {",
@@ -797,7 +825,7 @@ public final class ProcessClosurePrimitivesTest extends CompilerTestCase {
             "} else {",
             "  goog.a.b = 2;",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "/** @const */",
             "goog.a={};",
             "if(x)",
@@ -811,7 +839,7 @@ public final class ProcessClosurePrimitivesTest extends CompilerTestCase {
     addAdditionalNamespace = false;
     // This tests a cleanly provided name, below a namespace.
     test(
-        LINE_JOINER.join(
+        lines(
             "goog.provide('goog.a');",
             "goog.provide('goog.a.b');",
             "if (x) {",
@@ -819,7 +847,7 @@ public final class ProcessClosurePrimitivesTest extends CompilerTestCase {
             "} else {",
             "  goog.a.b = 2;",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "/** @const */",
             "goog.a={};",
             "if(x)",
@@ -1101,7 +1129,7 @@ public final class ProcessClosurePrimitivesTest extends CompilerTestCase {
   public void testImplicitAndExplicitProvide() {
     test(
         "var goog = {}; goog.provide('goog.foo.bar'); goog.provide('goog.foo');",
-        LINE_JOINER.join(
+        lines(
             "var goog = {};",
             "/** @const */",
             "goog.foo = {};",

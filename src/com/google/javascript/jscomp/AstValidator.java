@@ -153,9 +153,20 @@ public final class AstValidator implements CompilerPass {
       case IF:
         validateIf(n);
         return;
+      case CONST:
+        for (Node child : n.children()) {
+          if (child.isDestructuringLhs()) {
+            // Must have two children: First child of the DESTRUCTURING_LHS node is the pattern on
+            // the LHS, second is the RHS.
+            validateChildCount(child, 2);
+          } else {
+            // Must have a child, which is the RHS (unlike VAR and LET which may have no RHS).
+            validateChildCount(child, 1);
+          }
+        }
+        // fallthrough
       case VAR:
       case LET:
-      case CONST:
         validateNameDeclarationHelper(n.getToken(), n);
         return;
       case EXPR_RESULT:
@@ -418,7 +429,7 @@ public final class AstValidator implements CompilerPass {
 
   private void validateImportSpecifier(Node n) {
     validateNodeType(Token.IMPORT_SPEC, n);
-    validateChildCountIn(n, 1, 2);
+    validateChildCount(n, 2);
     for (Node c = n.getFirstChild(); c != null; c = c.getNext()) {
       validateName(c);
     }
@@ -455,7 +466,7 @@ public final class AstValidator implements CompilerPass {
 
   private void validateExportSpecifier(Node n) {
     validateNodeType(Token.EXPORT_SPEC, n);
-    validateChildCountIn(n, 1, 2);
+    validateChildCount(n, 2);
     for (Node c = n.getFirstChild(); c != null; c = c.getNext()) {
       validateName(c);
     }
@@ -472,15 +483,8 @@ public final class AstValidator implements CompilerPass {
   private void validateTemplateLit(Node n) {
     validateFeature(Feature.TEMPLATE_LITERALS, n);
     validateNodeType(Token.TEMPLATELIT, n);
-    if (!n.hasChildren()) {
-      return;
-    }
-    int i = 0;
-    for (Node child = n.getFirstChild(); child != null; child = child.getNext(), i++) {
-      // If the first child is not a STRING, this is a tagged template.
-      if (i == 0 && !child.isString()) {
-        validateExpression(child);
-      } else if (child.isString()) {
+    for (Node child = n.getFirstChild(); child != null; child = child.getNext()) {
+      if (child.isString()) {
         validateString(child);
       } else {
         validateTemplateLitSub(child);
@@ -553,8 +557,14 @@ public final class AstValidator implements CompilerPass {
   private void validateEnumMembers(Node n) {
     validateNodeType(Token.ENUM_MEMBERS, n);
     for (Node c = n.getFirstChild(); c != null; c = c.getNext()) {
-      validateObjectLitStringKey(c);
+      validateEnumStringKey(c);
     }
+  }
+
+  private void validateEnumStringKey(Node n) {
+    validateNodeType(Token.STRING_KEY, n);
+    validateObjectLiteralKeyName(n);
+    validateChildCount(n, 0);
   }
 
   /**
@@ -604,6 +614,7 @@ public final class AstValidator implements CompilerPass {
       case MEMBER_FUNCTION_DEF:
       case GETTER_DEF:
       case SETTER_DEF:
+        validateObjectLiteralKeyName(n);
         validateChildCount(n);
         Node function = n.getFirstChild();
         if (isAmbient) {
@@ -667,23 +678,28 @@ public final class AstValidator implements CompilerPass {
   }
 
   private void validateNonEmptyString(Node n) {
-    validateNonNullString(n);
-    if (n.getString().isEmpty()) {
+    if (validateNonNullString(n) && n.getString().isEmpty()) {
       violation("Expected non-empty string.", n);
     }
   }
 
   private void validateEmptyString(Node n) {
-    validateNonNullString(n);
-    if (!n.getString().isEmpty()) {
+    if (validateNonNullString(n) && !n.getString().isEmpty()) {
       violation("Expected empty string.", n);
     }
   }
 
-  private void validateNonNullString(Node n) {
-    if (n.getString() == null) {
+  private boolean validateNonNullString(Node n) {
+    try {
+      if (n.getString() == null) {
+        violation("Expected non-null string.", n);
+        return false;
+      }
+    } catch (Exception e) {
       violation("Expected non-null string.", n);
+      return false;
     }
+    return true;
   }
 
   private void validateName(Node n) {
@@ -754,9 +770,6 @@ public final class AstValidator implements CompilerPass {
     validateNodeType(Token.PARAM_LIST, n);
     for (Node c = n.getFirstChild(); c != null; c = c.getNext()) {
       if (c.isRest()) {
-        if (c.getNext() != null) {
-          violation("Rest parameters must come after all other parameters.", c);
-        }
         validateRest(Token.PARAM_LIST, c);
       } else if (c.isDefaultValue()) {
         validateDefaultValue(Token.PARAM_LIST, c);
@@ -797,6 +810,9 @@ public final class AstValidator implements CompilerPass {
     validateNodeType(Token.REST, n);
     validateChildCount(n);
     validateLHS(contextType, n.getFirstChild());
+    if (n.getNext() != null) {
+      violation("Rest parameters must come after all other parameters.", n);
+    }
   }
 
   private void validateSpread(Node n) {
@@ -811,6 +827,7 @@ public final class AstValidator implements CompilerPass {
         }
         break;
       case ARRAYLIT:
+      case OBJECTLIT:
         break;
       default:
         violation("SPREAD node should not be the child of a " + parent.getToken() + " node.", n);
@@ -886,6 +903,9 @@ public final class AstValidator implements CompilerPass {
       case GETELEM:
         validateGetPropGetElemInLHS(contextType, n);
         break;
+      case CAST:
+        validateLHS(contextType, n.getOnlyChild());
+        break;
       default:
         violation("Invalid child for " + contextType + " node", n);
     }
@@ -938,11 +958,8 @@ public final class AstValidator implements CompilerPass {
         case STRING_KEY:
           validateObjectPatternStringKey(type, c);
           break;
-        case OBJECT_PATTERN:
-          validateObjectPattern(type, c);
-          break;
-        case DEFAULT_VALUE:
-          validateDefaultValue(type, c);
+        case REST:
+          validateRest(type, c);
           break;
         case COMPUTED_PROP:
           validateObjectPatternComputedPropKey(type, c);
@@ -1257,6 +1274,9 @@ public final class AstValidator implements CompilerPass {
       case COMPUTED_PROP:
         validateObjectLitComputedPropKey(n);
         return;
+      case SPREAD:
+        validateSpread(n);
+        return;
       default:
         violation("Expected object literal key expression but was " + n.getToken(), n);
     }
@@ -1298,27 +1318,22 @@ public final class AstValidator implements CompilerPass {
     validateNodeType(Token.STRING_KEY, n);
     validateObjectLiteralKeyName(n);
 
-    validateChildCountIn(n, 0, 1);
-
-    if (n.hasOneChild()) {
-      validateExpression(n.getFirstChild());
-    }
+    validateChildCount(n, 1);
+    validateExpression(n.getFirstChild());
   }
 
   private void validateObjectPatternStringKey(Token type, Node n) {
     validateNodeType(Token.STRING_KEY, n);
     validateObjectLiteralKeyName(n);
-    validateChildCountIn(n, 0, 1);
+    validateChildCount(n, 1);
 
-    if (n.hasOneChild()) {
-      Node c = n.getFirstChild();
-      switch (c.getToken()) {
-        case DEFAULT_VALUE:
-          validateDefaultValue(type, c);
-          break;
-        default:
-          validateLHS(type, c);
-      }
+    Node c = n.getFirstChild();
+    switch (c.getToken()) {
+      case DEFAULT_VALUE:
+        validateDefaultValue(type, c);
+        break;
+      default:
+        validateLHS(type, c);
     }
   }
 

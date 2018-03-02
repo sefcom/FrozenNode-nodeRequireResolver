@@ -34,8 +34,7 @@ import java.util.Set;
  * these properties may be indirectly referenced using "for-in" or
  * "Object.keys".
  *
- * This class is based on RemoveUnusedClassProperties, some effort should
- * be made to extract the common pieces.
+ * This class is based on RemoveUnusedCode, some effort should be made to extract the common pieces.
  *
  * @author johnlenz@google.com (John Lenz)
  */
@@ -47,8 +46,8 @@ class CheckUnusedPrivateProperties
           "JSC_UNUSED_PRIVATE_PROPERTY", "Private property {0} is never read");
 
   private final AbstractCompiler compiler;
-  private Set<String> used = new HashSet<>();
-  private List<Node> candidates = new ArrayList<>();
+  private final Set<String> used = new HashSet<>();
+  private final List<Node> candidates = new ArrayList<>();
 
   CheckUnusedPrivateProperties(AbstractCompiler compiler) {
     this.compiler = compiler;

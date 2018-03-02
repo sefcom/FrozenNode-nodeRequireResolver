@@ -16,7 +16,7 @@
 package com.google.javascript.jscomp;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.javascript.jscomp.CompilerTestCase.LINE_JOINER;
+import static com.google.javascript.jscomp.CompilerTestCase.lines;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.base.Joiner;
@@ -28,7 +28,7 @@ import com.google.debugging.sourcemap.SourceMapConsumerV3;
 import com.google.debugging.sourcemap.SourceMapGeneratorV3;
 import com.google.debugging.sourcemap.proto.Mapping.OriginalMapping;
 import com.google.javascript.jscomp.CompilerOptions.LanguageMode;
-import com.google.javascript.jscomp.deps.ModuleLoader;
+import com.google.javascript.jscomp.deps.ModuleLoader.ResolutionMode;
 import com.google.javascript.rhino.IR;
 import com.google.javascript.rhino.InputId;
 import com.google.javascript.rhino.Node;
@@ -114,6 +114,7 @@ public final class CompilerTest extends TestCase {
     List<SourceFile> externs =
         ImmutableList.of(SourceFile.fromCode("extern", "function alert(x) {}"));
     CompilerOptions options = new CompilerOptions();
+    options.setLanguageIn(LanguageMode.ECMASCRIPT3);
     options.setPrintExterns(true);
     Compiler compiler = new Compiler();
     compiler.init(externs, ImmutableList.<SourceFile>of(), options);
@@ -131,26 +132,12 @@ public final class CompilerTest extends TestCase {
     //
     // This test is just to make sure that the compiler doesn't crash.
     CompilerOptions options = new CompilerOptions();
-    CompilationLevel.SIMPLE_OPTIMIZATIONS.setOptionsForCompilationLevel(
-        options);
+    CompilationLevel.SIMPLE_OPTIMIZATIONS.setOptionsForCompilationLevel(options);
     Compiler compiler = new Compiler();
     SourceFile externs = SourceFile.fromCode("externs.js", "");
     SourceFile input = SourceFile.fromCode("input.js",
         "(function (undefined) { alert(undefined); })();");
     compiler.compile(externs, input, options);
-  }
-
-  public void testCommonJSMissingRequire() throws Exception {
-    List<SourceFile> inputs = ImmutableList.of(
-        SourceFile.fromCode("/gin.js", "require('missing')"));
-    Compiler compiler = initCompilerForCommonJS(
-        inputs, ImmutableList.of(ModuleIdentifier.forFile("/gin")));
-
-    ErrorManager manager = compiler.getErrorManager();
-    JSError[] errors = manager.getErrors();
-    assertThat(errors).hasLength(1);
-    String error = errors[0].toString();
-    assertThat(error).contains("Failed to load module \"missing\" at /gin.js");
   }
 
   private static String normalize(String path) {
@@ -318,6 +305,7 @@ public final class CompilerTest extends TestCase {
             originalSourcePosition));
 
     CompilerOptions options = new CompilerOptions();
+    options.setLanguageIn(LanguageMode.ECMASCRIPT3);
     options.sourceMapOutputPath = "fake/source_map_path.js.map";
     options.inputSourceMaps = inputSourceMaps;
     options.applyInputSourceMaps = true;
@@ -339,21 +327,6 @@ public final class CompilerTest extends TestCase {
     assertThat(mapping.getIdentifier()).isEqualTo("testSymbolName");
   }
 
-  private Compiler initCompilerForCommonJS(
-      List<SourceFile> inputs, List<ModuleIdentifier> entryPoints)
-      throws Exception {
-    CompilerOptions options = new CompilerOptions();
-    options.setIdeMode(true);
-    options.dependencyOptions.setDependencyPruning(true);
-    options.dependencyOptions.setMoocherDropping(true);
-    options.dependencyOptions.setEntryPoints(entryPoints);
-    options.setProcessCommonJSModules(true);
-    options.setModuleResolutionMode(ModuleLoader.ResolutionMode.NODE);
-    Compiler compiler = new Compiler();
-    compiler.init(new ArrayList<SourceFile>(), inputs, options);
-    compiler.parseInputs();
-    return compiler;
-  }
 
   private static final ImmutableList<SourceFile> EMPTY_EXTERNS =
       ImmutableList.of(SourceFile.fromCode("externs", ""));
@@ -683,7 +656,7 @@ public final class CompilerTest extends TestCase {
   // Make sure we concatenate licenses the same way.
   public void testMultipleLicenseDirectiveOutput() throws Exception {
     test(
-        LINE_JOINER.join(
+        lines(
             "/** @license Your favorite license goes here */",
             "/** @license Another license */",
             "var x;"),
@@ -694,7 +667,7 @@ public final class CompilerTest extends TestCase {
   // Same thing, two @licenses in the same comment.
   public void testTwoLicenseInSameComment() throws Exception {
     test(
-        LINE_JOINER.join(
+        lines(
             "/** @license Your favorite license goes here ",
             "  * @license Another license */",
             "var x;"),
@@ -706,7 +679,7 @@ public final class CompilerTest extends TestCase {
   // inside another declaration?
   public void testLicenseInTree() throws Exception {
     test(
-        LINE_JOINER.join(
+        lines(
             "var a = function() {",
             "+ /** @license Your favorite license goes here */",
             " 1;};"),
@@ -874,6 +847,9 @@ public final class CompilerTest extends TestCase {
 
   public void testConsecutiveSemicolons() {
     Compiler compiler = new Compiler();
+    CompilerOptions options = new CompilerOptions();
+    options.setEmitUseStrict(false);
+    compiler.initOptions(options);
     String js = "if(a);";
     Node n = compiler.parseTestCode(js);
     Compiler.CodeBuilder cb = new Compiler.CodeBuilder();
@@ -914,6 +890,7 @@ public final class CompilerTest extends TestCase {
   public void testExportSymbolReservesNamesForRenameVars() {
     Compiler compiler = new Compiler();
     CompilerOptions options = new CompilerOptions();
+    options.setEmitUseStrict(false);
     options.setClosurePass(true);
     options.setVariableRenaming(VariableRenamingPolicy.ALL);
 
@@ -923,12 +900,13 @@ public final class CompilerTest extends TestCase {
     Result result = compiler.compile(EMPTY_EXTERNS, inputs, options);
 
     assertTrue(result.success);
-    assertEquals("var b;var c;b.exportSymbol(\"a\",c);", compiler.toSource());
+    assertThat(compiler.toSource()).isEqualTo("var b;var c;b.exportSymbol(\"a\",c);");
   }
 
   public void testGenerateExportsReservesNames() {
     Compiler compiler = new Compiler();
     CompilerOptions options = new CompilerOptions();
+    options.setEmitUseStrict(false);
     options.setClosurePass(true);
     options.setVariableRenaming(VariableRenamingPolicy.ALL);
     options.setGenerateExports(true);
@@ -939,8 +917,7 @@ public final class CompilerTest extends TestCase {
     Result result = compiler.compile(EMPTY_EXTERNS, inputs, options);
 
     assertTrue(result.success);
-    assertEquals("var b;var c={};b.exportSymbol(\"a\",c);",
-        compiler.toSource());
+    assertThat(compiler.toSource()).isEqualTo("var b;var c={};b.exportSymbol(\"a\",c);");
   }
 
   private static final DiagnosticType TEST_ERROR =
@@ -1077,7 +1054,6 @@ public final class CompilerTest extends TestCase {
             SourceFile.fromCode("hops", "/** @fileoverview @typeSummary */ goog.provide('hops');"));
 
     CompilerOptions options = createNewFlagBasedOptions();
-    options.setIncrementalChecks(CompilerOptions.IncrementalCheckMode.CHECK_IJS);
     options.dependencyOptions.setDependencySorting(true);
 
     List<SourceFile> externs = ImmutableList.of();
@@ -1152,7 +1128,6 @@ public final class CompilerTest extends TestCase {
 
     CompilerOptions options = createNewFlagBasedOptions();
     options.dependencyOptions.setDependencyPruning(true);
-    options.setIncrementalChecks(CompilerOptions.IncrementalCheckMode.CHECK_IJS);
 
     List<SourceFile> externs = ImmutableList.of();
     Compiler compiler = new Compiler();
@@ -1194,16 +1169,46 @@ public final class CompilerTest extends TestCase {
     assertThat(result.errors).isEmpty();
   }
 
+  // https://github.com/google/closure-compiler/issues/2692
+  public void testGoogNamespaceEntryPoint() throws Exception {
+    List<SourceFile> inputs =
+        ImmutableList.of(
+            SourceFile.fromCode(
+                "/index.js",
+                "goog.provide('foobar'); const foo = require('./foo.js').default; foo('hello');"),
+            SourceFile.fromCode("/foo.js", "export default (foo) => { alert(foo); }"));
+
+    List<ModuleIdentifier> entryPoints =
+        ImmutableList.of(ModuleIdentifier.forClosure("goog:foobar"));
+
+    CompilerOptions options = createNewFlagBasedOptions();
+    options.setLanguageIn(CompilerOptions.LanguageMode.ECMASCRIPT_2017);
+    options.setLanguageOut(CompilerOptions.LanguageMode.ECMASCRIPT5);
+    options.dependencyOptions.setDependencyPruning(true);
+    options.dependencyOptions.setDependencySorting(true);
+    options.dependencyOptions.setEntryPoints(entryPoints);
+    options.processCommonJSModules = true;
+
+    List<SourceFile> externs =
+        AbstractCommandLineRunner.getBuiltinExterns(options.getEnvironment());
+
+    Compiler compiler = new Compiler();
+    compiler.compile(externs, inputs, options);
+
+    Result result = compiler.getResult();
+    assertThat(result.warnings).isEmpty();
+    assertThat(result.errors).isEmpty();
+  }
+
   public void testEs6ModulePathWithOddCharacters() throws Exception {
     // Note that this is not yet compatible with transpilation, since the generated goog.provide
     // statements are not valid identifiers.
     List<SourceFile> inputs =
         ImmutableList.of(
-            SourceFile.fromCode("/index[0].js", "import foo from './foo'; foo('hello');"),
+            SourceFile.fromCode("/index[0].js", "import foo from './foo.js'; foo('hello');"),
             SourceFile.fromCode("/foo.js", "export default (foo) => { alert(foo); }"));
 
-    List<ModuleIdentifier> entryPoints = ImmutableList.of(
-        ModuleIdentifier.forFile("/index[0].js"));
+    List<ModuleIdentifier> entryPoints = ImmutableList.of(ModuleIdentifier.forFile("/index[0].js"));
 
     CompilerOptions options = createNewFlagBasedOptions();
     options.setLanguage(CompilerOptions.LanguageMode.ECMASCRIPT_2017);
@@ -1433,9 +1438,12 @@ public final class CompilerTest extends TestCase {
   }
 
   private static CompilerOptions createNewFlagBasedOptions() {
-    CompilerOptions opt = new CompilerOptions();
-    CompilationLevel.ADVANCED_OPTIMIZATIONS.setOptionsForCompilationLevel(opt);
-    return opt;
+    CompilerOptions options = new CompilerOptions();
+    CompilationLevel.ADVANCED_OPTIMIZATIONS.setOptionsForCompilationLevel(options);
+    options.setLanguageIn(LanguageMode.ECMASCRIPT3);
+    options.setLanguageOut(LanguageMode.ECMASCRIPT3);
+    options.setEmitUseStrict(false);
+    return options;
   }
 
   private static byte[] serialize(Object obj) throws IOException {
@@ -1490,7 +1498,7 @@ public final class CompilerTest extends TestCase {
     sources.add(
         SourceFile.fromCode(
             "/entry.js",
-            LINE_JOINER.join(
+            lines(
                 "import './b/b.js';",
                 "import './b/a.js';",
                 "import './important.js';",
@@ -1502,7 +1510,7 @@ public final class CompilerTest extends TestCase {
     sources.add(
         SourceFile.fromCode(
             "/b/b.js",
-            LINE_JOINER.join(
+            lines(
                 "import foo from './c.js';",
                 "if (foo.settings.inUse) {",
                 "  window['E'] = true;",
@@ -1511,7 +1519,7 @@ public final class CompilerTest extends TestCase {
     sources.add(
         SourceFile.fromCode(
             "/b/c.js",
-            LINE_JOINER.join(
+            lines(
                 "window['BEFOREA'] = true;",
                 "",
                 "export default {",
@@ -1546,6 +1554,51 @@ public final class CompilerTest extends TestCase {
         .inOrder();
   }
 
+  public void testProperEs6ModuleOrderingWithExport() throws Exception {
+    ImmutableList.Builder<SourceFile> sources = ImmutableList.builder();
+    sources.add(
+        SourceFile.fromCode(
+            "/entry.js",
+            lines(
+                "import {A, B, C1} from './a.js';",
+                "console.log(A)",
+                "console.log(B)",
+                "console.log(C1)")));
+    sources.add(
+        SourceFile.fromCode(
+            "/a.js",
+            lines(
+                "export {B} from './b.js';",
+                "export {C as C1} from './c.js';",
+                "export const A = 'a';")));
+    sources.add(SourceFile.fromCode("/b.js", "export const B = 'b';"));
+    sources.add(SourceFile.fromCode("/c.js", "export const C = 'c';"));
+
+    CompilerOptions options = new CompilerOptions();
+    options.setLanguageIn(LanguageMode.ECMASCRIPT_2015);
+    options.setLanguageOut(LanguageMode.ECMASCRIPT5);
+    options.dependencyOptions.setEntryPoints(
+        ImmutableList.of(ModuleIdentifier.forFile("/entry.js")));
+    options.dependencyOptions.setDependencySorting(true);
+    options.dependencyOptions.setDependencyPruning(true);
+    options.dependencyOptions.setMoocherDropping(true);
+    List<SourceFile> externs =
+        AbstractCommandLineRunner.getBuiltinExterns(options.getEnvironment());
+    Compiler compiler = new Compiler();
+    Result result = compiler.compile(externs, sources.build(), options);
+    assertTrue(result.success);
+
+    List<String> orderedInputs = new ArrayList<>();
+    for (CompilerInput input : compiler.getInputsInOrder()) {
+      orderedInputs.add(input.getName());
+    }
+
+    assertThat(orderedInputs)
+        .containsExactly(
+            "/b.js", "/c.js", "/a.js", "/entry.js")
+        .inOrder();
+  }
+
   public void testProperGoogBaseOrdering() throws Exception {
     List<SourceFile> sources = new ArrayList<>();
     sources.add(SourceFile.fromCode("test.js", "goog.setTestOnly()"));
@@ -1556,14 +1609,14 @@ public final class CompilerTest extends TestCase {
     sources.add(
         SourceFile.fromCode(
             "base.js",
-            LINE_JOINER.join(
+            lines(
                 "/** @provideGoog */",
                 "/** @const */ var goog = goog || {};",
                 "var COMPILED = false;")));
     sources.add(
         SourceFile.fromCode(
             "entry.js",
-            LINE_JOINER.join(
+            lines(
                 "goog.require('a');",
                 "goog.require('b');",
                 "goog.require('c');",
@@ -1596,5 +1649,92 @@ public final class CompilerTest extends TestCase {
       assertThat(orderedInputs.indexOf("base.js")).isLessThan(orderedInputs.indexOf("entry.js"));
       assertThat(orderedInputs.indexOf("base.js")).isLessThan(orderedInputs.indexOf("test.js"));
     }
+  }
+
+  public void testDynamicImportOrdering() throws Exception {
+    List<SourceFile> sources = new ArrayList<>();
+    sources.add(SourceFile.fromCode("/entry.js", "__webpack_require__(2);"));
+    sources.add(
+        SourceFile.fromCode(
+            "/a.js",
+            lines(
+                "console.log(module.id);",
+                "__webpack_require__.e(0).then(function() { return __webpack_require__(3); });")));
+    sources.add(SourceFile.fromCode("/b.js", "console.log(module.id); __webpack_require__(4);"));
+    sources.add(SourceFile.fromCode("/c.js", "console.log(module.id);"));
+
+    HashMap<String, String> webpackModulesById = new HashMap<>();
+    webpackModulesById.put("1", "/entry.js");
+    webpackModulesById.put("2", "/a.js");
+    webpackModulesById.put("3", "/b.js");
+    webpackModulesById.put("4", "/c.js");
+
+    CompilerOptions options = new CompilerOptions();
+    options.setLanguageIn(LanguageMode.ECMASCRIPT_2015);
+    options.setLanguageOut(LanguageMode.ECMASCRIPT5);
+    options.dependencyOptions.setEntryPoints(
+        ImmutableList.of(ModuleIdentifier.forFile("/entry.js")));
+    options.dependencyOptions.setDependencySorting(true);
+    options.dependencyOptions.setDependencyPruning(true);
+    options.dependencyOptions.setMoocherDropping(true);
+    options.setProcessCommonJSModules(true);
+    options.setModuleResolutionMode(ResolutionMode.WEBPACK);
+    List<SourceFile> externs =
+        AbstractCommandLineRunner.getBuiltinExterns(options.getEnvironment());
+    Compiler compiler = new Compiler();
+    compiler.initWebpackMap(ImmutableMap.copyOf(webpackModulesById));
+    Result result = compiler.compile(externs, ImmutableList.copyOf(sources), options);
+    assertTrue(result.success);
+
+    List<String> orderedInputs = new ArrayList<>();
+    for (CompilerInput input : compiler.getInputsInOrder()) {
+      orderedInputs.add(input.getName());
+    }
+
+    assertThat(orderedInputs).containsExactly("/a.js", "/entry.js", "/c.js", "/b.js").inOrder();
+  }
+
+  public void testDynamicImportOrdering2() throws Exception {
+    List<SourceFile> sources = new ArrayList<>();
+    sources.add(SourceFile.fromCode("/entry.js", "__webpack_require__(2);"));
+    sources.add(
+        SourceFile.fromCode(
+            "/a.js",
+            lines(
+                "console.log(module.id);",
+                "__webpack_require__.e(0).then(function() {",
+                "  const foo = __webpack_require__(3);",
+                "  console.log(foo);",
+                "});")));
+    sources.add(SourceFile.fromCode("/b.js", "console.log(module.id); module.exports = 'foo';"));
+
+    HashMap<String, String> webpackModulesById = new HashMap<>();
+    webpackModulesById.put("1", "/entry.js");
+    webpackModulesById.put("2", "/a.js");
+    webpackModulesById.put("3", "/b.js");
+
+    CompilerOptions options = new CompilerOptions();
+    options.setLanguageIn(LanguageMode.ECMASCRIPT_2015);
+    options.setLanguageOut(LanguageMode.ECMASCRIPT5);
+    options.dependencyOptions.setEntryPoints(
+        ImmutableList.of(ModuleIdentifier.forFile("/entry.js")));
+    options.dependencyOptions.setDependencySorting(true);
+    options.dependencyOptions.setDependencyPruning(true);
+    options.dependencyOptions.setMoocherDropping(true);
+    options.setProcessCommonJSModules(true);
+    options.setModuleResolutionMode(ResolutionMode.WEBPACK);
+    List<SourceFile> externs =
+        AbstractCommandLineRunner.getBuiltinExterns(options.getEnvironment());
+    Compiler compiler = new Compiler();
+    compiler.initWebpackMap(ImmutableMap.copyOf(webpackModulesById));
+    Result result = compiler.compile(externs, ImmutableList.copyOf(sources), options);
+    assertTrue(result.success);
+
+    List<String> orderedInputs = new ArrayList<>();
+    for (CompilerInput input : compiler.getInputsInOrder()) {
+      orderedInputs.add(input.getName());
+    }
+
+    assertThat(orderedInputs).containsExactly("/a.js", "/entry.js", "/b.js").inOrder();
   }
 }

@@ -18,6 +18,7 @@ package com.google.javascript.jscomp;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
+import static com.google.javascript.jscomp.VarCheck.BLOCK_SCOPED_DECL_MULTIPLY_DECLARED_ERROR;
 import static com.google.javascript.jscomp.VarCheck.VAR_MULTIPLY_DECLARED_ERROR;
 
 import com.google.common.collect.ImmutableList;
@@ -152,30 +153,30 @@ public final class VarCheckTest extends CompilerTestCase {
   }
 
   public void testMultiplyDeclaredVars4() {
-    testSame("x;", "var x = 1; var x = 2;", error(VAR_MULTIPLY_DECLARED_ERROR));
+    test(externs("x;"), srcs("var x = 1; var x = 2;"), error(VAR_MULTIPLY_DECLARED_ERROR));
   }
 
   public void testMultiplyDeclaredLets() {
-    testError("let x = 1; let x = 2;", VarCheck.LET_CONST_CLASS_MULTIPLY_DECLARED_ERROR);
-    testError("let x = 1; var x = 2;", VarCheck.LET_CONST_CLASS_MULTIPLY_DECLARED_ERROR);
-    testError("var x = 1; let x = 2;", VarCheck.LET_CONST_CLASS_MULTIPLY_DECLARED_ERROR);
+    testError("let x = 1; let x = 2;", BLOCK_SCOPED_DECL_MULTIPLY_DECLARED_ERROR);
+    testError("let x = 1; var x = 2;", BLOCK_SCOPED_DECL_MULTIPLY_DECLARED_ERROR);
+    testError("var x = 1; let x = 2;", BLOCK_SCOPED_DECL_MULTIPLY_DECLARED_ERROR);
   }
 
   public void testMultiplyDeclaredConsts() {
-    testError("const x = 1; const x = 2;", VarCheck.LET_CONST_CLASS_MULTIPLY_DECLARED_ERROR);
-    testError("const x = 1; var x = 2;", VarCheck.LET_CONST_CLASS_MULTIPLY_DECLARED_ERROR);
-    testError("var x = 1; const x = 2;", VarCheck.LET_CONST_CLASS_MULTIPLY_DECLARED_ERROR);
+    testError("const x = 1; const x = 2;", BLOCK_SCOPED_DECL_MULTIPLY_DECLARED_ERROR);
+    testError("const x = 1; var x = 2;", BLOCK_SCOPED_DECL_MULTIPLY_DECLARED_ERROR);
+    testError("var x = 1; const x = 2;", BLOCK_SCOPED_DECL_MULTIPLY_DECLARED_ERROR);
   }
 
   public void testMultiplyDeclaredConsts_withES6Modules() {
     testError("export function f() { const x = 1; const x = 2; }",
-        VarCheck.LET_CONST_CLASS_MULTIPLY_DECLARED_ERROR);
+        BLOCK_SCOPED_DECL_MULTIPLY_DECLARED_ERROR);
 
     testError("export const x = 1; export var x = 2;",
-        VarCheck.LET_CONST_CLASS_MULTIPLY_DECLARED_ERROR);
+        BLOCK_SCOPED_DECL_MULTIPLY_DECLARED_ERROR);
 
     testError("export const a = 1, a = 2;",
-        VarCheck.LET_CONST_CLASS_MULTIPLY_DECLARED_ERROR);
+        BLOCK_SCOPED_DECL_MULTIPLY_DECLARED_ERROR);
   }
 
   public void testMultiplyDeclareLetsInDifferentScope() {
@@ -184,12 +185,12 @@ public final class VarCheckTest extends CompilerTestCase {
   }
 
   public void testReferencedVarDefinedClass() {
-    testError("var x; class x{ }", VarCheck.LET_CONST_CLASS_MULTIPLY_DECLARED_ERROR);
-    testError("let x; class x{ }", VarCheck.LET_CONST_CLASS_MULTIPLY_DECLARED_ERROR);
-    testError("const x = 1; class x{ }", VarCheck.LET_CONST_CLASS_MULTIPLY_DECLARED_ERROR);
-    testError("class x{ } let x;", VarCheck.LET_CONST_CLASS_MULTIPLY_DECLARED_ERROR);
+    testError("var x; class x{ }", BLOCK_SCOPED_DECL_MULTIPLY_DECLARED_ERROR);
+    testError("let x; class x{ }", BLOCK_SCOPED_DECL_MULTIPLY_DECLARED_ERROR);
+    testError("const x = 1; class x{ }", BLOCK_SCOPED_DECL_MULTIPLY_DECLARED_ERROR);
+    testError("class x{ } let x;", BLOCK_SCOPED_DECL_MULTIPLY_DECLARED_ERROR);
     testError("export default class x{ } let x;",
-        VarCheck.LET_CONST_CLASS_MULTIPLY_DECLARED_ERROR);
+        BLOCK_SCOPED_DECL_MULTIPLY_DECLARED_ERROR);
   }
 
   public void testNamedClass() {
@@ -201,25 +202,29 @@ public final class VarCheckTest extends CompilerTestCase {
   }
 
   public void testVarReferenceInExterns() {
-    testSame("asdf;", "var /** @suppress {duplicate} */ asdf;",
-        VarCheck.NAME_REFERENCE_IN_EXTERNS_ERROR);
+    testSame(
+        externs("asdf;"),
+        srcs("var /** @suppress {duplicate} */ asdf;"),
+        warning(VarCheck.NAME_REFERENCE_IN_EXTERNS_ERROR));
   }
 
   public void testNamespaceDeclarationInExterns() {
-    testSame("/** @const */ var $jscomp = $jscomp || {};", "");
+    testSame(externs("/** @const */ var $jscomp = $jscomp || {};"), srcs(""));
   }
 
   public void testCallInExterns() {
-    testSame("yz();", "function /** @suppress {duplicate} */ yz() {}",
-        VarCheck.NAME_REFERENCE_IN_EXTERNS_ERROR);
+    testSame(
+        externs("yz();"),
+        srcs("function /** @suppress {duplicate} */ yz() {}"),
+        warning(VarCheck.NAME_REFERENCE_IN_EXTERNS_ERROR));
   }
 
   public void testDestructuringInExterns() {
-    testSame("function externalFunction({x, y}) {}", "");
-    testSame("function externalFunction({x, y:{z}}) {}", "");
-    testSame("function externalFunction({x:localName}) {}", "");
-    testSame("function externalFunction([a, b, c]) {}", "");
-    testSame("function externalFunction([[...a], b, c = 5, ...d]) {}", "");
+    testSame(externs("function externalFunction({x, y}) {}"), srcs(""));
+    testSame(externs("function externalFunction({x, y:{z}}) {}"), srcs(""));
+    testSame(externs("function externalFunction({x:localName}) {}"), srcs(""));
+    testSame(externs("function externalFunction([a, b, c]) {}"), srcs(""));
+    testSame(externs("function externalFunction([[...a], b, c = 5, ...d]) {}"), srcs(""));
   }
 
   public void testVarReferenceInExterns_withEs6Modules() {
@@ -228,29 +233,41 @@ public final class VarCheckTest extends CompilerTestCase {
   }
 
   public void testVarDeclarationInExterns() {
-    testSame("var asdf;", "asdf;");
+    testSame(externs("var asdf;"), srcs("asdf;"));
+  }
+
+  public void testVarReferenceInTypeSummary() {
+    testSame(
+        externs(
+            lines(
+                "/** @typeSummary */",
+                "var goog;",
+                "goog.addSingletonGetter;",
+                "class Foo {}",
+                "goog.addSingletonGetter(Foo);")),
+        srcs("Foo.getInstance();"));
   }
 
   public void testFunctionDeclarationInExterns() {
-    testSame("function foo(x = 7) {}", "foo();");
-    testSame("function foo(...rest) {}", "foo(1,2,3);");
+    testSame(externs("function foo(x = 7) {}"), srcs("foo();"));
+    testSame(externs("function foo(...rest) {}"), srcs("foo(1,2,3);"));
   }
 
   public void testVarAssignmentInExterns() {
-    testSame("/** @type{{foo:string}} */ var foo; var asdf = foo;", "asdf.foo;");
+    testSame(externs("/** @type{{foo:string}} */ var foo; var asdf = foo;"), srcs("asdf.foo;"));
   }
 
   public void testAliasesInExterns() {
     externValidationErrorLevel = CheckLevel.ERROR;
 
-    testSame("var foo; /** @const */ var asdf = foo;", "");
+    testSame(externs("var foo; /** @const */ var asdf = foo;"), srcs(""));
+    testSame(externs("var Foo; var ns = {}; /** @const */ ns.FooAlias = Foo;"), srcs(""));
     testSame(
-        "var Foo; var ns = {}; /** @const */ ns.FooAlias = Foo;", "");
-    testSame(
-        LINE_JOINER.join(
-            "var ns = {}; /** @constructor */ ns.Foo = function() {};",
-            "var ns2 = {}; /** @const */ ns2.Bar = ns.Foo;"),
-        "");
+        externs(
+            lines(
+                "var ns = {}; /** @constructor */ ns.Foo = function() {};",
+                "var ns2 = {}; /** @const */ ns2.Bar = ns.Foo;")),
+        srcs(""));
   }
 
   public void testDuplicateNamespaceInExterns() {
@@ -261,46 +278,53 @@ public final class VarCheckTest extends CompilerTestCase {
   }
 
   public void testLetDeclarationInExterns() {
-    testSame("let asdf;", "asdf;");
+    testSame(externs("let asdf;"), srcs("asdf;"));
   }
 
   public void testConstDeclarationInExterns() {
-    testSame("const asdf = 1;", "asdf;");
+    testSame(externs("const asdf = 1;"), srcs("asdf;"));
   }
 
   public void testNewInExterns() {
     // Class is not hoisted.
-    testSame("x = new Klass();", "class Klass{}", error(VarCheck.UNDEFINED_VAR_ERROR));
+    test(
+        externs("x = new Klass();"), srcs("class Klass{}"), error(VarCheck.UNDEFINED_VAR_ERROR));
   }
 
   public void testPropReferenceInExterns1() {
-    testSame("asdf.foo;", "var /** @suppress {duplicate} */ asdf;",
-        VarCheck.UNDEFINED_EXTERN_VAR_ERROR);
+    testSame(
+        externs("asdf.foo;"),
+        srcs("var /** @suppress {duplicate} */ asdf;"),
+        warning(VarCheck.UNDEFINED_EXTERN_VAR_ERROR));
   }
 
   public void testPropReferenceInExterns2() {
-    testSame("asdf.foo;", "", error(VarCheck.UNDEFINED_VAR_ERROR));
+    test(externs("asdf.foo;"), srcs(""), error(VarCheck.UNDEFINED_VAR_ERROR));
   }
 
   public void testPropReferenceInExterns3() {
-    testSame("asdf.foo;", "var /** @suppress {duplicate} */ asdf;",
-        VarCheck.UNDEFINED_EXTERN_VAR_ERROR);
+    testSame(
+        externs("asdf.foo;"),
+        srcs("var /** @suppress {duplicate} */ asdf;"),
+        warning(VarCheck.UNDEFINED_EXTERN_VAR_ERROR));
 
     externValidationErrorLevel = CheckLevel.ERROR;
-    testSame("asdf.foo;", "var asdf;", error(VarCheck.UNDEFINED_EXTERN_VAR_ERROR));
+    test(externs("asdf.foo;"), srcs("var asdf;"), error(VarCheck.UNDEFINED_EXTERN_VAR_ERROR));
 
     externValidationErrorLevel = CheckLevel.OFF;
-    test("asdf.foo;", "var asdf;", "var /** @suppress {duplicate} */ asdf;");
+    test(
+        externs("asdf.foo;"),
+        srcs("var asdf;"),
+        expected("var /** @suppress {duplicate} */ asdf;"));
   }
 
   public void testPropReferenceInExterns4() {
-    testSame("asdf.foo;", "let asdf;",
-        VarCheck.UNDEFINED_EXTERN_VAR_ERROR);
+    testSame(externs("asdf.foo;"), srcs("let asdf;"), warning(VarCheck.UNDEFINED_EXTERN_VAR_ERROR));
   }
 
   public void testPropReferenceInExterns5() {
-    testSame("asdf.foo;", "class asdf {}",
-        VarCheck.UNDEFINED_EXTERN_VAR_ERROR);
+    testSame(
+        externs("asdf.foo;"), srcs("class asdf {}"), warning(VarCheck.UNDEFINED_EXTERN_VAR_ERROR));
   }
 
   public void testVarInWithBlock() {
@@ -362,7 +386,7 @@ public final class VarCheckTest extends CompilerTestCase {
 
     // Arrow function nested
     testError(
-        LINE_JOINER.join("function FUNC() {", "  {", "    () => { var b = a; }", "  }", "}"),
+        lines("function FUNC() {", "  {", "    () => { var b = a; }", "  }", "}"),
         VarCheck.UNDEFINED_VAR_ERROR);
   }
 
@@ -504,7 +528,7 @@ public final class VarCheckTest extends CompilerTestCase {
       checkSynthesizedExtern("x", "");
       fail("Expected RuntimeException");
     } catch (RuntimeException e) {
-      assertThat(e.getMessage()).contains("Unexpected variable x");
+      assertThat(e).hasMessageThat().contains("Unexpected variable x");
     }
   }
 
@@ -563,6 +587,14 @@ public final class VarCheckTest extends CompilerTestCase {
     testSame(js);
   }
 
+  public void testRedeclaration4() {
+    String js =
+        " /** @fileoverview @suppress {duplicate} */\n"
+            + " /** @type {string} */ var a;\n"
+            + " var a; ";
+    testSame(js);
+  }
+
   public void testSuppressionWithInlineJsDoc() {
     testSame("/** @suppress {duplicate} */ var /** number */ a; var a;");
   }
@@ -575,16 +607,16 @@ public final class VarCheckTest extends CompilerTestCase {
   public void testDontAllowSuppressDupeOnLet() {
     testError(
         "let a; /** @suppress {duplicate} */ let a; ",
-        VarCheck.LET_CONST_CLASS_MULTIPLY_DECLARED_ERROR);
+        BLOCK_SCOPED_DECL_MULTIPLY_DECLARED_ERROR);
 
     testError(
         "function f() { let a; /** @suppress {duplicate} */ let a; }",
-        VarCheck.LET_CONST_CLASS_MULTIPLY_DECLARED_ERROR);
+        BLOCK_SCOPED_DECL_MULTIPLY_DECLARED_ERROR);
   }
 
   public void testDuplicateBlockScopedDeclarationInSwitch() {
     testError(
-        LINE_JOINER.join(
+        lines(
             "function f(x) {",
             "  switch (x) {",
             "    case 'a':",
@@ -595,10 +627,10 @@ public final class VarCheckTest extends CompilerTestCase {
             "      break;",
             "  }",
             "}"),
-        VarCheck.LET_CONST_CLASS_MULTIPLY_DECLARED_ERROR);
+        BLOCK_SCOPED_DECL_MULTIPLY_DECLARED_ERROR);
 
     testError(
-        LINE_JOINER.join(
+        lines(
             "function f(x) {",
             "  switch (x) {",
             "    case 'a':",
@@ -609,20 +641,20 @@ public final class VarCheckTest extends CompilerTestCase {
             "      break;",
             "  }",
             "}"),
-        VarCheck.LET_CONST_CLASS_MULTIPLY_DECLARED_ERROR);
+        BLOCK_SCOPED_DECL_MULTIPLY_DECLARED_ERROR);
   }
 
   public void testLetConstRedeclareWithFunctions_withEs6Modules() {
     testError("function f() {} let f = 1; export {f};",
-        VarCheck.LET_CONST_CLASS_MULTIPLY_DECLARED_ERROR);
+        BLOCK_SCOPED_DECL_MULTIPLY_DECLARED_ERROR);
     testError("let f = 1; function f() {}  export {f};",
-        VarCheck.LET_CONST_CLASS_MULTIPLY_DECLARED_ERROR);
+        BLOCK_SCOPED_DECL_MULTIPLY_DECLARED_ERROR);
     testError("const f = 1; function f() {} export {f};",
-        VarCheck.LET_CONST_CLASS_MULTIPLY_DECLARED_ERROR);
+        BLOCK_SCOPED_DECL_MULTIPLY_DECLARED_ERROR);
     testError("function f() {} const f = 1;  export {f};",
-        VarCheck.LET_CONST_CLASS_MULTIPLY_DECLARED_ERROR);
+        BLOCK_SCOPED_DECL_MULTIPLY_DECLARED_ERROR);
     testError("export default function f() {}; let f = 5;",
-        VarCheck.LET_CONST_CLASS_MULTIPLY_DECLARED_ERROR);
+        BLOCK_SCOPED_DECL_MULTIPLY_DECLARED_ERROR);
   }
 
   public void testFunctionScopeArguments() {
@@ -637,6 +669,38 @@ public final class VarCheckTest extends CompilerTestCase {
     testSame("function f() {var arguments}");
   }
 
+  public void testFunctionRedeclared_global() {
+    // Redeclaration in global scope is allowed.
+    testSame("/** @fileoverview @suppress {duplicate} */ function f() {};function f() {};");
+  }
+
+  public void testFunctionRedeclared1() {
+    testError("{ function f() {}; function f() {}; }", BLOCK_SCOPED_DECL_MULTIPLY_DECLARED_ERROR);
+    testError(
+        "if (0) { function f() {}; function f() {}; }", BLOCK_SCOPED_DECL_MULTIPLY_DECLARED_ERROR);
+    testError(
+        "try { function f() {}; function f() {}; } catch (e) {}",
+        BLOCK_SCOPED_DECL_MULTIPLY_DECLARED_ERROR);
+  }
+
+  public void testFunctionRedeclared2() {
+    testError("{ let f = 0; function f() {}; }", BLOCK_SCOPED_DECL_MULTIPLY_DECLARED_ERROR);
+    testError(
+        "if (0) { const f = 1; function f() {}; }", BLOCK_SCOPED_DECL_MULTIPLY_DECLARED_ERROR);
+    testError(
+        "try { class f {}; function f() {}; } catch (e) {}",
+        BLOCK_SCOPED_DECL_MULTIPLY_DECLARED_ERROR);
+  }
+
+  public void testFunctionRedeclared3() {
+    testError("{ function f() {}; let f = 0; }", BLOCK_SCOPED_DECL_MULTIPLY_DECLARED_ERROR);
+    testError(
+        "if (0) { function f() {}; const f = 0;}", BLOCK_SCOPED_DECL_MULTIPLY_DECLARED_ERROR);
+    testError(
+        "try { function f() {}; class f {}; } catch (e) {}",
+        BLOCK_SCOPED_DECL_MULTIPLY_DECLARED_ERROR);
+  }
+
   public void testNoUndeclaredVarWhenUsingClosurePass() {
     enableClosurePass();
     // We don't want to get goog as an undeclared var here.
@@ -648,7 +712,7 @@ public final class VarCheckTest extends CompilerTestCase {
   public void testImportedNames() throws Exception {
     List<SourceFile> inputs =
         ImmutableList.of(
-            SourceFile.fromCode("/index[0].js", "import foo from './foo'; foo('hello');"),
+            SourceFile.fromCode("/index[0].js", "import foo from './foo.js'; foo('hello');"),
             SourceFile.fromCode("/foo.js", "export default (foo) => { alert(foo); }"));
 
     List<ModuleIdentifier> entryPoints = ImmutableList.of(ModuleIdentifier.forFile("/index[0].js"));

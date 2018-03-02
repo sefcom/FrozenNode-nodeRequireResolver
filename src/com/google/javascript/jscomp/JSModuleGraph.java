@@ -399,51 +399,20 @@ public final class JSModuleGraph implements Serializable {
   }
 
   /**
-   * Applies a DependencyOptions in "dependency sorting" and "dependency pruning"
-   * mode to the given list of inputs. Returns a new list with the files sorted
-   * and removed. This module graph will be updated to reflect the new list.
+   * Apply the dependency options to the list of sources, returning a new source list re-ordering
+   * and dropping files as necessary. This module graph will be updated to reflect the new list.
    *
-   * If you need more fine-grained dependency management, you should create your
-   * own DependencyOptions and call
-   * {@code manageDependencies(DependencyOptions, List<CompilerInput>)}.
-   *
-   * @param entryPoints The entry points into the program.
-   *     Expressed as JS symbols.
-   * @param inputs The original list of sources. Used to ensure that the sort
-   *     is stable.
-   * @throws MissingProvideException if an entry point was not provided
-   *     by any of the inputs.
+   * @param inputs The original list of sources. Used to ensure that the sort is stable.
+   * @throws MissingProvideException if an entry point was not provided by any of the inputs.
    * @see DependencyOptions for more info on how this works.
    */
-  public List<CompilerInput> manageDependencies(
-      List<ModuleIdentifier> entryPoints, List<CompilerInput> inputs)
-      throws MissingModuleException, MissingProvideException {
-    DependencyOptions depOptions = new DependencyOptions();
-    depOptions.setDependencySorting(true);
-    depOptions.setDependencyPruning(true);
-    depOptions.setEntryPoints(entryPoints);
-    return manageDependencies(depOptions, inputs);
-  }
-
-  /**
-   * Apply the dependency options to the list of sources, returning a new
-   * source list re-ordering and dropping files as necessary.
-   * This module graph will be updated to reflect the new list.
-   *
-   * @param inputs The original list of sources. Used to ensure that the sort
-   *     is stable.
-   * @throws MissingProvideException if an entry point was not provided
-   *     by any of the inputs.
-   * @see DependencyOptions for more info on how this works.
-   */
-  public List<CompilerInput> manageDependencies(
-      DependencyOptions depOptions,
-      List<CompilerInput> inputs) throws MissingProvideException, MissingModuleException {
+  public ImmutableList<CompilerInput> manageDependencies(
+      DependencyOptions depOptions, List<CompilerInput> inputs)
+      throws MissingProvideException, MissingModuleException {
 
     SortedDependencies<CompilerInput> sorter = new Es6SortedDependencies<>(inputs);
 
-    Iterable<CompilerInput> entryPointInputs = createEntryPointInputs(
-        depOptions, inputs, sorter);
+    Set<CompilerInput> entryPointInputs = createEntryPointInputs(depOptions, inputs, sorter);
 
     HashMap<String, CompilerInput> inputsByProvide = new HashMap<>();
     for (CompilerInput input : inputs) {
@@ -453,6 +422,17 @@ public final class JSModuleGraph implements Serializable {
       String moduleName = input.getPath().toModuleName();
       if (!inputsByProvide.containsKey(moduleName)) {
         inputsByProvide.put(moduleName, input);
+      }
+    }
+
+    // Dynamically imported files must be added to the module graph, but
+    // they should not be ordered ahead of the files that import them.
+    // We add them as entry points to ensure they get included.
+    for (CompilerInput input : inputs) {
+      for (String require : input.getDynamicRequires()) {
+        if (inputsByProvide.containsKey(require)) {
+          entryPointInputs.add(inputsByProvide.get(require));
+        }
       }
     }
 
@@ -569,7 +549,7 @@ public final class JSModuleGraph implements Serializable {
     return orderedInputs;
   }
 
-  private Collection<CompilerInput> createEntryPointInputs(
+  private Set<CompilerInput> createEntryPointInputs(
       DependencyOptions depOptions,
       List<CompilerInput> inputs,
       SortedDependencies<CompilerInput> sorter)

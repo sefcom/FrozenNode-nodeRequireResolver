@@ -13,21 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.google.javascript.jscomp;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.javascript.jscomp.CompilerTestCase.LINE_JOINER;
+import static com.google.javascript.jscomp.CompilerTestCase.lines;
 import static com.google.javascript.jscomp.parsing.Config.JsDocParsing.INCLUDE_DESCRIPTIONS_NO_WHITESPACE;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
+import com.google.common.testing.EqualsTester;
 import com.google.javascript.jscomp.CompilerOptions.LanguageMode;
 import com.google.javascript.jscomp.SymbolTable.Reference;
 import com.google.javascript.jscomp.SymbolTable.Symbol;
 import com.google.javascript.jscomp.SymbolTable.SymbolScope;
-import com.google.javascript.jscomp.testing.BlackHoleErrorManager;
 import com.google.javascript.rhino.JSDocInfo;
 import com.google.javascript.rhino.JSDocInfo.Visibility;
 import com.google.javascript.rhino.Token;
@@ -57,8 +55,7 @@ public final class SymbolTableTest extends TestCase {
     options.setLanguageIn(LanguageMode.ECMASCRIPT_2017);
     options.setLanguageOut(LanguageMode.ECMASCRIPT5);
     options.setCodingConvention(new ClosureCodingConvention());
-    CompilationLevel.SIMPLE_OPTIMIZATIONS.setOptionsForCompilationLevel(
-        options);
+    CompilationLevel.SIMPLE_OPTIMIZATIONS.setOptionsForCompilationLevel(options);
     WarningLevel.VERBOSE.setOptionsForWarningLevel(options);
     options.setChecksOnly(true);
     options.setPreserveDetailedSourceInfo(true);
@@ -73,7 +70,7 @@ public final class SymbolTableTest extends TestCase {
    */
   public void testFunctionInCall() {
     createSymbolTable(
-        LINE_JOINER.join(
+        lines(
             "class Y { constructor(fn) {} }",
             "class X extends Y {",
             "  constructor() {",
@@ -199,6 +196,27 @@ public final class SymbolTableTest extends TestCase {
 
     Symbol t = table.getParameterInFunction(baz, "this");
     assertNull(t);
+  }
+
+  public void testObjectLiteral() throws Exception {
+    SymbolTable table = createSymbolTable("var obj = {foo: 0};");
+
+    Symbol foo = getGlobalVar(table, "obj.foo");
+    assertThat(foo.getName()).isEqualTo("foo");
+  }
+
+  public void testObjectLiteralQuoted() throws Exception {
+    SymbolTable table = createSymbolTable("var obj = {'foo': 0};");
+
+    Symbol foo = getGlobalVar(table, "obj.foo");
+    assertThat(foo.getName()).isEqualTo("foo");
+  }
+
+  public void testObjectLiteralWithNewlineInKey() throws Exception {
+    SymbolTable table = createSymbolTable("var obj = {'foo\\nbar': 0};");
+
+    Symbol foo = getGlobalVar(table, "obj.foo\\nbar");
+    assertThat(foo.getName()).isEqualTo("obj.foo\\nbar");
   }
 
   public void testNamespacedReferences() throws Exception {
@@ -1090,7 +1108,7 @@ public final class SymbolTableTest extends TestCase {
 
   public void testPrototypeSymbolEqualityForTwoPathsToSamePrototype() {
     String input =
-        LINE_JOINER.join(
+        lines(
             "/**\n",
             "* An employer.\n",
             "*\n",
@@ -1120,8 +1138,7 @@ public final class SymbolTableTest extends TestCase {
     Symbol employerPrototype = getGlobalVar(table, "Employer.prototype");
     assertNotNull(employerPrototype);
 
-    assertEquals(employerPrototype.hashCode(), prototypeOfEmployer.hashCode());
-    assertEquals(employerPrototype, prototypeOfEmployer);
+    new EqualsTester().addEqualityGroup(employerPrototype, prototypeOfEmployer).testEquals();
   }
 
   private void assertSymmetricOrdering(
@@ -1159,8 +1176,7 @@ public final class SymbolTableTest extends TestCase {
   private List<Symbol> getVars(SymbolTable table) {
     List<Symbol> result = new ArrayList<>();
     for (Symbol symbol : table.getAllSymbols()) {
-      if (symbol.getDeclaration() != null &&
-          !symbol.getDeclaration().getNode().isFromExterns()) {
+      if (symbol.getDeclaration() != null && !symbol.getDeclaration().getNode().isFromExterns()) {
         result.add(symbol);
       }
     }
@@ -1173,8 +1189,7 @@ public final class SymbolTableTest extends TestCase {
     List<SourceFile> externs = ImmutableList.of(
         SourceFile.fromCode("externs1", EXTERNS));
 
-    Compiler compiler = new Compiler();
-    BlackHoleErrorManager.silence(compiler);
+    Compiler compiler = new Compiler(new BlackHoleErrorManager());
     compiler.compile(externs, inputs, options);
     return assertSymbolTableValid(compiler.buildKnownSymbolTable());
   }
@@ -1185,7 +1200,7 @@ public final class SymbolTableTest extends TestCase {
    */
   private SymbolTable assertSymbolTableValid(SymbolTable table) {
     Set<Symbol> allSymbols = new HashSet<>();
-    Iterables.addAll(allSymbols, table.getAllSymbols());
+    allSymbols.addAll(table.getAllSymbols());
     for (Symbol sym : table.getAllSymbols()) {
       // Make sure that grabbing the symbol's scope and looking it up
       // again produces the same symbol.
@@ -1198,9 +1213,9 @@ public final class SymbolTableTest extends TestCase {
 
       Symbol scope = table.getSymbolForScope(table.getScope(sym));
       assertTrue(
-          "The symbol's scope is a zombie scope that shouldn't exist.\n" +
-          "Symbol: " + sym + "\n" +
-          "Scope: " + table.getScope(sym),
+          "The symbol's scope is a zombie scope that shouldn't exist.\n"
+              + "Symbol: " + sym + "\n"
+              + "Scope: " + table.getScope(sym),
           scope == null || allSymbols.contains(scope));
     }
 

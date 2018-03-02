@@ -105,33 +105,36 @@ public final class TypeValidatorTest extends CompilerTestCase {
   }
 
   public void testFunctionMismatchMediumLengthTypes() throws Exception {
-    testSame("",
-        LINE_JOINER.join(
-            "/**",
-            " * @param {{a: string, b: string, c: string, d: string, e: string}} x",
-            " */",
-            "function f(x) {}",
-            "var y = {a:'',b:'',c:'',d:'',e:0};",
-            "f(y);"),
-        TYPE_MISMATCH_WARNING,
-        LINE_JOINER.join(
-            "actual parameter 1 of f does not match formal parameter",
-            "found   : {",
-            "  a: string,",
-            "  b: string,",
-            "  c: string,",
-            "  d: string,",
-            "  e: (number|string)",
-            "}",
-            "required: {",
-            "  a: string,",
-            "  b: string,",
-            "  c: string,",
-            "  d: string,",
-            "  e: string",
-            "}",
-            "missing : []",
-            "mismatch: [e]"));
+    test(
+        externs(""),
+        srcs(
+            lines(
+                "/**",
+                " * @param {{a: string, b: string, c: string, d: string, e: string}} x",
+                " */",
+                "function f(x) {}",
+                "var y = {a:'',b:'',c:'',d:'',e:0};",
+                "f(y);")),
+        warning(TYPE_MISMATCH_WARNING)
+            .withMessage(
+                lines(
+                    "actual parameter 1 of f does not match formal parameter",
+                    "found   : {",
+                    "  a: string,",
+                    "  b: string,",
+                    "  c: string,",
+                    "  d: string,",
+                    "  e: (number|string)",
+                    "}",
+                    "required: {",
+                    "  a: string,",
+                    "  b: string,",
+                    "  c: string,",
+                    "  d: string,",
+                    "  e: string",
+                    "}",
+                    "missing : []",
+                    "mismatch: [e]")));
   }
 
   /**
@@ -139,32 +142,36 @@ public final class TypeValidatorTest extends CompilerTestCase {
    * See https://code.google.com/p/closure-compiler/issues/detail?id=719.
    */
   public void testFunctionMismatchLongTypes() throws Exception {
-    testSame("",
-        LINE_JOINER.join(
-            "/**",
-            " * @param {{a: string, b: string, c: string, d: string, e: string,",
-            " *          f: string, g: string, h: string, i: string, j: string, k: string}} x",
-            " */",
-            "function f(x) {}",
-            "var y = {a:'',b:'',c:'',d:'',e:'',f:'',g:'',h:'',i:'',j:'',k:0};",
-            "f(y);"),
-        TYPE_MISMATCH_WARNING,
-        LINE_JOINER.join(
-            "actual parameter 1 of f does not match formal parameter",
-            "found   : {a: string, b: string, c: string, d: string, e: string, f: string,"
-              + " g: string, h: string, i: string, j: string, k: (number|string)}",
-            "required: {a: string, b: string, c: string, d: string, e: string, f: string,"
-              + " g: string, h: string, i: string, j: string, k: string}",
-            "missing : []",
-            "mismatch: [k]"));
+    test(
+        externs(""),
+        srcs(
+            lines(
+                "/**",
+                " * @param {{a: string, b: string, c: string, d: string, e: string,",
+                " *          f: string, g: string, h: string, i: string, j: string, k: string}} x",
+                " */",
+                "function f(x) {}",
+                "var y = {a:'',b:'',c:'',d:'',e:'',f:'',g:'',h:'',i:'',j:'',k:0};",
+                "f(y);")),
+        warning(TYPE_MISMATCH_WARNING)
+            .withMessage(
+                lines(
+                    "actual parameter 1 of f does not match formal parameter",
+                    "found   : {a: string, b: string, c: string, d: string, e: string, f: string,"
+                        + " g: string, h: string, i: string, j: string, k: (number|string)}",
+                    "required: {a: string, b: string, c: string, d: string, e: string, f: string,"
+                        + " g: string, h: string, i: string, j: string, k: string}",
+                    "missing : []",
+                    "mismatch: [k]")));
   }
 
   /**
    * Same as testFunctionMismatchLongTypes, but with one of the types being a typedef.
    */
   public void testFunctionMismatchTypedef() throws Exception {
-    testSame("",
-        LINE_JOINER.join(
+    test(
+        externs(""),
+        srcs(lines(
             "/**",
             " * @typedef {{a: string, b: string, c: string, d: string, e: string,",
             " *            f: string, g: string, h: string, i: string, j: string, k: string}} x",
@@ -175,16 +182,17 @@ public final class TypeValidatorTest extends CompilerTestCase {
             " */",
             "function f(x) {}",
             "var y = {a:'',b:'',c:'',d:'',e:'',f:'',g:'',h:'',i:'',j:'',k:0};",
-            "f(y);"),
-        TYPE_MISMATCH_WARNING,
-        LINE_JOINER.join(
-            "actual parameter 1 of f does not match formal parameter",
-            "found   : {a: string, b: string, c: string, d: string, e: string, f: string,"
-              + " g: string, h: string, i: string, j: string, k: (number|string)}",
-            "required: {a: string, b: string, c: string, d: string, e: string, f: string,"
-              + " g: string, h: string, i: string, j: string, k: string}",
-            "missing : []",
-            "mismatch: [k]"));
+            "f(y);")),
+        warning(TYPE_MISMATCH_WARNING)
+            .withMessage(
+                lines(
+                    "actual parameter 1 of f does not match formal parameter",
+                    "found   : {a: string, b: string, c: string, d: string, e: string, f: string,"
+                        + " g: string, h: string, i: string, j: string, k: (number|string)}",
+                    "required: {a: string, b: string, c: string, d: string, e: string, f: string,"
+                        + " g: string, h: string, i: string, j: string, k: string}",
+                    "missing : []",
+                    "mismatch: [k]")));
   }
 
   public void testNullUndefined() {
@@ -214,7 +222,7 @@ public final class TypeValidatorTest extends CompilerTestCase {
     testSame(ImmutableList.of(
         SourceFile.fromCode(
             "foo.java.js",
-            LINE_JOINER.join(
+            lines(
                 "function f(/** number */ to, /** (number|null) */ from) {",
                 "  to = from;",
                 "}"))));
@@ -224,7 +232,7 @@ public final class TypeValidatorTest extends CompilerTestCase {
     testSame(ImmutableList.of(
         SourceFile.fromCode(
             "foo.java.js",
-            LINE_JOINER.join(
+            lines(
                 "function f(/** number */ to, /** (number|undefined) */ from) {",
                 "  to = from;",
                 "}"))));
@@ -234,7 +242,7 @@ public final class TypeValidatorTest extends CompilerTestCase {
     testSame(ImmutableList.of(
         SourceFile.fromCode(
             "foo.java.js",
-            LINE_JOINER.join(
+            lines(
                 "/** @constructor */",
                 "function Foo() {}",
                 "function f(/** !Foo */ to, /** ?Foo */ from) {",
@@ -246,7 +254,7 @@ public final class TypeValidatorTest extends CompilerTestCase {
     testSame(ImmutableList.of(
         SourceFile.fromCode(
             "foo.java.js",
-            LINE_JOINER.join(
+            lines(
                 "/** @constructor */",
                 "function Foo() {}",
                 "/** @constructor @extends {Foo} */",
@@ -260,7 +268,7 @@ public final class TypeValidatorTest extends CompilerTestCase {
     testSame(ImmutableList.of(
         SourceFile.fromCode(
             "foo.java.js",
-            LINE_JOINER.join(
+            lines(
                 "function f(/** {a: number} */ to, /** {a: (null|number)} */ from) {",
                 "  to = from;",
                 "}"))));
@@ -270,7 +278,7 @@ public final class TypeValidatorTest extends CompilerTestCase {
     testSame(ImmutableList.of(
         SourceFile.fromCode(
             "foo.java.js",
-            LINE_JOINER.join(
+            lines(
                 "function f(/** {a: number} */ to, /** ?{a: (null|number)} */ from) {",
                 "  to = from;",
                 "}"))));
@@ -280,7 +288,7 @@ public final class TypeValidatorTest extends CompilerTestCase {
     testSame(ImmutableList.of(
         SourceFile.fromCode(
             "foo.java.js",
-            LINE_JOINER.join(
+            lines(
                 "/** @constructor */",
                 "function Foo() {}",
                 "function f(/** function():!Foo */ to, /** function():?Foo */ from) {",
@@ -292,7 +300,7 @@ public final class TypeValidatorTest extends CompilerTestCase {
     testSame(ImmutableList.of(
         SourceFile.fromCode(
             "foo.java.js",
-            LINE_JOINER.join(
+            lines(
                 "/**",
                 " * @constructor",
                 " * @template T",
@@ -307,7 +315,7 @@ public final class TypeValidatorTest extends CompilerTestCase {
     testSame(ImmutableList.of(
         SourceFile.fromCode(
             "foo.java.js",
-            LINE_JOINER.join(
+            lines(
                 "/** @interface */",
                 "function Foo() {}",
                 "/** @type {function(?number)} */",
@@ -322,7 +330,7 @@ public final class TypeValidatorTest extends CompilerTestCase {
     testSame(ImmutableList.of(
         SourceFile.fromCode(
             "foo.java.js",
-            LINE_JOINER.join(
+            lines(
                 "/** @constructor */",
                 "function Bar() {}",
                 "/** @type {!number} */",
@@ -336,7 +344,7 @@ public final class TypeValidatorTest extends CompilerTestCase {
     testSame(ImmutableList.of(
         SourceFile.fromCode(
             "foo.java.js",
-            LINE_JOINER.join(
+            lines(
                 "function f(/** number */ n) {}",
                 "f(/** @type {?number} */ (null));"))));
   }
@@ -346,13 +354,13 @@ public final class TypeValidatorTest extends CompilerTestCase {
     testWarning(ImmutableList.of(
         SourceFile.fromCode(
             "foo.js",
-            LINE_JOINER.join(
+            lines(
                 "function f(/** number */ to, /** (number|null) */ from) {",
                 "  to = from;",
                 "}")),
         SourceFile.fromCode(
             "foo.java.js",
-            LINE_JOINER.join(
+            lines(
                 "function g(/** number */ to, /** (number|null) */ from) {",
                 "  to = from;",
                 "}"))),
@@ -370,7 +378,7 @@ public final class TypeValidatorTest extends CompilerTestCase {
     testSame(ImmutableList.of(
         SourceFile.fromCode(
             "foo.java.js",
-            LINE_JOINER.join(
+            lines(
                 "/** @constructor */",
                 "function Foo() {}",
                 "/** @return {string} */",
@@ -388,7 +396,7 @@ public final class TypeValidatorTest extends CompilerTestCase {
     testSame(ImmutableList.of(
         SourceFile.fromCode(
             "foo.java.js",
-            LINE_JOINER.join(
+            lines(
                 "/** @interface */",
                 "function Foo() {}",
                 "/** @return {string} */",
@@ -406,7 +414,7 @@ public final class TypeValidatorTest extends CompilerTestCase {
     testSame(ImmutableList.of(
         SourceFile.fromCode(
             "foo.java.js",
-            LINE_JOINER.join(
+            lines(
                 "/** @interface */",
                 "function High1() {}",
                 "/** @type {number} */",
@@ -424,24 +432,8 @@ public final class TypeValidatorTest extends CompilerTestCase {
   }
 
   public void testDuplicateSuppression() {
-    testSame(LINE_JOINER.join(
-        "/** @const */",
-        "var ns0 = {};",
-        "/** @type {number} */",
-        "ns0.x;",
-        "/** @type {number} */",
-        "ns0.x;"));
-
-    testSame(LINE_JOINER.join(
-        "/** @const */",
-        "var ns1 = {};",
-        "/** @type {number} */",
-        "ns1.x = 3;",
-        "/** @type {number} @suppress {duplicate} */",
-        "ns1.x = 3;"));
-
     testWarning(
-        LINE_JOINER.join(
+        lines(
             "/** @const */",
             "var ns2 = {};",
             "/** @type {number} */",
@@ -449,39 +441,162 @@ public final class TypeValidatorTest extends CompilerTestCase {
             "/** @type {number} */",
             "ns2.x = 3;"),
         TypeValidator.DUP_VAR_DECLARATION);
-
     testWarning(
-        LINE_JOINER.join(
+        lines(
+            "/** @const */",
+            "var ns2 = {};",
+            "/** @type {number|string} */", // so that the second assignment is accepted.
+            "ns2.x = 3;",
+            "/** @type {string} */",
+            "ns2.x = 'a';"),
+        TypeValidator.DUP_VAR_DECLARATION_TYPE_MISMATCH);
+
+    // duplicates suppressed on 1st declaration.
+    testSame(
+        lines(
+            "/** @const */",
+            "var ns1 = {};",
+            "/** @type {number} @suppress {duplicate} */",
+            "ns1.x = 3;",
+            "/** @type {number} */",
+            "ns1.x = 3;"));
+
+    // duplicates suppressed on 2nd declaration.
+    testSame(
+        lines(
+            "/** @const */",
+            "var ns1 = {};",
+            "/** @type {number} */",
+            "ns1.x = 3;",
+            "/** @type {number} @suppress {duplicate} */",
+            "ns1.x = 3;"));
+
+    // duplicates suppressed on file level.
+    testSame(
+        lines(
+            "/** @fileoverview @suppress {duplicate} */",
+            "/** @const */",
+            "var ns1 = {};",
+            "/** @type {number} */",
+            "ns1.x = 3;",
+            "/** @type {number} */",
+            "ns1.x = 3;"));
+  }
+
+  public void testDuplicateSuppression_class() {
+    enableTranspile();
+    testWarning(
+        lines(
+            "class X { constructor() {} }", //
+            "function X() {}"),
+        TypeValidator.DUP_VAR_DECLARATION_TYPE_MISMATCH);
+    testSame(
+        lines(
+            "/** @suppress {duplicate} */",
+            "class X { constructor() {} }", //
+            "function X() {}"));
+  }
+
+  public void testDuplicateSuppression_typeMismatch() {
+    // duplicate diagnostic category includes type mismatches.
+    testSame(
+        lines(
+            "/** @const */",
+            "var ns1 = {};",
+            "/** @type {number} */",
+            "ns1.x = 3;",
+            "/** @type {string} @suppress {duplicate} */",
+            "ns1.x = 3;"));
+    testSame(
+        lines(
+            "/** @const */",
+            "var ns1 = {};",
+            "/** @type {number} @suppress {duplicate} */",
+            "ns1.x = 3;",
+            "/** @type {string} */",
+            "ns1.x = 3;"));
+  }
+
+  public void testDuplicateSuppression_stubs() {
+    // No duplicate warning because the first declaration is a stub declaration (property access)
+    testSame(
+        lines(
+            "/** @const */",
+            "var ns0 = {};",
+            "/** @type {number} */",
+            "ns0.x;",
+            "/** @type {number} */",
+            "ns0.x;"));
+
+    // Type mismatch on stub.
+    testWarning(
+        lines(
             "/** @const */",
             "var ns3 = {};",
             "/** @type {number} */",
             "ns3.x;",
-            "/** @type {string} @suppress {duplicate} */",
+            "/** @type {string} */",
             "ns3.x;"),
         TypeValidator.DUP_VAR_DECLARATION_TYPE_MISMATCH);
+  }
 
+  public void testDuplicateSuppression_topLevelVariables() {
     testWarning(
-        LINE_JOINER.join("/** @type {number} */", "var w;", "/** @type {number} */", "var w;"),
-        TypeValidator.DUP_VAR_DECLARATION);
-
-    testSame(LINE_JOINER.join(
-        "/** @type {number} */",
-        "var x;",
-        "/** @type {number} @suppress {duplicate} */",
-        "var x;"));
-
-    testWarning(
-        LINE_JOINER.join(
-            "/** @type {number} */", "var y = 3;", "/** @type {number} */", "var y = 3;"),
+        lines("/** @type {number} */", "var w;", "/** @type {number} */", "var w;"),
         TypeValidator.DUP_VAR_DECLARATION);
 
     testWarning(
-        LINE_JOINER.join(
+        lines("/** @type {number} */", "var y = 3;", "/** @type {string} */", "var y = 3;"),
+        TypeValidator.DUP_VAR_DECLARATION_TYPE_MISMATCH);
+
+    // @suppress on file level.
+    testSame(
+        lines(
+            "/** @fileoverview  @suppress {duplicate} */",
+            "/** @type {number} */",
+            "var x;",
+            "/** @type {number} */",
+            "var x;"));
+
+    // @suppress on variable declaration.
+    testSame(
+        lines(
             "/** @type {number} */",
             "var z;",
-            "/** @type {string} @suppress {duplicate} */",
-            "var z;"),
+            "/** @type {number} @suppress {duplicate} */",
+            "var z;"));
+  }
+
+  public void testDuplicateSuppression_topLevelFunctions() {
+    testWarning(
+        lines(
+            "/** @return {number} */",
+            "function f() {}",
+            "/** @return {number} */",
+            "function f() {}"),
+        TypeValidator.DUP_VAR_DECLARATION);
+
+    testWarning(
+        lines(
+            "/** @return {number} */",
+            "function f() {}",
+            "/** @return {string} */",
+            "function f() {}"),
         TypeValidator.DUP_VAR_DECLARATION_TYPE_MISMATCH);
+
+    testSame(
+        lines(
+            "/** @return {number} */",
+            "function f() {}",
+            "/** @return {string} @suppress {duplicate} */",
+            "function f() {}"));
+
+    testSame(
+        lines(
+            "/** @return {number} */",
+            "function f() {}",
+            "/** @return {string} @suppress {duplicate} */",
+            "function f() {}"));
   }
 
   private TypeMismatch fromNatives(JSTypeNative a, JSTypeNative b) {

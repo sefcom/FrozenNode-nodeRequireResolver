@@ -17,22 +17,27 @@
 package com.google.javascript.jscomp;
 
 import com.google.javascript.rhino.ErrorReporter;
-import com.google.javascript.rhino.JSDocInfo;
 import com.google.javascript.rhino.Node;
 import com.google.javascript.rhino.StaticSourceFile;
-import com.google.javascript.rhino.TypeI;
+import com.google.javascript.rhino.Token;
 import com.google.javascript.rhino.jstype.JSType;
 import com.google.javascript.rhino.jstype.StaticTypedRef;
 import com.google.javascript.rhino.jstype.StaticTypedSlot;
 
 /**
- * Several methods in this class, such as {@code isVar} throw an exception when called, and several
- * methods are currently identical to the ones in Var. The reason for this is that we want to shadow
- * methods from the parent class, to avoid calling them accidentally.
+ * {@link AbstractVar} subclass for use with {@link TypedScope}.
+ *
+ * <p>Note that this class inherits its {@link #equals} and {@link #hashCode}
+ * implementations from {@link ScopedName}, which does not include any type
+ * information.  This is necessary because {@code Var}-keyed maps are used
+ * across multiple top scopes, but it comes with the caveat that if {@code
+ * TypedVar} instances are stored in a set, the type information is at risk
+ * of disappearing if an untyped (or differently typed) var is added for the
+ * same symbol.
  */
-public class TypedVar extends Var implements StaticTypedSlot<JSType>, StaticTypedRef<JSType> {
+public class TypedVar extends AbstractVar<TypedScope, TypedVar>
+    implements StaticTypedSlot<JSType>, StaticTypedRef<JSType> {
 
-  final TypedScope scope;
   private JSType type;
   // The next two fields and the associated methods are only used by
   // TypeInference.java. Maybe there is a way to avoid having them in all typed variable instances.
@@ -50,94 +55,7 @@ public class TypedVar extends Var implements StaticTypedSlot<JSType>, StaticType
       TypedScope scope, int index, CompilerInput input) {
     super(name, nameNode, scope, index, input);
     this.type = type;
-    this.scope = scope;
     this.typeInferred = inferred;
-  }
-
-  @Override
-  public String getName() {
-    return name;
-  }
-
-  @Override
-  public Node getNode() {
-    return nameNode;
-  }
-
-  @Override
-  CompilerInput getInput() {
-    return input;
-  }
-
-  @Override
-  public StaticSourceFile getSourceFile() {
-    return nameNode.getStaticSourceFile();
-  }
-
-  @Override
-  public TypedVar getSymbol() {
-    return this;
-  }
-
-  @Override
-  public TypedVar getDeclaration() {
-    return nameNode == null ? null : this;
-  }
-
-  @Override
-  public Node getParentNode() {
-    return nameNode == null ? null : nameNode.getParent();
-  }
-
-  @Override
-  public boolean isBleedingFunction() {
-    throw new IllegalStateException(
-        "Method isBleedingFunction cannot be called on typed variables.");
-  }
-
-  @Override
-  public TypedScope getScope() {
-    return scope;
-  }
-
-  @Override
-  public boolean isGlobal() {
-    return scope.isGlobal();
-  }
-
-  @Override
-  public boolean isLocal() {
-    return scope.isLocal();
-  }
-
-  @Override
-  boolean isExtern() {
-    return input == null || input.isExtern();
-  }
-
-  @Override
-  public boolean isInferredConst() {
-    throw new IllegalStateException("Method isInferredConst cannot be called on typed variables.");
-  }
-
-  @Override
-  public boolean isDefine() {
-    throw new IllegalStateException("Method isDefine cannot be called on typed variables.");
-  }
-
-  @Override
-  public Node getInitialValue() {
-    return NodeUtil.getRValueOfLValue(nameNode);
-  }
-
-  @Override
-  public Node getNameNode() {
-    return nameNode;
-  }
-
-  @Override
-  public JSDocInfo getJSDocInfo() {
-    return nameNode == null ? null : NodeUtil.getBestJSDocInfo(nameNode);
   }
 
   /**
@@ -146,11 +64,6 @@ public class TypedVar extends Var implements StaticTypedSlot<JSType>, StaticType
    */
   @Override
   public JSType getType() {
-    return type;
-  }
-
-  @Override
-  public final TypeI getTypeI() {
     return type;
   }
 
@@ -181,19 +94,6 @@ public class TypedVar extends Var implements StaticTypedSlot<JSType>, StaticType
   }
 
   @Override
-  public boolean equals(Object other) {
-    if (!(other instanceof TypedVar)) {
-      return false;
-    }
-    return ((TypedVar) other).nameNode == nameNode;
-  }
-
-  @Override
-  public int hashCode() {
-    return nameNode.hashCode();
-  }
-
-  @Override
   public String toString() {
     return "Var " + name + "{" + type + "}";
   }
@@ -214,23 +114,38 @@ public class TypedVar extends Var implements StaticTypedSlot<JSType>, StaticType
     return markedAssignedExactlyOnce;
   }
 
-  @Override
-  boolean isVar() {
-    throw new IllegalStateException("Method isVar cannot be called on typed variables.");
+  static TypedVar makeArguments(TypedScope scope) {
+    // Look for an extern named "arguments" and use its type if available.
+    // TODO(sdh): consider looking for "Arguments" ctor rather than "arguments" var: this could
+    // allow deleting the variable, which doesn't really belong in externs in the first place.
+    TypedVar globalArgs = scope.getGlobalScope().getVar(Var.ARGUMENTS);
+    JSType type = globalArgs != null && globalArgs.isExtern() ? globalArgs.getType() : null;
+    return new TypedArguments(type, scope);
   }
 
-  @Override
-  boolean isLet() {
-    throw new IllegalStateException("Method isLet cannot be called on typed variables.");
-  }
+  private static final class TypedArguments extends TypedVar {
+    TypedArguments(JSType type, TypedScope scope) {
+      super(false, Var.ARGUMENTS, null, type, scope, -1, null);
+    }
 
-  @Override
-  boolean isConst() {
-    throw new IllegalStateException("Method isConst cannot be called on typed variables.");
-  }
+    @Override
+    public boolean isArguments() {
+      return true;
+    }
 
-  @Override
-  boolean isParam() {
-    throw new IllegalStateException("Method isParam cannot be called on typed variables.");
+    @Override
+    public StaticSourceFile getSourceFile() {
+      return scope.getRootNode().getStaticSourceFile();
+    }
+
+    @Override
+    public boolean isBleedingFunction() {
+      return false;
+    }
+
+    @Override
+    protected Token declarationType() {
+      return null;
+    }
   }
 }

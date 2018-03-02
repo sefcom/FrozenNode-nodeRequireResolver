@@ -215,6 +215,7 @@ public class Parser {
       ES6,
       ES7,
       ES8_OR_GREATER,
+      ES_NEXT,
       TYPESCRIPT,
     }
 
@@ -236,7 +237,7 @@ public class Parser {
     public Config(Mode mode, boolean isStrictMode) {
       parseTypeSyntax = mode == Mode.TYPESCRIPT;
       atLeast6 = !(mode == Mode.ES3 || mode == Mode.ES5);
-      atLeast8 = mode == Mode.ES8_OR_GREATER;
+      atLeast8 = mode == Mode.ES8_OR_GREATER || mode == Mode.ES_NEXT;
       this.isStrictMode = isStrictMode;
 
       // Generally, we allow everything that is valid in any mode
@@ -550,10 +551,10 @@ public class Parser {
       case TYPE:
         export = parseTypeAlias();
         break;
-      default: // unreachable, parse as a var decl to get a parse error.
       case VAR:
       case LET:
       case CONST:
+      default: // unreachable, parse as a var decl to get a parse error.
         export = isAmbient ? parseAmbientVariableDeclarationList() : parseVariableDeclarationList();
         break;
     }
@@ -807,8 +808,10 @@ public class Parser {
     Token token = peekToken();
     switch (token.type) {
       case IDENTIFIER:
+      case NUMBER:
       case STAR:
       case STATIC:
+      case STRING:
       case OPEN_SQUARE:
       case SEMI_COLON:
         return true;
@@ -873,11 +876,19 @@ public class Parser {
 
     ParseTree nameExpr;
     IdentifierToken name;
-    if (peekIdOrKeyword()) {
-      nameExpr = null;
-      name = eatIdOrKeywordAsId();
-      if (Keywords.isKeyword(name.value)) {
-        features = features.with(Feature.KEYWORDS_AS_PROPERTIES);
+    if (peekPropertyName(0)) {
+      if (peekIdOrKeyword()) {
+        nameExpr = null;
+        name = eatIdOrKeywordAsId();
+        if (Keywords.isKeyword(name.value)) {
+          features = features.with(Feature.KEYWORDS_AS_PROPERTIES);
+        }
+      } else {
+        // { 'str'() {} }
+        // { 123() {} }
+        // Treat these as if they were computed properties.
+        name = null;
+        nameExpr = parseLiteralExpression();
       }
     } else {
       if (config.parseTypeSyntax && peekIndexSignature()) {
@@ -957,26 +968,42 @@ public class Parser {
 
   private ParseTree parseAsyncMethod(PartialClassElement partial) {
     eatPredefinedString(ASYNC);
-    if (peekIdOrKeyword()) {
-      IdentifierToken name = eatIdOrKeywordAsId();
-      FunctionDeclarationTree.Builder builder =
-          FunctionDeclarationTree.builder(FunctionDeclarationTree.Kind.MEMBER)
-              .setAsync(true)
-              .setStatic(partial.isStatic)
-              .setName(name)
-              .setAccess(partial.accessModifier);
-      if (partial.isAmbient) {
-        builder
-            .setGenerics(maybeParseGenericTypes())
-            .setFormalParameterList(parseFormalParameterList(ParamContext.SIGNATURE))
-            .setReturnType(maybeParseColonType())
-            .setFunctionBody(new EmptyStatementTree(getTreeLocation(partial.start)));
-        eatPossibleImplicitSemiColon();
-      } else {
-        parseFunctionTail(builder, FunctionFlavor.ASYNCHRONOUS);
-      }
+    if (peekPropertyName(0)) {
+      if (peekIdOrKeyword()) {
+        IdentifierToken name = eatIdOrKeywordAsId();
+        FunctionDeclarationTree.Builder builder =
+            FunctionDeclarationTree.builder(FunctionDeclarationTree.Kind.MEMBER)
+                .setAsync(true)
+                .setStatic(partial.isStatic)
+                .setName(name)
+                .setAccess(partial.accessModifier);
+        if (partial.isAmbient) {
+          builder
+              .setGenerics(maybeParseGenericTypes())
+              .setFormalParameterList(parseFormalParameterList(ParamContext.SIGNATURE))
+              .setReturnType(maybeParseColonType())
+              .setFunctionBody(new EmptyStatementTree(getTreeLocation(partial.start)));
+          eatPossibleImplicitSemiColon();
+        } else {
+          parseFunctionTail(builder, FunctionFlavor.ASYNCHRONOUS);
+        }
 
-      return builder.build(getTreeLocation(name.getStart()));
+        return builder.build(getTreeLocation(name.getStart()));
+      } else {
+        // { 'str'() {} }
+        // { 123() {} }
+        // Treat these as if they were computed properties.
+        ParseTree nameExpr = parseLiteralExpression();
+        FunctionDeclarationTree.Builder builder =
+            FunctionDeclarationTree.builder(FunctionDeclarationTree.Kind.EXPRESSION)
+                .setAsync(true)
+                .setStatic(partial.isStatic);
+        parseFunctionTail(builder, FunctionFlavor.ASYNCHRONOUS);
+
+        ParseTree function = builder.build(getTreeLocation(nameExpr.getStart()));
+        return new ComputedPropertyMethodTree(
+            getTreeLocation(nameExpr.getStart()), partial.accessModifier, nameExpr, function);
+      }
     } else if (config.parseTypeSyntax && peekIndexSignature()) {
       ParseTree indexSignature = parseIndexSignature();
       eatPossibleImplicitSemiColon();
@@ -2368,6 +2395,7 @@ public class Parser {
         elements.add(new NullTree(getTreeLocation(getTreeStartLocation())));
       } else {
         if (peek(TokenType.SPREAD)) {
+          features = features.with(Feature.SPREAD_EXPRESSIONS);
           elements.add(parseSpreadExpression());
         } else {
           elements.add(parseAssignmentExpression());
@@ -2392,7 +2420,9 @@ public class Parser {
 
     eat(TokenType.OPEN_CURLY);
     Token commaToken = null;
-    while (peekPropertyNameOrComputedProp(0) || peek(TokenType.STAR)
+    while (peek(TokenType.SPREAD)
+        || peekPropertyNameOrComputedProp(0)
+        || peek(TokenType.STAR)
         || peekAccessibilityModifier()) {
       commaToken = null;
       result.add(parsePropertyAssignment());
@@ -2441,6 +2471,9 @@ public class Parser {
     TokenType type = peekType();
     if (type == TokenType.STAR) {
       return parsePropertyAssignmentGenerator();
+    } else if (peek(TokenType.SPREAD)) {
+      features = features.with(Feature.OBJECT_LITERALS_WITH_SPREAD);
+      return parseSpreadExpression();
     } else if (type == TokenType.STRING
         || type == TokenType.NUMBER
         || type == TokenType.IDENTIFIER
@@ -3236,7 +3269,7 @@ public class Parser {
     ParseTree left = parseExponentiationExpression();
     while (peekMultiplicativeOperator()) {
       Token operator = nextToken();
-      ParseTree right = parseUnaryExpression();
+      ParseTree right = parseExponentiationExpression();
       left = new BinaryOperatorTree(getTreeLocation(start), left, operator, right);
     }
     return left;
@@ -3543,21 +3576,10 @@ public class Parser {
   }
 
   private boolean peekArrayPatternElement() {
-    return peekExpression() || peek(TokenType.SPREAD);
+    return peekExpression();
   }
 
-  private ParseTree parseArrayPatternElement(PatternKind patternKind) {
-    ParseTree patternElement;
-
-    if (peek(TokenType.SPREAD)) {
-      patternElement = parseArrayPatternRest(patternKind);
-    } else {
-      patternElement = parsePatternAssignmentTarget(patternKind);
-    }
-    return patternElement;
-  }
-
-  private ParseTree parseArrayPatternRest(PatternKind patternKind) {
+  private ParseTree parsePatternRest(PatternKind patternKind) {
     SourcePosition start = getTreeStartLocation();
     eat(TokenType.SPREAD);
     ParseTree patternAssignmentTarget = parseRestAssignmentTarget(patternKind);
@@ -3582,13 +3604,9 @@ public class Parser {
         eat(TokenType.COMMA);
         elements.add(new NullTree(getTreeLocation(getTreeStartLocation())));
       } else {
-        ParseTree element = parseArrayPatternElement(kind);
-        elements.add(element);
+        elements.add(parsePatternAssignmentTarget(kind));
 
-        if (element.isAssignmentRestElement()) {
-          // Rest can only appear in the posterior, so we must be done
-          break;
-        } else if (peek(TokenType.COMMA)) {
+        if (peek(TokenType.COMMA)) {
           // Consume the comma separator
           eat(TokenType.COMMA);
         } else {
@@ -3596,6 +3614,10 @@ public class Parser {
           break;
         }
       }
+    }
+    if (peek(TokenType.SPREAD)) {
+      features = features.with(Feature.ARRAY_PATTERN_REST);
+      elements.add(parsePatternRest(kind));
     }
     eat(TokenType.CLOSE_SQUARE);
     return new ArrayPatternTree(getTreeLocation(start), elements.build());
@@ -3608,6 +3630,7 @@ public class Parser {
     eat(TokenType.OPEN_CURLY);
     while (peekObjectPatternField()) {
       fields.add(parseObjectPatternField(kind));
+
       if (peek(TokenType.COMMA)) {
         // Consume the comma separator
         eat(TokenType.COMMA);
@@ -3615,6 +3638,10 @@ public class Parser {
         // Otherwise we must be done
         break;
       }
+    }
+    if (peek(TokenType.SPREAD)) {
+      features = features.with(Feature.OBJECT_PATTERN_REST);
+      fields.add(parsePatternRest(kind));
     }
     eat(TokenType.CLOSE_CURLY);
     return new ObjectPatternTree(getTreeLocation(start), fields.build());
@@ -3753,10 +3780,10 @@ public class Parser {
       case NAMESPACE:
         declare = parseNamespaceDeclaration(true);
         break;
-      default: // unreachable, parse as a var decl to get a parse error.
       case VAR:
       case LET:
       case CONST:
+      default: // unreachable, parse as a var decl to get a parse error.
         declare = parseAmbientVariableDeclarationList();
         eatPossibleImplicitSemiColon();
         break;

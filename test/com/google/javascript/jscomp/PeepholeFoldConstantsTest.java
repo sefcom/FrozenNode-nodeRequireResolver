@@ -762,6 +762,12 @@ public final class PeepholeFoldConstantsTest extends TypeICompilerTestCase {
     fold("x = '' + []", "x = ''");      // cannot fold (but nice if we can)
   }
 
+  public void testStringAdd_identity() {
+    this.mode = TypeInferenceMode.BOTH;
+    foldStringTypes("x + ''", "x");
+    foldStringTypes("'' + x", "x");
+  }
+
   public void testIssue821() {
     foldSame("var a =(Math.random()>0.5? '1' : 2 ) + 3 + 4;");
     foldSame("var a = ((Math.random() ? 0 : 1) ||" +
@@ -792,6 +798,10 @@ public final class PeepholeFoldConstantsTest extends TypeICompilerTestCase {
     fold("x = 3 % -2", "x = 1");
     fold("x = -1 % 3", "x = -1");
     foldSame("x = 1 % 0");
+    fold("x = 2 ** 3", "x = 8");
+    fold("x = 2 ** -3", "x = 0.125");
+    foldSame("x = 2 ** 55"); // backs off folding because 2 ** 55 is too large
+    foldSame("x = 3 ** -1"); // backs off because 3**-1 is shorter than 0.3333333333333333
   }
 
   public void testFoldArithmetic2() {
@@ -808,12 +818,16 @@ public final class PeepholeFoldConstantsTest extends TypeICompilerTestCase {
     fold("x = null * 1", "x = 0");
     fold("x = (null - 1) * 2", "x = -2");
     fold("x = (null + 1) * 2", "x = 2");
+    fold("x = null ** 0", "x = 1");
+    fold("x = (-0) ** 3", "x = -0");
   }
 
   public void testFoldArithmeticInfinity() {
     fold("x=-Infinity-2", "x=-Infinity");
     fold("x=Infinity-2", "x=Infinity");
     fold("x=Infinity*5", "x=Infinity");
+    fold("x = Infinity ** 2", "x = Infinity");
+    fold("x = Infinity ** -2", "x = 0");
   }
 
   public void testFoldArithmeticStringComp() {
@@ -1109,6 +1123,8 @@ public final class PeepholeFoldConstantsTest extends TypeICompilerTestCase {
     fold("x=y|x", "x|=y");
     fold("x=x*y", "x*=y");
     fold("x=y*x", "x*=y");
+    fold("x=x**y", "x**=y");
+    foldSame("x=y**x");
     fold("x.y=x.y+z", "x.y+=z");
     foldSame("next().x = next().x + 1");
     // This is OK, really.
@@ -1130,10 +1146,36 @@ public final class PeepholeFoldConstantsTest extends TypeICompilerTestCase {
     foldSame("x=y|x");
     foldSame("x=x*y");
     foldSame("x=y*x");
+    foldSame("x=x**y");
+    foldSame("x=y**2");
     foldSame("x.y=x.y+z");
     foldSame("next().x = next().x + 1");
     // This is OK, really.
     fold("({a:1}).a = ({a:1}).a + 1", "({a:1}).a = 2");
+  }
+
+  public void testUnfoldAssignOpsLate() {
+    late = true;
+    foldSame("x+=y");
+    foldSame("x*=y");
+    foldSame("x.y+=z");
+    foldSame("x-=y");
+    foldSame("x|=y");
+    foldSame("x*=y");
+    foldSame("x**=y");
+    foldSame("x.y+=z");
+  }
+
+  public void testUnfoldAssignOpsEarly() {
+    late = false;
+    fold("x+=y", "x=x+y");
+    fold("x*=y", "x=x*y");
+    fold("x.y+=z", "x.y=x.y+z");
+    fold("x-=y", "x=x-y");
+    fold("x|=y", "x=x|y");
+    fold("x*=y", "x=x*y");
+    fold("x**=y", "x=x**y");
+    fold("x.y+=z", "x.y=x.y+z");
   }
 
   public void testFoldAdd1() {
@@ -1199,7 +1241,7 @@ public final class PeepholeFoldConstantsTest extends TypeICompilerTestCase {
     foldSame("1 + x - 2 + 3");
     foldSame("1 + x - 2 + 3 - 1");
     foldSame("f(x)-0");
-    foldSame("x-0-0");
+    fold("x-0-0", "x-0");
     foldSame("x+2-2+2");
     foldSame("x+2-2+2-2");
     foldSame("x-2+2");
@@ -1336,6 +1378,21 @@ public final class PeepholeFoldConstantsTest extends TypeICompilerTestCase {
 
     // GETELEM is handled the same way.
     test("var x = ({'a':1})['a']", "var x = 1");
+
+    // try folding string computed properties
+    test("var a = {['a']:x}['a']", "var a = x");
+    test("var a = {'a': x, ['a']: y}['a']", "var a = y;");
+    testSame("var a = {['foo']: x}.a;");
+    // Note: it may be useful to fold symbols in the future.
+    testSame("var y = Symbol(); var a = {[y]: 3}[y];");
+
+    // don't fold member functions since they are different from fn expressions and arrow fns
+    testSame("var x = {a() {}}.a;");
+    testSame("var x = {a() { return this; }}.a;");
+    testSame("var x = {a() { return super.a; }}.a;");
+    testSame("var x = {a: 1, a() {}}.a;");
+    test("var x = {a() {}, a: 1}.a;", "var x = 1;");
+    testSame("var x = {a() {}}.b");
   }
 
   public void testFoldObjectLiteralRef2() {
@@ -1361,17 +1418,9 @@ public final class PeepholeFoldConstantsTest extends TypeICompilerTestCase {
     test("function f(/** boolean */ x) { x + 1 + 1 + x; }",
          "function f(/** boolean */ x) { x + 2 + x; }");
 
-    test("function f(/** null */ x) { x + 1 + 1 + x; }",
-         "function f(/** null */ x) { 2; }");
+    testSame("function f(/** null */ x) { var y = true > x; }");
 
-    test("function f(/** undefined */ x) { x + 1 + 1 + x; }",
-         "function f(/** undefined */ x) { NaN; }");
-
-    test("function f(/** null */ x) { var y = true > x; }",
-         "function f(/** null */ x) { var y = true; }");
-
-    test("function f(/** null */ x) { var y = null > x; }",
-         "function f(/** null */ x) { var y = false; }");
+    testSame("function f(/** null */ x) { var y = null > x; }");
 
     testSame("function f(/** string */ x) { x + 1 + 1 + x; }");
 
@@ -1395,11 +1444,11 @@ public final class PeepholeFoldConstantsTest extends TypeICompilerTestCase {
         "function foo(x = (1 !== void 0), y) {return x+y;}",
         "function foo(x = true, y) {return x+y;}");
     test(
-        LINE_JOINER.join(
+        lines(
             "class Foo {",
             "  constructor() {this.x = null <= null;}",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "class Foo {",
             "  constructor() {this.x = true;}",
             "}"));
@@ -1513,6 +1562,42 @@ public final class PeepholeFoldConstantsTest extends TypeICompilerTestCase {
 
   public void testConvertToNumberNegativeInf() {
     foldSame("var x = 3 * (r ? Infinity : -Infinity);");
+  }
+
+  public void testAlgebraicIdentities() {
+    this.mode = TypeInferenceMode.BOTH;
+
+    foldNumericTypes("x+0", "x");
+    foldNumericTypes("0+x", "x");
+    foldNumericTypes("x+0+0+x+x+0", "x+x+x");
+
+    foldNumericTypes("x-0", "x");
+    foldNumericTypes("x-0-0-0", "x");
+    // 'x-0' is numeric even if x isn't
+    fold("var x='a'; x-0-0", "var x='a';x-0");
+    foldNumericTypes("0-x", "-x");
+    fold("for (var i = 0; i < 5; i++) var x = 0 + i * 1", "for(var i=0; i < 5; i++) var x=i");
+
+    foldNumericTypes("x*1", "x");
+    foldNumericTypes("1*x", "x");
+    // can't optimize these without a non-NaN prover
+    foldSame("x*0");
+    foldSame("0*x");
+    foldSame("0/x");
+
+    foldNumericTypes("x/1", "x");
+  }
+
+  private void foldNumericTypes(String js, String expected) {
+    fold(
+        "function f(/** @type {number} */ x) { " + js + " }",
+        "function f(/** @type {number} */ x) { " + expected + " }");
+  }
+
+  private void foldStringTypes(String js, String expected) {
+    fold(
+        "function f(/** @type {string} */ x) { " + js + " }",
+        "function f(/** @type {string} */ x) { " + expected + " }");
   }
 
   private static String join(String operandA, String op, String operandB) {

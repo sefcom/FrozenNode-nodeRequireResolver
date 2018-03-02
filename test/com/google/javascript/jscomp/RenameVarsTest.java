@@ -146,11 +146,11 @@ public final class RenameVarsTest extends CompilerTestCase {
 
   public void testRenameRedeclaredGlobals() {
     test(
-        LINE_JOINER.join(
+        lines(
             "function f1(v1, v2) {f1()};",
             "/** @suppress {duplicate} */",
             "function f1(v3, v4) {f1()};"),
-        LINE_JOINER.join(
+        lines(
             "function a(b, c) {a()};",
             "/** @suppress {duplicate} */",
             "function a(b, c) {a()};"));
@@ -158,11 +158,11 @@ public final class RenameVarsTest extends CompilerTestCase {
     localRenamingOnly = true;
 
     test(
-        LINE_JOINER.join(
+        lines(
             "function f1(v1, v2) {f1()};",
             "/** @suppress {duplicate} */",
             "function f1(v3, v4) {f1()};"),
-        LINE_JOINER.join(
+        lines(
             "function f1(a, b) {f1()};",
             "/** @suppress {duplicate} */",
             "function f1(a, b) {f1()};"));
@@ -230,12 +230,12 @@ public final class RenameVarsTest extends CompilerTestCase {
 
   public void testBleedingRecursiveFunctions2() {
     test(
-        LINE_JOINER.join(
+        lines(
             "function f() {",
             "  var x = function a(x) { return x ? 1 : a(1); };",
             "  var y = function b(x) { return x ? 2 : b(2); };",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "function d() {",
             "  var e = function a(b) { return b ? 1 : a(1); };",
             "  var f = function c(a) { return a ? 2 : c(2); };",
@@ -244,13 +244,13 @@ public final class RenameVarsTest extends CompilerTestCase {
 
   public void testBleedingRecursiveFunctions3() {
     test(
-        LINE_JOINER.join(
+        lines(
             "function f() {",
             "  var x = function a(x) { return x ? 1 : a(1); };",
             "  var y = function b(x) { return x ? 2 : b(2); };",
             "  var z = function c(x) { return x ? y : c(2); };",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "function f() {",
             "  var g = function a(c) { return c ? 1 : a(1); };",
             "  var d = function b(a) { return a ? 2 : b(2); };",
@@ -259,11 +259,11 @@ public final class RenameVarsTest extends CompilerTestCase {
   }
 
   public void testBleedingFunctionInBlocks() {
-    test(LINE_JOINER.join(
+    test(lines(
             "if (true) {",
             "   var x = function a(x) {return x;}",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "if (true) {",
             "   var c = function b(a) {return a;}",
             "}"));
@@ -271,12 +271,18 @@ public final class RenameVarsTest extends CompilerTestCase {
 
   public void testRenameWithExterns1() {
     String externs = "var foo;";
-    test(externs, "var bar; foo(bar);", "var a; foo(a);");
+    test(
+        externs(externs),
+        srcs("var bar; foo(bar);"),
+        expected("var a; foo(a);"));
   }
 
   public void testRenameWithExterns2() {
     String externs = "var a;";
-    test(externs, "var b = 5", "var b = 5");
+    test(
+        externs(externs),
+        srcs("var b = 5"),
+        expected("var b = 5"));
   }
 
   public void testDoNotRenameExportedName() {
@@ -350,7 +356,7 @@ public final class RenameVarsTest extends CompilerTestCase {
     );
 
     test(
-        LINE_JOINER.join(
+        lines(
             "try {",
             "  try { ",
             "  } catch(p) {",
@@ -361,7 +367,7 @@ public final class RenameVarsTest extends CompilerTestCase {
             "  try { ",
             "  } catch(q) {}",
             "};"),
-        LINE_JOINER.join(
+        lines(
             "try {",
             "  try { ",
             "  } catch(a) {",
@@ -440,17 +446,28 @@ public final class RenameVarsTest extends CompilerTestCase {
 
   public void testStableRenameWithExterns1() {
     String externs = "var foo;";
-    test(externs, "var bar; foo(bar);", "var a; foo(a);");
+    test(
+        externs(externs),
+        srcs("var bar; foo(bar);"),
+        expected("var a; foo(a);"));
     previouslyUsedMap = renameVars.getVariableMap();
-    test(externs, "var bar, baz; foo(bar, baz);",
-         "var a, b; foo(a, b);");
+    test(
+        externs(externs),
+        srcs("var bar, baz; foo(bar, baz);"),
+        expected("var a, b; foo(a, b);"));
   }
 
   public void testStableRenameWithExterns2() {
     String externs = "var a;";
-    test(externs, "var b = 5", "var b = 5");
+    test(
+        externs(externs),
+        srcs("var b = 5"),
+        expected("var b = 5"));
     previouslyUsedMap = renameVars.getVariableMap();
-    test(externs, "var b = 5, catty = 9;", "var b = 5, c=9;");
+    test(
+        externs(externs),
+        srcs("var b = 5, catty = 9;"),
+        expected("var b = 5, c=9;"));
   }
 
   public void testStableRenameWithNameOverlap() {
@@ -493,8 +510,10 @@ public final class RenameVarsTest extends CompilerTestCase {
     previouslyUsedMap = renameVars.getVariableMap();
 
     String externs = "var b;";
-    test(externs, "function Foo(v1, v2) {return v1;} Foo(b);",
-         "function a(d, c) {return d;} a(b);");
+    test(
+        externs(externs),
+        srcs("function Foo(v1, v2) {return v1;} Foo(b);"),
+        expected("function a(d, c) {return d;} a(b);"));
   }
 
   public void testStableRenameSimpleGlobalNameExterned() {
@@ -504,8 +523,10 @@ public final class RenameVarsTest extends CompilerTestCase {
     previouslyUsedMap = renameVars.getVariableMap();
 
     String externs = "var Foo;";
-    test(externs, "function Foo(v1, v2, v0) {return v1;} Foo();",
-         "function Foo(b, c, a) {return b;} Foo();");
+    test(
+        externs(externs),
+        srcs("function Foo(v1, v2, v0) {return v1;} Foo();"),
+        expected("function Foo(b, c, a) {return b;} Foo();"));
   }
 
   public void testStableRenameWithPrefix1AndUnstableLocalNames() {
@@ -667,7 +688,7 @@ public final class RenameVarsTest extends CompilerTestCase {
         "class a {}");
 
     test(
-        LINE_JOINER.join(
+        lines(
             "class fooBar {",
             "  constructor(foo, bar) {",
             "    this.foo = foo;",
@@ -675,7 +696,7 @@ public final class RenameVarsTest extends CompilerTestCase {
             "  }",
             "}",
             "var x = new fooBar(2, 3);"),
-        LINE_JOINER.join(
+        lines(
             "class a {",
             "  constructor(b, c) {",
             "    this.foo = b;",
@@ -685,7 +706,7 @@ public final class RenameVarsTest extends CompilerTestCase {
             "var d = new a(2, 3);"));
 
     test(
-        LINE_JOINER.join(
+        lines(
             "class fooBar {",
             "  constructor(foo, bar) {",
             "    this.foo = foo;",
@@ -697,7 +718,7 @@ public final class RenameVarsTest extends CompilerTestCase {
             "}",
             "var x = new fooBar(2,3);",
             "var abcd = x.func(5);"),
-        LINE_JOINER.join(
+        lines(
             "class b {",
             "  constructor(a, c) {",
             "    this.foo = a;",
@@ -722,7 +743,7 @@ public final class RenameVarsTest extends CompilerTestCase {
         "const a = 1");
 
     test(
-        LINE_JOINER.join(
+        lines(
             "let zyx = 1; {",
             "  const xyz = 1;",
             "  let zyx = 2;",
@@ -731,7 +752,7 @@ public final class RenameVarsTest extends CompilerTestCase {
             "let xyz = 'potato';",
             "zyx = 4;"
         ),
-        LINE_JOINER.join(
+        lines(
             "let a = 1; {",
             "  const c = 1;",
             "  let b = 2;",
@@ -743,14 +764,14 @@ public final class RenameVarsTest extends CompilerTestCase {
 
   public void testGenerators() {
     test(
-        LINE_JOINER.join(
+        lines(
             "function* gen() {",
             "  var xyz = 3;",
             "  yield xyz + 4;",
             "}",
             "gen().next()"
         ),
-        LINE_JOINER.join(
+        lines(
             "function* a() {",
             "  var b = 3;",
             "  yield b + 4;",
@@ -766,11 +787,11 @@ public final class RenameVarsTest extends CompilerTestCase {
 
   public void testTemplateStrings() {
     test(
-        LINE_JOINER.join(
+        lines(
             "var name = 'Foo';",
             "`My name is ${name}`;"
         ),
-        LINE_JOINER.join(
+        lines(
             "var a = 'Foo';",
             "`My name is ${a}`;"));
   }
@@ -781,31 +802,39 @@ public final class RenameVarsTest extends CompilerTestCase {
   }
 
   public void testObjectDestructuring() {
+    // TODO(sdh): Teach RenameVars to take advantage of shorthand properties by
+    // building up a Map from var name strings to property name multisets.  We
+    // should be able to treat this similar to the "previous names" map, where
+    // we preferentially pick names with the most lined-up properties, provided
+    // the property names are short (should be easy enough to do the math).
+    // Note, the same property name could get different var names in different
+    // scopes, so we probably need to do the comparison per scope.
+    // Also, this is only relevant if language_out >= ES6.
     test(
-        LINE_JOINER.join(
+        lines(
             "var obj = {p: 5, h: false};",
             "var {p, h} = obj;"),
-        LINE_JOINER.join(
+        lines(
             "var a = {p: 5, h: false};",
-            "var {p, h} = a;"));
+            "var {p: b, h: c} = a;"));
 
    test(
-        LINE_JOINER.join(
+        lines(
             "var obj = {p: 5, h: false};",
             "var {p: x, h: y} = obj;"),
-        LINE_JOINER.join(
+        lines(
             "var a = {p: 5, h: false};",
             "var {p: b, h: c} = a;"));
   }
 
   public void testDefaultFunction() {
     test(
-        LINE_JOINER.join(
+        lines(
             "function f(x, y=12) {",
             "  return x * y;",
             "}"
         ),
-        LINE_JOINER.join(
+        lines(
             "function c(a, b=12) {",
             "  return a * b;",
             "}"));
@@ -813,12 +842,12 @@ public final class RenameVarsTest extends CompilerTestCase {
 
   public void testRestFunction() {
     test(
-        LINE_JOINER.join(
+        lines(
             "function f(x, ...y) {",
             "  return x * y[0];",
             "}"
         ),
-        LINE_JOINER.join(
+        lines(
             "function c(a, ...b) {",
             "  return a * b[0];",
             "}"));
@@ -826,7 +855,7 @@ public final class RenameVarsTest extends CompilerTestCase {
 
   public void testObjectLiterals() {
     test(
-        LINE_JOINER.join(
+        lines(
             "var objSuper = {",
             "  f: 'potato'",
             "};",
@@ -839,7 +868,7 @@ public final class RenameVarsTest extends CompilerTestCase {
             "};",
             "obj.x();"
         ),
-        LINE_JOINER.join(
+        lines(
             "var a = {",
             "  f: 'potato'",
             "};",
@@ -892,7 +921,10 @@ public final class RenameVarsTest extends CompilerTestCase {
 
   private void testRenameMap(String externs, String input, String expected,
                              VariableMap expectedRenameMap) {
-    test(externs, input, expected);
+    test(
+        externs(externs),
+        srcs(input),
+        expected(expected));
     VariableMap renameMap = renameVars.getVariableMap();
     assertVariableMapsEqual(expectedRenameMap, renameMap);
   }

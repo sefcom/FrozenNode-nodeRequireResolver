@@ -40,6 +40,7 @@
 package com.google.javascript.rhino.jstype;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.javascript.rhino.jstype.TernaryValue.FALSE;
 import static com.google.javascript.rhino.jstype.TernaryValue.UNKNOWN;
 
 import com.google.common.base.Predicate;
@@ -51,20 +52,22 @@ import com.google.javascript.rhino.JSDocInfo;
 import com.google.javascript.rhino.TypeI;
 import java.util.Comparator;
 import java.util.IdentityHashMap;
+import java.util.Objects;
 
 /**
- * Represents JavaScript value types.<p>
+ * Represents JavaScript value types.
  *
- * Types are split into two separate families: value types and object types.
+ * <p>Types are split into two separate families: value types and object types.
  *
- * A special {@link UnknownType} exists to represent a wildcard type on which
- * no information can be gathered. In particular, it can assign to everyone,
- * is a subtype of everyone (and everyone is a subtype of it).<p>
+ * <p>A special {@link UnknownType} exists to represent a wildcard type on which no information can
+ * be gathered. In particular, it can assign to everyone, is a subtype of everyone (and everyone is
+ * a subtype of it).
  *
- * If you remove the {@link UnknownType}, the set of types in the type system
- * forms a lattice with the {@link #isSubtype} relation defining the partial
- * order of types. All types are united at the top of the lattice by the
- * {@link AllType} and at the bottom by the {@link NoType}.<p>
+ * <p>If you remove the {@link UnknownType}, the set of types in the type system forms a lattice
+ * with the {@link #isSubtype} relation defining the partial order of types. All types are united at
+ * the top of the lattice by the {@link AllType} and at the bottom by the {@link NoType}.
+ *
+ * <p>
  *
  */
 public abstract class JSType implements TypeI {
@@ -204,12 +207,20 @@ public abstract class JSType implements TypeI {
     return false;
   }
 
+  public boolean isSymbolObjectType() {
+    return false;
+  }
+
   boolean isTheObjectType() {
     return false;
   }
 
   @Override
   public boolean isStringValueType() {
+    return false;
+  }
+
+  public boolean isSymbolValueType() {
     return false;
   }
 
@@ -229,6 +240,11 @@ public abstract class JSType implements TypeI {
   public final boolean isNumber() {
     return isSubtype(
         getNativeType(JSTypeNative.NUMBER_VALUE_OR_OBJECT_TYPE));
+  }
+
+  public final boolean isSymbol() {
+    return isSubtype(
+        getNativeType(JSTypeNative.SYMBOL_VALUE_OR_OBJECT_TYPE));
   }
 
   public boolean isArrayType() {
@@ -711,7 +727,12 @@ public abstract class JSType implements TypeI {
       return true;
     }
     if (this.isNoResolvedType() && that.isNoResolvedType()) {
-      return true;
+      if (this.isNamedType() && that.isNamedType()) {
+        return Objects.equals(
+            ((NamedType) this).getReferenceName(), ((NamedType) that).getReferenceName());
+      } else {
+        return true;
+      }
     }
 
     boolean thisUnknown = isUnknownType();
@@ -813,25 +834,6 @@ public abstract class JSType implements TypeI {
 
   /**
    * This predicate is used to test whether a given type can appear in a
-   * 'Int32' context.  This context includes, for example, the operands of a
-   * bitwise or operator.  Since we do not currently support integer types,
-   * this is a synonym for {@code Number}.
-   */
-  public final boolean matchesInt32Context() {
-    return matchesNumberContext();
-  }
-
-  /**
-   * This predicate is used to test whether a given type can appear in a
-   * 'Uint32' context.  This context includes the right-hand operand of a shift
-   * operator.
-   */
-  public final boolean matchesUint32Context() {
-    return matchesNumberContext();
-  }
-
-  /**
-   * This predicate is used to test whether a given type can appear in a
    * numeric context, such as an operand of a multiply operator.
    */
   public boolean matchesNumberContext() {
@@ -847,6 +849,14 @@ public abstract class JSType implements TypeI {
    * to add types that do not automatically convert to {@code String}.
    */
   public boolean matchesStringContext() {
+    return false;
+  }
+
+  /**
+   * This predicate is used to test whether a given type can appear in a
+   * {@code symbol} context such as property access.
+   */
+  public boolean matchesSymbolContext() {
     return false;
   }
 
@@ -916,6 +926,7 @@ public abstract class JSType implements TypeI {
     return autoboxesTo() != null;
   }
 
+  // TODO(johnlenz): this method is only used for testing, consider removing this.
   /**
    * Turn an object type to its corresponding scalar type.
    *
@@ -990,7 +1001,7 @@ public abstract class JSType implements TypeI {
     return testForEqualityHelper(this, that);
   }
 
-  TernaryValue testForEqualityHelper(JSType aType, JSType bType) {
+  final TernaryValue testForEqualityHelper(JSType aType, JSType bType) {
     if (bType.isAllType() || bType.isUnknownType() ||
         bType.isNoResolvedType() ||
         aType.isAllType() || aType.isUnknownType() ||
@@ -1010,6 +1021,12 @@ public abstract class JSType implements TypeI {
 
     if (aType.isFunctionType() || bType.isFunctionType()) {
       JSType otherType = aType.isFunctionType() ? bType : aType;
+
+      // TODO(johnlenz): tighten function type comparisons in general.
+      if (otherType.isSymbol()) {
+        return TernaryValue.FALSE;
+      }
+
       // In theory, functions are comparable to anything except
       // null/undefined. For example, on FF3:
       // function() {} == 'function () {\n}'
@@ -1024,9 +1041,24 @@ public abstract class JSType implements TypeI {
         return TernaryValue.UNKNOWN;
       }
     }
+
     if (bType.isEnumElementType() || bType.isUnionType()) {
       return bType.testForEquality(aType);
     }
+
+    // If this is a "Symbol" or that is "symbol" or "Symbol"
+    if (aType.isSymbol()) {
+      return bType.canCastTo(getNativeType(JSTypeNative.SYMBOL_VALUE_OR_OBJECT_TYPE))
+          ? UNKNOWN
+          : FALSE;
+    }
+
+    if (bType.isSymbol()) {
+      return aType.canCastTo(getNativeType(JSTypeNative.SYMBOL_VALUE_OR_OBJECT_TYPE))
+          ? UNKNOWN
+          : FALSE;
+    }
+
     return null;
   }
 
@@ -1095,6 +1127,10 @@ public abstract class JSType implements TypeI {
    * @return <code>this &#8744; that</code>
    */
   public JSType getLeastSupertype(JSType that) {
+    if (this == that) {
+      return this;
+    }
+
     that = filterNoResolvedType(that);
     if (that.isUnionType()) {
       // Union types have their own implementation of getLeastSupertype.
@@ -1114,6 +1150,11 @@ public abstract class JSType implements TypeI {
             thisType.registry.createUnionType(thisType, thatType));
   }
 
+  @Override
+  public TypeI meetWith(TypeI that) {
+    return getGreatestSubtype(this, (JSType) that);
+  }
+
   /**
    * Gets the greatest subtype of {@code this} and {@code that}.
    * The greatest subtype is the meet (&#8743;) or infimum of both types in the
@@ -1128,11 +1169,6 @@ public abstract class JSType implements TypeI {
    */
   public JSType getGreatestSubtype(JSType that) {
     return getGreatestSubtype(this, that);
-  }
-
-  @Override
-  public TypeI meetWith(TypeI that) {
-    return getGreatestSubtype(this, (JSType) that);
   }
 
   /**
@@ -1416,6 +1452,14 @@ public abstract class JSType implements TypeI {
   }
 
   /**
+   * In files translated from Java, we typecheck null and undefined loosely.
+   */
+  public static enum SubtypingMode {
+    NORMAL,
+    IGNORE_NULL_UNDEFINED
+  }
+
+  /**
    * Checks whether {@code this} is a subtype of {@code that}.<p>
    * Note this function also returns true if this type structurally
    * matches the protocol define by that type (if that type is an
@@ -1447,14 +1491,6 @@ public abstract class JSType implements TypeI {
   public boolean isSubtype(JSType that) {
     return isSubtypeHelper(this, that,
         ImplCache.create(), SubtypingMode.NORMAL);
-  }
-
-  /**
-   * In files translated from Java, we typecheck null and undefined loosely.
-   */
-  public static enum SubtypingMode {
-    NORMAL,
-    IGNORE_NULL_UNDEFINED
   }
 
   public boolean isSubtype(JSType that, SubtypingMode mode) {
@@ -1775,7 +1811,7 @@ public abstract class JSType implements TypeI {
    * base cache data structure
    */
   private abstract static class MatchCache {
-    private boolean isStructuralTyping;
+    private final boolean isStructuralTyping;
 
     MatchCache(boolean isStructuralTyping) {
       this.isStructuralTyping = isStructuralTyping;

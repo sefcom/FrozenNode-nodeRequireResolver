@@ -79,11 +79,6 @@ class ClosureRewriteClass extends AbstractPostOrderCallback
           "JSC_GOOG_CLASS_ES6_COMPUTED_PROP_NAMES_NOT_SUPPORTED",
           "Computed property names not supported in goog.defineClass.");
 
-  static final DiagnosticType GOOG_CLASS_ES6_SHORTHAND_ASSIGNMENT_NOT_SUPPORTED =
-      DiagnosticType.error(
-          "JSC_GOOG_CLASS_ES6_SHORTHAND_ASSIGNMENT_NOT_SUPPORTED",
-          "Shorthand assignments not supported in goog.defineClass.");
-
   static final DiagnosticType GOOG_CLASS_ES6_ARROW_FUNCTION_NOT_SUPPORTED =
       DiagnosticType.error(
           "JSC_GOOG_CLASS_ES6_ARROW_FUNCTION_NOT_SUPPORTED",
@@ -351,12 +346,6 @@ class ClosureRewriteClass extends AbstractPostOrderCallback
             GOOG_CLASS_ES6_COMPUTED_PROP_NAMES_NOT_SUPPORTED));
         return false;
       }
-      if (key.isStringKey() && !key.hasChildren()) {
-        // report using shorthand assignment
-        compiler.report(JSError.make(objlit,
-            GOOG_CLASS_ES6_SHORTHAND_ASSIGNMENT_NOT_SUPPORTED));
-        return false;
-      }
       if (key.isStringKey()
           && key.hasChildren()
           && key.getFirstChild().isArrowFunction()){
@@ -454,8 +443,10 @@ class ClosureRewriteClass extends AbstractPostOrderCallback
     }
 
     for (MemberDefinition def : cls.staticProps) {
-      // remove the original jsdoc info if it was attached to the value.
-      def.value.setJSDocInfo(null);
+      if (!def.value.isCast()) {
+        // remove the original jsdoc info if it was attached to the value.
+        def.value.setJSDocInfo(null);
+      }
 
       // example: ctr.prop = value
       block.addChildToBack(

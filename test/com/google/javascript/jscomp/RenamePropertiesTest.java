@@ -233,14 +233,17 @@ public final class RenamePropertiesTest extends CompilerTestCase {
   }
 
   public void testModules() {
-    String module1Js = "function Bar(){} Bar.prototype.getA=function(x){};" +
-                       "var foo;foo.getA(foo);foo.doo=foo;foo.bloo=foo;";
+    String module1Js =
+        "function Bar(){} Bar.prototype.getA=function(x){};"
+            + "var foo;foo.getA(foo);foo.doo=foo;foo.bloo=foo;";
 
-    String module2Js = "function Far(){} Far.prototype.getB=function(x){};" +
-                       "var too;too.getB(too);too.woo=too;too.bloo=too;";
+    String module2Js =
+        "function Far(){} Far.prototype.getB=function(y){};"
+            + "var too;too.getB(too);too.woo=too;too.bloo=too;";
 
-    String module3Js = "function Car(){} Car.prototype.getC=function(x){};" +
-                       "var noo;noo.getC(noo);noo.zoo=noo;noo.cloo=noo;";
+    String module3Js =
+        "function Car(){} Car.prototype.getC=function(z){};"
+            + "var noo;noo.getC(noo);noo.zoo=noo;noo.cloo=noo;";
 
     JSModule module1 = new JSModule("m1");
     module1.add(SourceFile.fromCode("input1", module1Js));
@@ -257,13 +260,13 @@ public final class RenamePropertiesTest extends CompilerTestCase {
     Result result = compiler.getResult();
     assertTrue(result.success);
 
-    assertEquals("function Bar(){}Bar.prototype.b=function(x){};" +
-                 "var foo;foo.b(foo);foo.f=foo;foo.a=foo;",
-                 compiler.toSource(module1));
+    assertEquals(
+        "function Bar(){}Bar.prototype.b=function(x){};var foo;foo.b(foo);foo.f=foo;foo.a=foo;",
+        compiler.toSource(module1));
 
-    assertEquals("function Far(){}Far.prototype.c=function(x){};" +
-                 "var too;too.c(too);too.g=too;too.a=too;",
-                 compiler.toSource(module2));
+    assertEquals(
+        "function Far(){}Far.prototype.c=function(y){};var too;too.c(too);too.g=too;too.a=too;",
+        compiler.toSource(module2));
 
     // Note that properties that occur most often globally get the earliest
     // names. The "getC" property, which doesn't occur until module 3, is
@@ -271,9 +274,9 @@ public final class RenamePropertiesTest extends CompilerTestCase {
     // in module 2, because "getC" occurs more total times across all modules.
     // Might be better to give early modules the shortest names, but this is
     // how the pass currently works.
-    assertEquals("function Car(){}Car.prototype.d=function(x){};" +
-                 "var noo;noo.d(noo);noo.h=noo;noo.e=noo;",
-                 compiler.toSource(module3));
+    assertEquals(
+        "function Car(){}Car.prototype.d=function(z){};var noo;noo.d(noo);noo.h=noo;noo.e=noo;",
+        compiler.toSource(module3));
   }
 
   public void testPropertyAffinityOff() {
@@ -343,11 +346,13 @@ public final class RenamePropertiesTest extends CompilerTestCase {
          "Bar.prototype = {a: function(){}, b: function(){}}; bar.a();");
     prevUsedPropertyMap = renameProperties.getPropertyMap();
     String externs = EXTERNS + "prop.b;";
-    test(externs,
-         "Bar.prototype = {new_f: function(){}, b: function(){}, " +
-         "a: function(){}};bar.b();",
-         "Bar.prototype = {c:function(){}, b:function(){}, a:function(){}};" +
-         "bar.b();");
+    test(
+        externs(externs),
+        srcs(
+            "Bar.prototype = {new_f: function(){}, b: function(){}, "
+                + "a: function(){}};bar.b();"),
+        expected(
+            "Bar.prototype = {c:function(){}, b:function(){}, a:function(){}};" + "bar.b();"));
   }
 
   public void testRenamePropertiesWithLeadingUnderscoresStable() {
@@ -429,13 +434,13 @@ public final class RenamePropertiesTest extends CompilerTestCase {
     // TODO (simranarora) A restriction of this pass is that quoted and unquoted property
     // references cannot be mixed.
     test(
-        LINE_JOINER.join(
+        lines(
             "var a = {",
             "  ['val' + ++i]: i,",
             "  ['val' + ++i]: i",
             "};",
             "a.val1;"),
-        LINE_JOINER.join(
+        lines(
             "var a = {",
             "  ['val' + ++i]: i,", // don't rename here
             "  ['val' + ++i]: i",
@@ -449,7 +454,7 @@ public final class RenamePropertiesTest extends CompilerTestCase {
 
     // Concatination for computed property
     test(
-        LINE_JOINER.join(
+        lines(
             "class Bar {",
             "  constructor(){}",
             "  ['f'+'oo']() {",
@@ -458,7 +463,7 @@ public final class RenamePropertiesTest extends CompilerTestCase {
             "}",
             "var bar = new Bar()",
             "bar.foo();"),
-        LINE_JOINER.join(
+        lines(
             "class Bar {",
             "  constructor(){}",
             "  ['f'+'oo']() {", //don't rename here
@@ -470,7 +475,7 @@ public final class RenamePropertiesTest extends CompilerTestCase {
 
     // Without property concatination
     test(
-        LINE_JOINER.join(
+        lines(
             "class Bar {",
             "  constructor(){}",
             "  ['foo']() {",
@@ -479,7 +484,7 @@ public final class RenamePropertiesTest extends CompilerTestCase {
             "}",
             "var bar = new Bar()",
             "bar.foo();"),
-        LINE_JOINER.join(
+        lines(
             "class Bar {",
             "  constructor(){}",
             "  ['foo']() {", //don't rename here
@@ -495,7 +500,7 @@ public final class RenamePropertiesTest extends CompilerTestCase {
     // call inside of getB() refers to a method getA() in the outer scope and not the getA() method
     // inside the Bar class
     test(
-        LINE_JOINER.join(
+        lines(
             "function getA() {};",
             "class Bar {",
             "  constructor(){}",
@@ -506,7 +511,7 @@ public final class RenamePropertiesTest extends CompilerTestCase {
             "    getA();",
             "  }",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "function getA() {};",
             "class Bar {",
             "  constructor(){}",
@@ -522,7 +527,7 @@ public final class RenamePropertiesTest extends CompilerTestCase {
     // the "this.getA()" call inside of getB() refers to a method getA() in the Bar class and
     // not the getA() method in the outer scope
     test(
-        LINE_JOINER.join(
+        lines(
             "function getA() {};",
             "class Bar {",
             "  constructor(){}",
@@ -533,7 +538,7 @@ public final class RenamePropertiesTest extends CompilerTestCase {
             "    this.getA();",
             "  }",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "function getA() {};",
             "class Bar {",
             "  constructor(){}",
@@ -547,7 +552,7 @@ public final class RenamePropertiesTest extends CompilerTestCase {
 
     // Call class method outside class scope
     test(
-        LINE_JOINER.join(
+        lines(
             "class Bar {",
             "  constructor(){}",
             "  getB(x) {}",
@@ -555,7 +560,7 @@ public final class RenamePropertiesTest extends CompilerTestCase {
             "var too;",
             "var too = new Bar();",
             "too.getB(too);"),
-        LINE_JOINER.join(
+        lines(
             "class Bar {",
             "  constructor(){}",
             "  a(x) {}",
@@ -567,7 +572,7 @@ public final class RenamePropertiesTest extends CompilerTestCase {
 
   public void testGetSetInClass() {
     test(
-        LINE_JOINER.join(
+        lines(
             "class Bar {",
             "  constructor(foo){",
             "    this.foo = foo;",
@@ -582,7 +587,7 @@ public final class RenamePropertiesTest extends CompilerTestCase {
             "var barObj = new Bar();",
             "barObj.foo();",
             "barObj.foo(1);"),
-        LINE_JOINER.join(
+        lines(
             "class Bar {",
             "  constructor(foo){",
             "    this.a = foo;",
@@ -602,14 +607,14 @@ public final class RenamePropertiesTest extends CompilerTestCase {
   public void testStaticMethodInClass() {
 
     test(
-        LINE_JOINER.join(
+        lines(
             "class Bar {",
             "  static double(n) {",
             "    return n*2",
             "  }",
             "}",
             "Bar.double(1);"),
-        LINE_JOINER.join(
+        lines(
             "class Bar {",
             "  static a(n) {",
             "    return n*2",
@@ -622,7 +627,7 @@ public final class RenamePropertiesTest extends CompilerTestCase {
     // ES5 version
     setLanguage(LanguageMode.ECMASCRIPT3, LanguageMode.ECMASCRIPT3);
     test(
-        LINE_JOINER.join(
+        lines(
             "var foo = { ",
             "  bar: 1, ",
             "  myFunc: function myFunc() {",
@@ -630,7 +635,7 @@ public final class RenamePropertiesTest extends CompilerTestCase {
             "  }",
             "};",
             "foo.myFunc();"),
-        LINE_JOINER.join(
+        lines(
             "var foo = { ",
             "  a: 1, ",
             "  b: function myFunc() {",
@@ -643,7 +648,7 @@ public final class RenamePropertiesTest extends CompilerTestCase {
     //ES6 version
     setLanguage(LanguageMode.ECMASCRIPT_2015, LanguageMode.ECMASCRIPT_2015);
     test(
-        LINE_JOINER.join(
+        lines(
             "var foo = { ",
             "  bar: 1, ",
             "  myFunc() {",
@@ -651,7 +656,7 @@ public final class RenamePropertiesTest extends CompilerTestCase {
             "  }",
             "};",
             "foo.myFunc();"),
-        LINE_JOINER.join(
+        lines(
             "var foo = { ",
             "  a: 1, ",
             "  b() {",
@@ -666,6 +671,7 @@ public final class RenamePropertiesTest extends CompilerTestCase {
     SourceFile externsInput = SourceFile.fromCode("externs", externs);
 
     CompilerOptions options = new CompilerOptions();
+    options.setEmitUseStrict(false);
     options.setPropertyRenaming(PropertyRenamingPolicy.ALL_UNQUOTED);
 
     Compiler compiler = new Compiler();

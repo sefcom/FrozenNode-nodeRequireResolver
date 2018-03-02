@@ -117,7 +117,7 @@ public final class JsDocInfoParser {
   private JSDocInfo fileOverviewJSDocInfo = null;
   private State state;
 
-  private final Map<String, Annotation> annotationNames;
+  private final Map<String, Annotation> annotations;
   private final Set<String> suppressionNames;
   private final boolean preserveWhitespace;
   private static final Set<String> modifiesAnnotationKeywords =
@@ -166,16 +166,15 @@ public final class JsDocInfoParser {
                   ErrorReporter errorReporter) {
     this.stream = stream;
 
-    boolean parseDocumentation = config.parseJsDocDocumentation.shouldParseDescriptions();
+    boolean parseDocumentation = config.jsDocParsingMode().shouldParseDescriptions();
     this.jsdocBuilder = new JSDocInfoBuilder(parseDocumentation);
     if (comment != null) {
       this.jsdocBuilder.recordOriginalCommentString(comment);
       this.jsdocBuilder.recordOriginalCommentPosition(commentPosition);
     }
-    this.annotationNames = config.annotationNames;
-    this.suppressionNames = config.suppressionNames;
-    this.preserveWhitespace =
-        config.parseJsDocDocumentation == Config.JsDocParsing.INCLUDE_DESCRIPTIONS_WITH_WHITESPACE;
+    this.annotations = config.annotations();
+    this.suppressionNames = config.suppressionNames();
+    this.preserveWhitespace = config.jsDocParsingMode().shouldPreserveWhitespace();
 
     this.errorReporter = errorReporter;
     this.templateNode = templateNode == null ? IR.script() : templateNode;
@@ -238,11 +237,10 @@ public final class JsDocInfoParser {
 
   private static JsDocInfoParser getParser(String toParse) {
     Config config =
-        new Config(
-            new HashSet<String>(),
-            new HashSet<String>(),
-            LanguageMode.ECMASCRIPT3,
-            Config.StrictMode.SLOPPY);
+        Config.builder()
+            .setLanguageMode(LanguageMode.ECMASCRIPT3)
+            .setStrictMode(Config.StrictMode.SLOPPY)
+            .build();
     JsDocInfoParser parser = new JsDocInfoParser(
         new JsDocTokenStream(toParse),
         toParse,
@@ -384,7 +382,7 @@ public final class JsDocInfoParser {
     int charno = stream.getCharno();
 
     String annotationName = stream.getString();
-    Annotation annotation = annotationNames.get(annotationName);
+    Annotation annotation = annotations.get(annotationName);
     if (annotation == null || annotationName.isEmpty()) {
       addParserWarning("msg.bad.jsdoc.tag", annotationName);
     } else {
@@ -397,38 +395,6 @@ public final class JsDocInfoParser {
             addParserWarning("msg.jsdoc.nginject.extra");
           } else {
             jsdocBuilder.recordNgInject(true);
-          }
-          return eatUntilEOLIfNotAnnotation();
-
-        case JAGGER_INJECT:
-          if (jsdocBuilder.isJaggerInjectRecorded()) {
-            addParserWarning("msg.jsdoc.jaggerInject.extra");
-          } else {
-            jsdocBuilder.recordJaggerInject(true);
-          }
-          return eatUntilEOLIfNotAnnotation();
-
-        case JAGGER_MODULE:
-          if (jsdocBuilder.isJaggerModuleRecorded()) {
-            addParserWarning("msg.jsdoc.jaggerModule.extra");
-          } else {
-            jsdocBuilder.recordJaggerModule(true);
-          }
-          return eatUntilEOLIfNotAnnotation();
-
-        case JAGGER_PROVIDE:
-          if (jsdocBuilder.isJaggerProvideRecorded()) {
-            addParserWarning("msg.jsdoc.jaggerProvide.extra");
-          } else {
-            jsdocBuilder.recordJaggerProvide(true);
-          }
-          return eatUntilEOLIfNotAnnotation();
-
-        case JAGGER_PROVIDE_PROMISE:
-          if (jsdocBuilder.isJaggerProvidePromiseRecorded()) {
-            addParserWarning("msg.jsdoc.jaggerProvidePromise.extra");
-          } else {
-            jsdocBuilder.recordJaggerProvidePromise(true);
           }
           return eatUntilEOLIfNotAnnotation();
 
@@ -704,12 +670,6 @@ public final class JsDocInfoParser {
           }
           return token;
 
-        case NO_ALIAS:
-          if (!jsdocBuilder.recordNoAlias()) {
-            addParserWarning("msg.jsdoc.noalias");
-          }
-          return eatUntilEOLIfNotAnnotation();
-
         case NO_COMPILE:
           if (!jsdocBuilder.recordNoCompile()) {
             addParserWarning("msg.jsdoc.nocompile");
@@ -719,6 +679,12 @@ public final class JsDocInfoParser {
         case NO_COLLAPSE:
           if (!jsdocBuilder.recordNoCollapse()) {
             addParserWarning("msg.jsdoc.nocollapse");
+          }
+          return eatUntilEOLIfNotAnnotation();
+
+        case NO_INLINE:
+          if (!jsdocBuilder.recordNoInline()) {
+            addParserWarning("msg.jsdoc.noinline");
           }
           return eatUntilEOLIfNotAnnotation();
 
@@ -1494,6 +1460,36 @@ public final class JsDocInfoParser {
   }
 
   /**
+   * Looks for a parameter type expression at the current token and if found, returns it. Note that
+   * this method consumes input.
+   *
+   * @param token The current token.
+   * @param lineno The line of the type expression.
+   * @param startCharno The starting character position of the type expression.
+   * @param matchingLC Whether the type expression starts with a "{".
+   * @param onlyParseSimpleNames If true, only simple type names are parsed (via a call to
+   *     parseTypeNameAnnotation instead of parseTypeExpressionAnnotation).
+   * @return The type expression found or null if none.
+   */
+  private Node parseAndRecordTypeNode(
+      JsDocToken token,
+      int lineno,
+      int startCharno,
+      boolean matchingLC,
+      boolean onlyParseSimpleNames) {
+    Node typeNode;
+
+    if (onlyParseSimpleNames) {
+      typeNode = parseTypeNameAnnotation(token);
+    } else {
+      typeNode = parseTypeExpressionAnnotation(token);
+    }
+
+    recordTypeNode(lineno, startCharno, typeNode, matchingLC);
+    return typeNode;
+  }
+
+  /**
    * Looks for a type expression at the current token and if found,
    * returns it. Note that this method consumes input.
    *
@@ -1528,35 +1524,6 @@ public final class JsDocInfoParser {
 
     Node typeNode = parseParamTypeExpressionAnnotation(token);
     recordTypeNode(lineno, startCharno, typeNode, true);
-    return typeNode;
-  }
-
-  /**
-   * Looks for a parameter type expression at the current token and if found,
-   * returns it. Note that this method consumes input.
-   *
-   * @param token The current token.
-   * @param lineno The line of the type expression.
-   * @param startCharno The starting character position of the type expression.
-   * @param matchingLC Whether the type expression starts with a "{".
-   * @param onlyParseSimpleNames If true, only simple type names are parsed
-   *     (via a call to parseTypeNameAnnotation instead of
-   *     parseTypeExpressionAnnotation).
-   * @return The type expression found or null if none.
-   */
-  private Node parseAndRecordTypeNode(JsDocToken token, int lineno,
-                                      int startCharno,
-                                      boolean matchingLC,
-                                      boolean onlyParseSimpleNames) {
-    Node typeNode;
-
-    if (onlyParseSimpleNames) {
-      typeNode = parseTypeNameAnnotation(token);
-    } else {
-      typeNode = parseTypeExpressionAnnotation(token);
-    }
-
-    recordTypeNode(lineno, startCharno, typeNode, matchingLC);
     return typeNode;
   }
 
@@ -1693,6 +1660,27 @@ public final class JsDocInfoParser {
         token, getWhitespaceOption(WhitespaceOption.SINGLE_LINE), false);
   }
 
+  /**
+   * Extracts the text found on the current line and all subsequent until either an annotation, end
+   * of comment or end of file is reached. Note that if this method detects an end of line as the
+   * first token, it will quit immediately (indicating that there is no text where it was expected).
+   * Note that token = info.token; should be called after this method is used to update the token
+   * properly in the parser.
+   *
+   * @param token The start token.
+   * @param option How to handle whitespace.
+   * @param includeAnnotations Whether the extracted text may include annotations. If set to false,
+   *     text extraction will stop on the first encountered annotation token.
+   * @return The extraction information.
+   */
+  private ExtractionInfo extractMultilineTextualBlock(
+      JsDocToken token, WhitespaceOption option, boolean includeAnnotations) {
+    if (token == JsDocToken.EOC || token == JsDocToken.EOL || token == JsDocToken.EOF) {
+      return new ExtractionInfo("", token);
+    }
+    return extractMultilineComment(token, option, true, includeAnnotations);
+  }
+
   private WhitespaceOption getWhitespaceOption(WhitespaceOption defaultValue) {
     return preserveWhitespace ? WhitespaceOption.PRESERVE : defaultValue;
   }
@@ -1709,32 +1697,6 @@ public final class JsDocInfoParser {
 
     /** Removes newlines and turns the output into a single line string. */
     SINGLE_LINE
-  }
-
-  /**
-   * Extracts the text found on the current line and all subsequent
-   * until either an annotation, end of comment or end of file is reached.
-   * Note that if this method detects an end of line as the first token, it
-   * will quit immediately (indicating that there is no text where it was
-   * expected).  Note that token = info.token; should be called after this
-   * method is used to update the token properly in the parser.
-   *
-   * @param token The start token.
-   * @param option How to handle whitespace.
-   * @param includeAnnotations Whether the extracted text may include
-   *     annotations. If set to false, text extraction will stop on the first
-   *     encountered annotation token.
-   *
-   * @return The extraction information.
-   */
-  private ExtractionInfo extractMultilineTextualBlock(JsDocToken token,
-                                                      WhitespaceOption option,
-                                                      boolean includeAnnotations) {
-    if (token == JsDocToken.EOC || token == JsDocToken.EOL ||
-        token == JsDocToken.EOF) {
-      return new ExtractionInfo("", token);
-    }
-    return extractMultilineComment(token, option, true, includeAnnotations);
   }
 
 

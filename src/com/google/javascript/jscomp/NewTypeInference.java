@@ -462,11 +462,9 @@ final class NewTypeInference implements CompilerPass {
   private final boolean joinTypesWhenInstantiatingGenerics;
   private final boolean allowPropertyOnSubtypes;
   private final boolean areTypeVariablesUnknown;
-  // Used in per-library type checking
-  private final boolean warnForUnresolvedTypes;
 
   // Used only for development
-  private static boolean showDebuggingPrints = false;
+  private static final boolean showDebuggingPrints = false;
   static boolean measureMem = false;
   private static long peakMem = 0;
 
@@ -489,8 +487,6 @@ final class NewTypeInference implements CompilerPass {
   private JSType NUMBER_OR_STRING;
   @SuppressWarnings("ConstantField")
   private JSType STRING;
-  @SuppressWarnings("ConstantField")
-  private JSType TOP;
   @SuppressWarnings("ConstantField")
   private JSType TOP_OBJECT;
   @SuppressWarnings("ConstantField")
@@ -525,7 +521,6 @@ final class NewTypeInference implements CompilerPass {
     this.joinTypesWhenInstantiatingGenerics = inCompatibilityMode;
     this.allowPropertyOnSubtypes = inCompatibilityMode;
     this.areTypeVariablesUnknown = inCompatibilityMode;
-    this.warnForUnresolvedTypes = compiler.getOptions().inIncrementalCheckMode();
   }
 
   @VisibleForTesting // Only used from tests
@@ -552,7 +547,6 @@ final class NewTypeInference implements CompilerPass {
       this.NUMBER = this.commonTypes.NUMBER;
       this.NUMBER_OR_STRING = this.commonTypes.NUMBER_OR_STRING;
       this.STRING = this.commonTypes.STRING;
-      this.TOP = this.commonTypes.TOP;
       this.TOP_OBJECT = this.commonTypes.getTopObject();
       this.TRUE_TYPE = this.commonTypes.TRUE_TYPE;
       this.TRUTHY = this.commonTypes.TRUTHY;
@@ -597,24 +591,18 @@ final class NewTypeInference implements CompilerPass {
   }
 
   private void registerMismatchAndWarn(JSError error, JSType found, JSType required) {
-    // In the old type checker, a type variable is considered unknown, so other types can be
-    // used as type variables, and vice versa, without warning. NTI correctly warns.
-    // However, we don't want to block disambiguation in these cases. So, to avoid types getting
-    // invalidated, we don't register the mismatch. Otherwise, to get good disambiguation,
-    // we would have to add casts all over the code base.
-    // TODO(dimvar): this can be made safe in the distant future where we have bounded generics
-    // *and* we have switched all the unsafe uses of type variables in the code base to use
-    // bounded generics.
-    if (!found.isTypeVariable() && !required.isTypeVariable()) {
-      TypeMismatch.registerMismatch(
-          this.mismatches, this.implicitInterfaceUses, found, required, error);
-    }
+    TypeMismatch.registerMismatch(
+        this.mismatches, this.implicitInterfaceUses, found, required, error);
     warnings.add(error);
   }
 
   private void registerImplicitUses(Node src, JSType from, JSType to) {
     TypeMismatch.recordImplicitInterfaceUses(this.implicitInterfaceUses, src, from, to);
-    TypeMismatch.recordImplicitUseOfNativeObject(this.mismatches, src, from, to);
+    // Match the OTI behavior that trusts casts from Object, to avoid disambiguation regressions.
+    // TODO(dimvar): useful for the bodies of assertion functions, but unsafe. Make stricter?
+    if (!src.isCast()) {
+      TypeMismatch.recordImplicitUseOfNativeObject(this.mismatches, src, from, to);
+    }
   }
 
   private TypeEnv getInEnv(DiGraphNode<Node, ControlFlowGraph.Branch> dn) {
@@ -799,8 +787,12 @@ final class NewTypeInference implements CompilerPass {
     println("=== Analyzing function: ", scope.getReadableName(), " ===");
     currentScope = scope;
     exitEnvs = new ArrayList<>();
+    Node scopeRoot = scope.getRoot();
+    if (NodeUtil.isUnannotatedCallback(scopeRoot)) {
+      computeFnDeclaredTypeForCallback(scope);
+    }
     ControlFlowAnalysis cfa = new ControlFlowAnalysis(compiler, false, false);
-    cfa.process(null, scope.getRoot());
+    cfa.process(null, scopeRoot);
     this.cfg = cfa.getCfg();
     println(this.cfg);
     // The size is > 1 when multiple files are compiled
@@ -822,6 +814,14 @@ final class NewTypeInference implements CompilerPass {
       analyzeFunctionBwd(workset);
       // TODO(dimvar): Revisit what we throw away after the bwd analysis
       TypeEnv entryEnv = getEntryTypeEnv();
+      // Start undeclared outer variables at their inferred type if it exists.
+      // Gives better results than starting them at unknown.
+      for (String varName : scope.getOuterVars()) {
+        JSType inferred = scope.getInferredTypeOf(varName);
+        if (inferred != null) {
+          entryEnv = envPutType(entryEnv, varName, inferred);
+        }
+      }
       initEdgeEnvsFwd(entryEnv);
       if (measureMem) {
         updatePeakMem();
@@ -1375,6 +1375,9 @@ final class NewTypeInference implements CompilerPass {
         || nameNode.getParent().getBooleanProp(Node.ANALYZED_DURING_GTI)) {
       Preconditions.checkNotNull(declType,
           "Can't skip var declaration with undeclared type at: %s", nameNode);
+      if (!rhs.isQualifiedName()) {
+        analyzeExprFwdIgnoreResult(rhs, inEnv);
+      }
       maybeSetTypeI(nameNode, declType);
       maybeSetTypeI(rhs, declType);
       return envPutType(inEnv, varName, declType);
@@ -1396,18 +1399,49 @@ final class NewTypeInference implements CompilerPass {
         }
       }
     }
-    JSType varType = rhsType;
-    if (rhs == null) {
-      varType = UNDEFINED;
-    } else if (declType != null) {
-      // If the declared type comes from a @const that was inferred during GTI, don't use here.
-      JSDocInfo jsdoc = NodeUtil.getBestJSDocInfo(nameNode);
-      if (jsdoc != null && (!jsdoc.hasConstAnnotation() || jsdoc.hasType())) {
-        varType = declType;
-      }
-    }
+    JSType varType = getInitialTypeOfVar(nameNode, declType, rhsType);
     maybeSetTypeI(nameNode, varType);
     return envPutType(outEnv, varName, varType);
+  }
+
+  private JSType getInitialTypeOfVar(Node nameNode, JSType declType, JSType rhsType) {
+    String varName = nameNode.getString();
+    JSDocInfo jsdoc = NodeUtil.getBestJSDocInfo(nameNode);
+    Node rhs = nameNode.getFirstChild();
+    if (jsdoc != null && jsdoc.hasConstAnnotation()) {
+      // A constant without an explicit type annotation is still considered as having a declared
+      // type, and we have inferred that type in GlobalTypeInfoCollector.
+      // However, we want to type it using rhsType here, because the rhsType may be more precise
+      // due to flow-sensitive type checking.
+      return jsdoc.hasType() ? declType : (rhsType != null ? rhsType : UNKNOWN);
+    } else if (this.currentScope.isEscapedVar(varName)) {
+      // If a variable escapes (so, may be reassigned in a different scope), we type it
+      // more loosely to avoid false-positive warnings.
+      if (declType != null) {
+        return declType;
+      } else if (rhs == null || rhsType.isNullOrUndef()) {
+        // If the escaped variable is not declared and is uninitialized, or is initialized to null,
+        // type it as unknown. The usual pattern is that the variable will be initialized in a
+        // different scope and then used later in this scope, and we don't have a good way here
+        // of figuring out the intended type of the variable.
+        return UNKNOWN;
+      } else if (rhsType.isBoolean()) {
+        // If the escaped variable is initialized to true or false, type it as boolean instead of
+        // the more specialized type; its value may change in another scope.
+        return BOOLEAN;
+      }
+      return rhsType;
+    } else if (rhs == null) {
+      // If the variable doesn't escape and is not initialized, start it as undefined even if
+      // it is declared. This lets us catch uninitialized-variable errors.
+      return UNDEFINED;
+    } else if (declType != null) {
+      // If the unescaped variable is declared, use that type even if the variable is initialized
+      // to a more precise type. Useful because people can use the declared type to tell the
+      // compiler what the variable should be, and don't need to cast the initializer.
+      return declType;
+    }
+    return rhsType;
   }
 
   /**
@@ -1610,7 +1644,7 @@ final class NewTypeInference implements CompilerPass {
         resultPair = analyzeArrayLitFwd(expr, inEnv);
         break;
       case CAST:
-        resultPair = analyzeCastFwd(expr, inEnv, specializedType);
+        resultPair = analyzeCastFwd(expr, inEnv);
         break;
       case CASE:
         // For a statement of the form: switch (exp1) { ... case exp2: ... }
@@ -1651,9 +1685,6 @@ final class NewTypeInference implements CompilerPass {
     JSType resultType = resultPair.type;
     mayWarnAboutUnknownType(expr, resultType);
     if (resultType.isUnresolved()) {
-      if (this.warnForUnresolvedTypes) {
-        warnings.add(JSError.make(expr, CANNOT_USE_UNRESOLVED_TYPE, resultType.toString()));
-      }
       resultPair.type = UNKNOWN;
     }
     maybeSetTypeI(expr, resultType);
@@ -1750,18 +1781,19 @@ final class NewTypeInference implements CompilerPass {
 
   private EnvTypePair analyzeLogicalOpFwd(
       Node expr, TypeEnv inEnv, JSType requiredType, JSType specializedType) {
-    Token exprKind = expr.getToken();
+    Token logicalOp = expr.getToken();
     Node lhs = expr.getFirstChild();
     Node rhs = expr.getLastChild();
-    if ((specializedType.isTrueOrTruthy() && exprKind == Token.AND)
-        || (specializedType.isFalseOrFalsy() && exprKind == Token.OR)) {
+    if ((specializedType.isTrueOrTruthy() && logicalOp == Token.AND)
+        || (specializedType.isFalseOrFalsy() && logicalOp == Token.OR)) {
       EnvTypePair lhsPair =
           analyzeExprFwd(lhs, inEnv, UNKNOWN, specializedType);
       EnvTypePair rhsPair =
           analyzeExprFwd(rhs, lhsPair.env, UNKNOWN, specializedType);
       return rhsPair;
-    } else if ((specializedType.isFalseOrFalsy() && exprKind == Token.AND)
-        || (specializedType.isTrueOrTruthy() && exprKind == Token.OR)) {
+    }
+    if ((specializedType.isFalseOrFalsy() && logicalOp == Token.AND)
+        || (specializedType.isTrueOrTruthy() && logicalOp == Token.OR)) {
       EnvTypePair shortCircuitPair =
           analyzeExprFwd(lhs, inEnv, UNKNOWN, specializedType);
       EnvTypePair lhsPair = analyzeExprFwd(
@@ -1770,21 +1802,16 @@ final class NewTypeInference implements CompilerPass {
           analyzeExprFwd(rhs, lhsPair.env, UNKNOWN, specializedType);
       JSType lhsUnspecializedType = JSType.join(shortCircuitPair.type, lhsPair.type);
       return combineLhsAndRhsForLogicalOps(
-          exprKind, lhsUnspecializedType, shortCircuitPair, rhsPair);
-    } else {
-      // Independently of the specializedType, && rhs is only analyzed when
-      // lhs is truthy, and || rhs is only analyzed when lhs is falsy.
-      JSType stopAfterLhsType = exprKind == Token.AND ? FALSY : TRUTHY;
-      EnvTypePair shortCircuitPair =
-          analyzeExprFwd(lhs, inEnv, UNKNOWN, stopAfterLhsType);
-      EnvTypePair lhsPair = analyzeExprFwd(
-          lhs, inEnv, UNKNOWN, stopAfterLhsType.negate());
-      EnvTypePair rhsPair =
-          analyzeExprFwd(rhs, lhsPair.env, requiredType, specializedType);
-      JSType lhsUnspecializedType = JSType.join(shortCircuitPair.type, lhsPair.type);
-      return combineLhsAndRhsForLogicalOps(
-          exprKind, lhsUnspecializedType, shortCircuitPair, rhsPair);
+          logicalOp, lhsUnspecializedType, shortCircuitPair, rhsPair);
     }
+    // Independently of the specializedType, && rhs is only analyzed when
+    // lhs is truthy, and || rhs is only analyzed when lhs is falsy.
+    JSType stopAfterLhsType = logicalOp == Token.AND ? FALSY : TRUTHY;
+    EnvTypePair shortCircuitPair = analyzeExprFwd(lhs, inEnv, UNKNOWN, stopAfterLhsType);
+    EnvTypePair lhsPair = analyzeExprFwd(lhs, inEnv, UNKNOWN, stopAfterLhsType.negate());
+    EnvTypePair rhsPair = analyzeExprFwd(rhs, lhsPair.env, requiredType, specializedType);
+    JSType lhsType = JSType.join(shortCircuitPair.type, lhsPair.type);
+    return combineLhsAndRhsForLogicalOps(logicalOp, lhsType, shortCircuitPair, rhsPair);
   }
 
   private EnvTypePair combineLhsAndRhsForLogicalOps(Token logicalOp,
@@ -1942,13 +1969,17 @@ final class NewTypeInference implements CompilerPass {
       Node expr, TypeEnv inEnv, JSType requiredType, JSType specializedType) {
     if (expr.getBooleanProp(Node.ANALYZED_DURING_GTI)) {
       expr.removeProp(Node.ANALYZED_DURING_GTI);
+      Node rhs = expr.getLastChild();
+      if (!rhs.isQualifiedName()) {
+        analyzeExprFwdIgnoreResult(rhs, inEnv);
+      }
       // If the assignment is an aliasing of a typedef, markAndGetTypeOfPreanalyzedNode won't
       // be able to find a type and we'll get a spurious warning.
       // But during NTI we don't have typedef info anymore, so we back off for all aliasing
       // definitions, not just ones defining typedefs.
       if (!NodeUtil.isAliasedConstDefinition(expr.getFirstChild())) {
         markAndGetTypeOfPreanalyzedNode(expr.getFirstChild(), inEnv, true);
-        markAndGetTypeOfPreanalyzedNode(expr.getLastChild(), inEnv, true);
+        markAndGetTypeOfPreanalyzedNode(rhs, inEnv, true);
       }
       return new EnvTypePair(inEnv, requiredType);
     }
@@ -2160,8 +2191,7 @@ final class NewTypeInference implements CompilerPass {
       return analyzeLooseCallNodeFwd(expr, envAfterCallee, requiredType);
     } else if (!isConstructorCall(expr)
         && funType.isSomeConstructorOrInterface()
-        && (funType.getReturnType().isUnknown()
-            || funType.getReturnType().isUndefined())) {
+        && (funType.getReturnType().isUnknown() || funType.getReturnType().isUndefined())) {
       warnings.add(JSError.make(expr, CONSTRUCTOR_NOT_CALLABLE, funType.toString()));
       return analyzeInvocationArgsFwdWhenError(expr, envAfterCallee);
     } else if (expr.isNew()) {
@@ -2198,6 +2228,7 @@ final class NewTypeInference implements CompilerPass {
       ImmutableMap<String, JSType> typeMap =
           calcTypeInstantiationFwd(expr, receiver, firstArg, funType, envAfterCallee);
       funType = instantiateCalleeMaybeWithTTL(funType, typeMap);
+      callee.setTypeI(this.commonTypes.fromFunctionType(funType));
       println("Instantiated function type: ", funType);
     }
     // argTypes collects types of actuals for deferred checks.
@@ -2218,9 +2249,9 @@ final class NewTypeInference implements CompilerPass {
           JSType expectedRetType = requiredType;
           println("Updating deferred check with ret: ", expectedRetType, " and args: ", argTypes);
           DeferredCheck dc;
-          if (isConstructorCall(expr)) {
-            dc = new DeferredCheck(expr, null,
-                this.currentScope, this.currentScope.getScope(calleeName));
+          if (funType.isSomeConstructorOrInterface()) {
+            dc = new DeferredCheck(
+                expr, null, this.currentScope, this.currentScope.getScope(calleeName));
             deferredChecks.put(expr, dc);
           } else {
             dc = deferredChecks.get(expr);
@@ -2353,6 +2384,8 @@ final class NewTypeInference implements CompilerPass {
       if (!pair.type.isSubtypeOf(reqThisType)) {
         warnings.add(JSError.make(call, INVALID_THIS_TYPE_IN_BIND,
                 errorMsgWithTypeDiff(reqThisType, pair.type)));
+      } else {
+        instantiateGoogBind(call.getFirstChild(), pair.type);
       }
     }
 
@@ -2360,7 +2393,7 @@ final class NewTypeInference implements CompilerPass {
         bindComponents.parameters == null
         ? ImmutableList.<Node>of()
         : bindComponents.parameters.siblings();
-    // We're passing an arraylist but don't do deferred checks for bind.
+    // We are passing an arraylist but don't do deferred checks for bind.
     env = analyzeInvocationArgumentsFwd(
         call, parametersIterable, boundFunType, new ArrayList<JSType>(), env);
     // For any formal not bound here, add it to the resulting function type.
@@ -2379,24 +2412,26 @@ final class NewTypeInference implements CompilerPass {
         builder.addRetType(boundFunType.getReturnType()).buildFunction()));
   }
 
-  private TypeEnv analyzeInvocationArgumentsFwd(Node node, Iterable<Node> args,
+  private TypeEnv analyzeInvocationArgumentsFwd(Node n, Iterable<Node> args,
       FunctionType funType, List<JSType> argTypesForDeferredCheck, TypeEnv inEnv) {
-    checkState(NodeUtil.isCallOrNew(node) || node.isTemplateLit());
+    checkState(NodeUtil.isCallOrNew(n) || n.isTemplateLit());
     TypeEnv env = inEnv;
-    int i = node.isTemplateLit() ? 1 : 0;
+    int i = n.isTemplateLit() ? 1 : 0;
     for (Node arg : args) {
       JSType formalType = funType.getFormalType(i);
       checkState(!formalType.isBottom());
       EnvTypePair pair = analyzeExprFwd(arg, env, formalType);
+      if (NodeUtil.isUnannotatedCallback(arg) && formalType.getFunType() != null) {
+        i++;
+        argTypesForDeferredCheck.add(null); // No deferred check needed.
+        continue;
+      }
       JSType argTypeForDeferredCheck = pair.type;
       // Allow passing undefined for an optional argument.
       if (funType.isOptionalArg(i) && pair.type.equals(UNDEFINED)) {
         argTypeForDeferredCheck = null; // No deferred check needed.
       } else if (!pair.type.isSubtypeOf(formalType)) {
-        String fnName = getReadableCalleeName(node.getFirstChild());
-        JSError error = JSError.make(arg, INVALID_ARGUMENT_TYPE, Integer.toString(i + 1), fnName,
-            errorMsgWithTypeDiff(formalType, pair.type));
-        registerMismatchAndWarn(error, pair.type, formalType);
+        warnAboutInvalidArgument(n, arg, i, formalType, pair.type);
         argTypeForDeferredCheck = null; // No deferred check needed.
       } else {
         registerImplicitUses(arg, pair.type, formalType);
@@ -2406,6 +2441,73 @@ final class NewTypeInference implements CompilerPass {
       i++;
     }
     return env;
+  }
+
+  private void instantiateGoogBind(Node n, JSType recvType) {
+    if (NodeUtil.isGoogBind(n)) {
+      JSType t = (JSType) n.getTypeI();
+      if (t.isFunctionType()) {
+        FunctionType ft = t.getFunType();
+        if (ft.isGeneric()) {
+          FunctionType instantiatedFunction =
+              ft.instantiateGenericsFromArgumentTypes(null, ImmutableList.of(UNKNOWN, recvType));
+          n.setTypeI(this.commonTypes.fromFunctionType(instantiatedFunction));
+        }
+      }
+    }
+  }
+
+  private void warnAboutInvalidArgument(
+      Node call, Node arg, int argIndex, JSType formal, JSType actual) {
+    String fnName = getReadableCalleeName(call.getFirstChild());
+    JSError error = JSError.make(
+        arg, INVALID_ARGUMENT_TYPE, Integer.toString(argIndex + 1), fnName,
+        errorMsgWithTypeDiff(formal, actual));
+    registerMismatchAndWarn(error, actual, formal);
+  }
+
+  /**
+   * Given a scope whose root is an unannotated callback, finds a declared type for the callback
+   * using the types in the callback's context.
+   * Similar to GlobalTypeInfoCollector#computeFnDeclaredTypeFromCallee, but not similar enough
+   * to use the same code for both.
+   */
+  private void computeFnDeclaredTypeForCallback(NTIScope scope) {
+    Node callback = scope.getRoot();
+    checkState(NodeUtil.isUnannotatedCallback(callback));
+    Node call = callback.getParent();
+    JSType calleeType = (JSType) call.getFirstChild().getTypeI();
+    if (calleeType == null) {
+      return;
+    }
+    FunctionType calleeFunType = calleeType.getFunType();
+    if (calleeFunType == null) {
+      return;
+    }
+    int argIndex = call.getIndexOfChild(callback) - 1;
+    JSType formalType = calleeFunType.getFormalType(argIndex);
+    if (formalType == null) {
+      return;
+    }
+    FunctionType ft = formalType.getFunType();
+    if (ft == null || ft.isLoose()) {
+      return;
+    }
+    DeclaredFunctionType callbackDft = scope.getDeclaredFunctionType();
+    JSType scopeType = this.commonTypes.fromFunctionType(callbackDft.toFunctionType());
+    if (ft.isUniqueConstructor() || ft.isInterfaceDefinition()) {
+      warnAboutInvalidArgument(call, callback, argIndex, formalType, scopeType);
+      return;
+    }
+    DeclaredFunctionType declaredDft = checkNotNull(ft.toDeclaredFunctionType());
+    // Only grab a type from the callee if the arity of the declared type is compatible with
+    // the arity of the callback.
+    if (ft.acceptsAnyArguments()
+        || callbackDft.getRequiredArity() <= declaredDft.getMaxArity()) {
+      scope.setDeclaredType(declaredDft);
+    } else {
+      warnAboutInvalidArgument(call, callback, argIndex, formalType, scopeType);
+    }
   }
 
   private EnvTypePair analyzeAssertionCall(
@@ -2535,23 +2637,17 @@ final class NewTypeInference implements CompilerPass {
     return new EnvTypePair(env, commonTypes.getArrayInstance(elementType));
   }
 
-  // Because of the cast, expr doesn't need to have the required type of the context.
-  // However, we still pass along the specialized type, to specialize types when using
-  // logical operators.
-  private EnvTypePair analyzeCastFwd(Node expr, TypeEnv inEnv, JSType specializedType) {
-    Node parent = expr.getParent();
-    JSType newSpecType = this.commonTypes.UNKNOWN;
-    if ((parent.isOr() || parent.isAnd()) && expr == parent.getFirstChild()) {
-      newSpecType = specializedType;
-    }
+  private EnvTypePair analyzeCastFwd(Node expr, TypeEnv inEnv) {
     Node insideCast = expr.getFirstChild();
-    EnvTypePair pair = analyzeExprFwd(insideCast, inEnv, this.commonTypes.UNKNOWN, newSpecType);
+    EnvTypePair pair = analyzeExprFwd(insideCast, inEnv);
     JSType fromType = pair.type;
-    JSType toType = symbolTable.getCastType(expr);
+    JSType toType = (JSType) expr.getTypeI();
     if (!fromType.isInterfaceInstance()
         && !toType.isInterfaceInstance()
         && !JSType.haveCommonSubtype(fromType, toType)
-        && !fromType.hasTypeVariable()) {
+        && !fromType.hasTypeVariable()
+        // Allow casts from an empty object literal to any type
+        && (!insideCast.isObjectLit() || insideCast.hasChildren())) {
       JSError error = JSError.make(expr, INVALID_CAST, fromType.toString(), toType.toString());
       registerMismatchAndWarn(error, fromType, toType);
     } else {
@@ -2618,12 +2714,10 @@ final class NewTypeInference implements CompilerPass {
 
     if ((comparisonOp == Token.SHEQ && specializedType.isTrueOrTruthy())
         || (comparisonOp == Token.SHNE && specializedType.isFalseOrFalsy())) {
-      lhsPair = analyzeExprFwd(lhs, preciseEnv,
-          UNKNOWN, lhsPair.type.specialize(rhsPair.type));
-      rhsPair = analyzeExprFwd(rhs, lhsPair.env,
-          UNKNOWN, rhsPair.type.specialize(lhsPair.type));
-    } else if ((comparisonOp == Token.SHEQ && specializedType.isFalseOrFalsy()) ||
-        (comparisonOp == Token.SHNE && specializedType.isTrueOrTruthy())) {
+      lhsPair = analyzeExprFwd(lhs, preciseEnv, UNKNOWN, lhsPair.type.specialize(rhsPair.type));
+      rhsPair = analyzeExprFwd(rhs, lhsPair.env, UNKNOWN, rhsPair.type.specialize(lhsPair.type));
+    } else if ((comparisonOp == Token.SHEQ && specializedType.isFalseOrFalsy())
+        || (comparisonOp == Token.SHNE && specializedType.isTrueOrTruthy())) {
       JSType lhsType = lhsPair.type;
       JSType rhsType = rhsPair.type;
       if (lhsType.isNullOrUndef()) {
@@ -3036,7 +3130,7 @@ final class NewTypeInference implements CompilerPass {
           continue;
         }
         QualifiedName qname = new QualifiedName(pnameNode.getString());
-        JSType jsdocType = symbolTable.getPropDeclaredType(prop);
+        JSType jsdocType = (JSType) prop.getTypeI();
         JSType reqPtype;
         JSType specPtype;
         if (jsdocType != null) {
@@ -3665,10 +3759,21 @@ final class NewTypeInference implements CompilerPass {
    * Returns a type environment that combines the types from all uses of a variable.
    */
   private TypeEnv collectTypesForEscapedVarsFwd(Node n, TypeEnv env) {
-    checkArgument(n.isFunction() || (n.isName() && NodeUtil.isInvocationTarget(n)));
+    checkArgument(
+        n.isFunction() || (n.isName() && NodeUtil.isInvocationTarget(n)),
+        "Expected invovation target, found %s", n);
     String fnName = n.isFunction() ? symbolTable.getFunInternalName(n) : n.getString();
     NTIScope innerScope = this.currentScope.getScope(fnName);
-    FunctionType summary = summaries.get(innerScope).getFunType();
+    JSType summaryAsJstype = summaries.get(innerScope);
+    if (summaryAsJstype == null) {
+      // NOTE(dimvar): The n.isFromExterns part is here because the polymer pass does some weird
+      // rewriting which AFAIU can copy some @polymerBehavior code from the externs to the source,
+      // but the AST function nodes are still marked as externs, and don't have summaries.
+      // We don't have a unit test for it.
+      checkState(NodeUtil.isUnannotatedCallback(n) || n.isFromExterns());
+      return env;
+    }
+    FunctionType summary = summaryAsJstype.getFunType();
     for (String freeVar : innerScope.getOuterVars()) {
       if (innerScope.getDeclaredTypeOf(freeVar) == null) {
         JSType outerType = envGetType(env, freeVar);
@@ -3683,8 +3788,8 @@ final class NewTypeInference implements CompilerPass {
             // so we don't warn for uninitialized variables.
             && (n.isName() || (n.isFunction() && !outerType.isUndefined()))
             && !JSType.haveCommonSubtype(outerType, innerType)) {
-          warnings.add(JSError.make(n, CROSS_SCOPE_GOTCHA,
-                  freeVar, outerType.toString(), innerType.toString()));
+          warnings.add(JSError.make(
+              n, CROSS_SCOPE_GOTCHA, freeVar, outerType.toString(), innerType.toString()));
         }
         // If n is a callee node, we only want to keep the type in the callee.
         // If n is a function expression, we don't know if it will get called, so we take the
@@ -3919,7 +4024,7 @@ final class NewTypeInference implements CompilerPass {
         return analyzeArrayLitBwd(expr, outEnv);
       case CAST: {
         EnvTypePair pair = analyzeExprBwd(expr.getFirstChild(), outEnv);
-        pair.type = symbolTable.getCastType(expr);
+        pair.type = (JSType) expr.getTypeI();
         return pair;
       }
       case TEMPLATELIT:
@@ -4276,7 +4381,7 @@ final class NewTypeInference implements CompilerPass {
         env = analyzeExprBwd(prop, env).env;
       } else {
         QualifiedName pname = new QualifiedName(NodeUtil.getObjectLitKeyName(prop));
-        JSType jsdocType = symbolTable.getPropDeclaredType(prop);
+        JSType jsdocType = (JSType) prop.getTypeI();
         JSType reqPtype;
         if (jsdocType != null) {
           reqPtype = jsdocType;
@@ -4675,7 +4780,7 @@ final class NewTypeInference implements CompilerPass {
         new QualifiedName(commonTypes.createSetterPropName(pname.getLeftmostName()));
     if (recvType.hasProp(setterPname)) {
       FunctionType funType = recvType.getProp(setterPname).getFunType();
-      checkNotNull(funType);
+      checkNotNull(funType, "recvType=%s, setterPname=%s", recvType, setterPname);
       JSType formalType = funType.getFormalType(0);
       checkState(!formalType.isBottom());
       return new LValueResultFwd(inEnv, formalType, formalType, null);
@@ -4725,17 +4830,17 @@ final class NewTypeInference implements CompilerPass {
     }
   }
 
-  private LValueResultBwd analyzeLValueBwd(
-      Node expr, TypeEnv outEnv, JSType type, boolean doSlicing) {
-    return analyzeLValueBwd(expr, outEnv, type, doSlicing, false);
-  }
-
   /**
    * We use this to avoid putting global variables in type environments, because that
    * can cause crashes in TypeEnv#join.
    */
   private boolean isGlobalVariable(Node maybeName, TypeEnv env) {
     return maybeName.isName() && envGetType(env, maybeName.getString()) == null;
+  }
+
+  private LValueResultBwd
+      analyzeLValueBwd(Node expr, TypeEnv outEnv, JSType type, boolean doSlicing) {
+    return analyzeLValueBwd(expr, outEnv, type, doSlicing, false);
   }
 
   /** When {@code doSlicing} is set, remove the lvalue from the returned env */
@@ -4903,8 +5008,8 @@ final class NewTypeInference implements CompilerPass {
           "Running deferred check of function: ", calleeScope.getReadableName(),
           " with FunctionSummary of: ", fnSummary, " and callsite ret: ",
           expectedRetType, " args: ", argTypes);
-      if (this.expectedRetType != null &&
-          !fnSummary.getReturnType().isSubtypeOf(this.expectedRetType)) {
+      if (this.expectedRetType != null
+          && !fnSummary.getReturnType().isSubtypeOf(this.expectedRetType)) {
         warnings.add(JSError.make(
             this.callSite, INVALID_INFERRED_RETURN_TYPE,
             errorMsgWithTypeDiff(

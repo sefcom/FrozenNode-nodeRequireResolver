@@ -36,7 +36,7 @@ public class J2clPass implements CompilerPass {
   private final Supplier<String> safeNameIdSupplier;
 
   private class GetDefineRewriter extends AbstractPostOrderCallback {
-    private Set<String> defines;
+    private final Set<String> defines;
 
     GetDefineRewriter(Set<String> defines) {
       this.defines = defines;
@@ -86,43 +86,6 @@ public class J2clPass implements CompilerPass {
     }
   }
 
-  /**
-   * Forcefully inlines aliases to native types to allow further optimizations.
-   *
-   * <p>e.g. "let $RegExp = window.RegExp; var foo = new $RegExp;" becomes "var foo = new RegExp;"
-   */
-  private static class NativeAliasInliner extends AbstractPostOrderCallback {
-
-    @Override
-    public void visit(NodeTraversal t, Node n, Node parent) {
-      if (n.isName()
-          && !NodeUtil.isNameDeclaration(parent)
-          && !parent.isAssign()) {
-        Node declaringNode = getDeclaringNode(t, n);
-        if (declaringNode != null
-            && declaringNode.getFirstChild() != n
-            && isNativeAlias(declaringNode)) {
-          parent.replaceChild(n, declaringNode.getFirstFirstChild().cloneTree());
-          t.reportCodeChange();
-        }
-      }
-    }
-
-    private Node getDeclaringNode(NodeTraversal t, Node nameNode) {
-      Var var = t.getScope().getVar(nameNode.getString());
-      return var == null ? null : var.getParentNode();
-    }
-
-    private boolean isNativeAlias(Node n) {
-      return NodeUtil.isNameDeclaration(n)
-          && n.getParent().isScript()
-          && n.getJSDocInfo() != null
-          && n.getJSDocInfo().isConstructor()
-          && n.getFirstFirstChild() != null
-          && n.getFirstFirstChild().isGetProp()
-          && n.getFirstFirstChild().getQualifiedName().matches("window.[A-Z][A-Za-z]+");
-    }
-  }
 
   /**
    * Collects references to certain function definitions in a certain class and then inlines fully
@@ -245,11 +208,11 @@ public class J2clPass implements CompilerPass {
      */
     inlineFunctionsInFile(
         root,
-        "vmbootstrap/Arrays.impl.java.js",
+        "Arrays.impl.java.js",
         ImmutableSet.of("$create", "$init", "$instanceIsOfType", "$castTo", "$stampType"),
         InliningMode.DIRECT);
     inlineFunctionsInFile(
-        root, "vmbootstrap/Casts.impl.java.js", ImmutableSet.of("$to"), InliningMode.DIRECT);
+        root, "Casts.impl.java.js", ImmutableSet.of("$to"), InliningMode.DIRECT);
 
     /*
      * Inlines all Interface.$markImplementor(FooClass) metaclass calls so that FooClass and others
@@ -269,15 +232,13 @@ public class J2clPass implements CompilerPass {
      */
     inlineFunctionsInFile(
         root,
-        "nativebootstrap/Util.impl.java.js",
+        "Util.impl.java.js",
         ImmutableSet.of(
             "$setClassMetadata",
             "$setClassMetadataForInterface",
             "$setClassMetadataForEnum",
             "$setClassMetadataForPrimitive"),
         InliningMode.BLOCK);
-
-    NodeTraversal.traverseEs6(compiler, root, new NativeAliasInliner());
   }
 
   private void inlineFunctionsInFile(

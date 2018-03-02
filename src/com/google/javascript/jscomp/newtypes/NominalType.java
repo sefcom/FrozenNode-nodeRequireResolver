@@ -98,7 +98,7 @@ public final class NominalType implements Serializable {
     return this.rawType.getObjectKind();
   }
 
-  Map<String, JSType> getTypeMap() {
+  ImmutableMap<String, JSType> getTypeMap() {
     return typeMap;
   }
 
@@ -354,11 +354,6 @@ public final class NominalType implements Serializable {
       return null;
     }
     return this.rawType.getSuperClass().substituteGenerics(typeMap);
-  }
-
-  public JSType getPrototypePropertyOfCtor() {
-    checkState(this.rawType.isFrozen());
-    return this.rawType.getCtorPropDeclaredType("prototype");
   }
 
   // We require a frozen type for the interfaces here because the inheritance
@@ -708,13 +703,12 @@ public final class NominalType implements Serializable {
 
   @Override
   public boolean equals(Object other) {
-    if (other == null) {
+    if (!(other instanceof NominalType)) {
       return false;
     }
     if (this == other) {
       return true;
     }
-    checkState(other instanceof NominalType);
     NominalType o = (NominalType) other;
     return this.rawType.equals(o.rawType) && Objects.equals(typeMap, o.typeMap);
   }

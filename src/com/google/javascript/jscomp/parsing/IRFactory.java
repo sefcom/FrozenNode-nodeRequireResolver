@@ -36,7 +36,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.UnmodifiableIterator;
 import com.google.javascript.jscomp.parsing.Config.LanguageMode;
-import com.google.javascript.jscomp.parsing.Config.StrictMode;
 import com.google.javascript.jscomp.parsing.parser.FeatureSet;
 import com.google.javascript.jscomp.parsing.parser.FeatureSet.Feature;
 import com.google.javascript.jscomp.parsing.parser.IdentifierToken;
@@ -195,18 +194,9 @@ class IRFactory {
   static final String INVALID_OCTAL_DIGIT =
       "Invalid octal digit in octal literal.";
 
-  static final String STRING_CONTINUATION_ERROR =
-      "String continuations are not supported in this language mode.";
-
   static final String STRING_CONTINUATION_WARNING =
       "String continuations are not recommended. See"
-      + " https://google.github.io/styleguide/javascriptguide.xml?showone=Multiline_string_literals#Multiline_string_literals";
-
-  static final String BINARY_NUMBER_LITERAL_WARNING =
-      "Binary integer literals are not supported in this language mode.";
-
-  static final String OCTAL_NUMBER_LITERAL_WARNING =
-      "Octal integer literals are not supported in this language mode.";
+      + " https://google.github.io/styleguide/jsguide.html#features-strings-no-line-continuations";
 
   static final String OCTAL_STRING_LITERAL_WARNING =
       "Octal literals in strings are not supported in this language mode.";
@@ -296,7 +286,7 @@ class IRFactory {
     this.templateNode = createTemplateNode();
 
     this.fileLevelJsDocBuilder =
-        new JSDocInfoBuilder(config.parseJsDocDocumentation.shouldParseDescriptions());
+        new JSDocInfoBuilder(config.jsDocParsingMode().shouldParseDescriptions());
 
     // Pre-generate all the newlines in the file.
     for (int charNo = 0; true; charNo++) {
@@ -314,9 +304,9 @@ class IRFactory {
     this.errorReporter = errorReporter;
     this.transformDispatcher = new TransformDispatcher();
 
-    if (config.strictMode == StrictMode.STRICT) {
+    if (config.strictMode().isStrict()) {
       reservedKeywords = ES5_STRICT_RESERVED_KEYWORDS;
-    } else if (config.languageMode == LanguageMode.ECMASCRIPT3) {
+    } else if (config.languageMode() == LanguageMode.ECMASCRIPT3) {
       reservedKeywords = null; // use TokenStream.isKeyword instead
     } else {
       reservedKeywords = ES5_RESERVED_KEYWORDS;
@@ -384,12 +374,7 @@ class IRFactory {
     return irFactory.features;
   }
 
-  static final Config NULL_CONFIG =
-      new Config(
-          ImmutableSet.<String>of(),
-          ImmutableSet.<String>of(),
-          LanguageMode.TYPESCRIPT,
-          Config.StrictMode.STRICT);
+  static final Config NULL_CONFIG = Config.builder().build();
 
   static final ErrorReporter NULL_REPORTER = new ErrorReporter() {
     @Override
@@ -435,6 +420,7 @@ class IRFactory {
     validateReturn(n);
     validateNewDotTarget(n);
     validateLabel(n);
+    validateBlockScopedFunctions(n);
   }
 
   private void validateReturn(Node n) {
@@ -587,6 +573,12 @@ class IRFactory {
     }
   }
 
+  private void validateBlockScopedFunctions(Node n) {
+    if (n.isFunction() && n.getParent().isNormalBlock() && !n.getGrandparent().isFunction()) {
+      maybeWarnForFeature(n, Feature.BLOCK_SCOPED_FUNCTION_DECLARATION);
+    }
+  }
+
   JSDocInfo recordJsDoc(SourceRange location, JSDocInfo info) {
     if (info != null && info.hasTypeInformation()) {
       hasJsDocTypeAnnotations = true;
@@ -721,6 +713,10 @@ class IRFactory {
     return handleJsDoc(getJsDoc(node));
   }
 
+  JSDocInfo handleJsDoc(com.google.javascript.jscomp.parsing.parser.Token token) {
+    return handleJsDoc(getJsDoc(token));
+  }
+
   private boolean shouldAttachJSDocHere(ParseTree tree) {
     switch (tree.type) {
       case EXPRESSION_STATEMENT:
@@ -771,10 +767,6 @@ class IRFactory {
           return tree;
       }
     }
-  }
-
-  JSDocInfo handleJsDoc(com.google.javascript.jscomp.parsing.parser.Token token) {
-    return handleJsDoc(getJsDoc(token));
   }
 
   Node transform(ParseTree tree) {
@@ -844,12 +836,11 @@ class IRFactory {
   }
 
   static int lineno(ParseTree node) {
-    // location lines start at zero, our AST starts at 1.
     return lineno(node.location.start);
   }
 
-  static int charno(ParseTree node) {
-    return charno(node.location.start);
+  static int lineno(com.google.javascript.jscomp.parsing.parser.Token token) {
+    return lineno(token.location.start);
   }
 
   static int lineno(SourcePosition location) {
@@ -857,8 +848,54 @@ class IRFactory {
     return location.line + 1;
   }
 
+  static int charno(ParseTree node) {
+    return charno(node.location.start);
+  }
+
+  static int charno(com.google.javascript.jscomp.parsing.parser.Token token) {
+    return charno(token.location.start);
+  }
+
   static int charno(SourcePosition location) {
     return location.column;
+  }
+
+  String languageFeatureWarningMessage(Feature feature) {
+    return "This language feature is only supported for "
+              + LanguageMode.minimumRequiredFor(feature)
+              + " mode or better: "
+              + feature;
+  }
+
+  void maybeWarnForFeature(ParseTree node, Feature feature) {
+    features = features.with(feature);
+    if (!isSupportedForInputLanguageMode(feature)) {
+      errorReporter.warning(
+          languageFeatureWarningMessage(feature),
+          sourceName,
+          lineno(node), charno(node));
+    }
+  }
+
+  void maybeWarnForFeature(
+      com.google.javascript.jscomp.parsing.parser.Token token, Feature feature) {
+    features = features.with(feature);
+    if (!isSupportedForInputLanguageMode(feature)) {
+      errorReporter.warning(
+          languageFeatureWarningMessage(feature),
+          sourceName,
+          lineno(token), charno(token));
+    }
+  }
+
+  void maybeWarnForFeature(Node node, Feature feature) {
+    features = features.with(feature);
+    if (!isSupportedForInputLanguageMode(feature)) {
+      errorReporter.warning(
+          languageFeatureWarningMessage(feature),
+          sourceName,
+          node.getLineno(), node.getCharno());
+    }
   }
 
   void setSourceInfo(Node node, Node ref) {
@@ -1029,7 +1066,20 @@ class IRFactory {
 
       Node node = newNode(Token.OBJECT_PATTERN);
       for (ParseTree child : tree.fields) {
-        node.addChildToBack(transformNodeWithInlineJsDoc(child));
+        Node childNode = transformNodeWithInlineJsDoc(child);
+        if (childNode.isDefaultValue()) {
+          // Children of the form {a = b} are parsed as DEFAULT_VALUE{NAME, initializer}.
+          // In this case, insert an extra STRING_KEY node.
+          Node name = childNode.getFirstChild();
+          Node stringKey = newStringNode(Token.STRING_KEY, name.getString());
+          setSourceInfo(stringKey, name);
+          stringKey.setShorthandProperty(true);
+          stringKey.addChildToBack(childNode);
+          childNode = stringKey;
+        } else if (childNode.isRest()) {
+          maybeWarnForFeature(child, Feature.OBJECT_PATTERN_REST);
+        }
+        node.addChildToBack(childNode);
       }
       return node;
     }
@@ -1270,12 +1320,6 @@ class IRFactory {
         maybeWarnForFeature(functionTree, Feature.ASYNC_FUNCTIONS);
       }
 
-      // Add a feature so that transpilation process hoists block scoped functions through
-      // var redeclaration in ES3 and ES5
-      if (isDeclaration) {
-        features = features.with(Feature.BLOCK_SCOPED_FUNCTION_DECLARATION);
-      }
-
       IdentifierToken name = functionTree.name;
       Node newName;
       if (name != null) {
@@ -1312,7 +1356,7 @@ class IRFactory {
       if (!isArrow && !isSignature && !bodyNode.isNormalBlock()) {
         // When in "keep going" mode the parser tries to parse some constructs the
         // compiler doesn't support, repair it here.
-        checkState(config.keepGoing == Config.RunMode.KEEP_GOING);
+        checkState(config.runMode() == Config.RunMode.KEEP_GOING);
         bodyNode = IR.block();
       }
       parseDirectives(bodyNode);
@@ -1392,11 +1436,11 @@ class IRFactory {
     }
 
     Node processBinaryExpression(BinaryOperatorTree exprNode) {
-      if (exprNode.operator.type == TokenType.STAR_STAR
-          || exprNode.operator.type == TokenType.STAR_STAR_EQUAL) {
-        maybeWarnForFeature(exprNode, Feature.EXPONENT_OP);
-      }
       if (hasPendingCommentBefore(exprNode.right)) {
+        if (exprNode.operator.type == TokenType.STAR_STAR
+            || exprNode.operator.type == TokenType.STAR_STAR_EQUAL) {
+          maybeWarnForFeature(exprNode, Feature.EXPONENT_OP);
+        }
         return newNode(
             transformBinaryTokenType(exprNode.operator.type),
             transform(exprNode.left),
@@ -1414,6 +1458,10 @@ class IRFactory {
       Node current = null;
       Node previous = null;
       while (exprTree != null) {
+        if (exprTree.operator.type == TokenType.STAR_STAR
+            || exprTree.operator.type == TokenType.STAR_STAR_EQUAL) {
+          maybeWarnForFeature(exprTree, Feature.EXPONENT_OP);
+        }
         previous = current;
         // Skip the first child but recurse normally into the right operand as typically this isn't
         // deep and because we have already checked that there isn't any JSDoc we can traverse
@@ -1464,9 +1512,19 @@ class IRFactory {
     }
 
     Node processLabeledStatement(LabelledStatementTree labelTree) {
+      Node statement = transform(labelTree.statement);
+      if (statement.isFunction()) {
+        errorReporter.error(
+            "Functions can only be declared at top level or inside a block.",
+            sourceName, lineno(labelTree), charno(labelTree));
+      } else if (statement.isClass()) {
+        errorReporter.error(
+            "Classes can only be declared at top level or inside a block.",
+            sourceName, lineno(labelTree), charno(labelTree));
+      }
       return newNode(Token.LABEL,
           transformLabelName(labelTree.name),
-          transform(labelTree.statement));
+          statement);
     }
 
     Node processName(IdentifierExpressionTree nameNode) {
@@ -1530,7 +1588,7 @@ class IRFactory {
     private void maybeWarnKeywordProperty(Node node) {
       if (TokenStream.isKeyword(node.getString())) {
         features = features.with(Feature.KEYWORDS_AS_PROPERTIES);
-        if (config.languageMode == LanguageMode.ECMASCRIPT3) {
+        if (config.languageMode() == LanguageMode.ECMASCRIPT3) {
           errorReporter.warning(INVALID_ES3_PROP_NAME, sourceName,
               node.getLineno(), node.getCharno());
         }
@@ -1542,11 +1600,11 @@ class IRFactory {
       boolean isIdentifier = false;
       if (TokenStream.isKeyword(identifier)) {
         features = features.with(Feature.ES3_KEYWORDS_AS_IDENTIFIERS);
-        isIdentifier = config.languageMode == LanguageMode.ECMASCRIPT3;
+        isIdentifier = config.languageMode() == LanguageMode.ECMASCRIPT3;
       }
       if (reservedKeywords != null && reservedKeywords.contains(identifier)) {
         features = features.with(Feature.KEYWORDS_AS_PROPERTIES);
-        isIdentifier = config.languageMode == LanguageMode.ECMASCRIPT3;
+        isIdentifier = config.languageMode() == LanguageMode.ECMASCRIPT3;
       }
       if (isIdentifier) {
         errorReporter.error(
@@ -1594,10 +1652,16 @@ class IRFactory {
         }
 
         Node key = transform(el);
-        if (!key.isComputedProp() && !key.isQuotedString() && !currentFileIsExterns) {
+        if (!key.isComputedProp()
+            && !key.isQuotedString()
+            && !key.isSpread()
+            && !currentFileIsExterns) {
           maybeWarnKeywordProperty(key);
         }
-        if (key.getFirstChild() == null) {
+        if (key.isSpread()) {
+          maybeWarnForFeature(el, Feature.OBJECT_LITERALS_WITH_SPREAD);
+        }
+        if (key.isShorthandProperty()) {
           maybeWarn = true;
         }
 
@@ -1709,6 +1773,11 @@ class IRFactory {
       key.setToken(Token.STRING_KEY);
       if (tree.value != null) {
         key.addChildToFront(transform(tree.value));
+      } else {
+        Node value = key.cloneNode();
+        key.setShorthandProperty(true);
+        value.setToken(Token.NAME);
+        key.addChildToFront(value);
       }
       return key;
     }
@@ -2064,7 +2133,7 @@ class IRFactory {
     /** Reports an illegal getter and returns true if the language mode is too low. */
     boolean maybeReportGetter(ParseTree node) {
       features = features.with(Feature.GETTER);
-      if (config.languageMode == LanguageMode.ECMASCRIPT3) {
+      if (config.languageMode() == LanguageMode.ECMASCRIPT3) {
         errorReporter.error(
             GETTER_ERROR_MESSAGE,
             sourceName,
@@ -2077,7 +2146,7 @@ class IRFactory {
     /** Reports an illegal setter and returns true if the language mode is too low. */
     boolean maybeReportSetter(ParseTree node) {
       features = features.with(Feature.SETTER);
-      if (config.languageMode == LanguageMode.ECMASCRIPT3) {
+      if (config.languageMode() == LanguageMode.ECMASCRIPT3) {
         errorReporter.error(
             SETTER_ERROR_MESSAGE,
             sourceName,
@@ -2177,7 +2246,14 @@ class IRFactory {
       Node body = newNode(Token.ENUM_MEMBERS);
       setSourceInfo(body, tree);
       for (ParseTree child : tree.members) {
-        body.addChildToBack(transform(child));
+        Node childNode = transform(child);
+        // NOTE: we may need to "undo" the shorthand property normalization,
+        // since this syntax has a different meaning in enums.
+        if (childNode.isShorthandProperty()) {
+          childNode.removeChild(childNode.getLastChild());
+          childNode.setShorthandProperty(false);
+        }
+        body.addChildToBack(childNode);
       }
 
       return newNode(Token.ENUM, name, body);
@@ -2248,7 +2324,10 @@ class IRFactory {
       Node importedName = processName(tree.importedName, true);
       importedName.setToken(Token.NAME);
       Node exportSpec = newNode(Token.EXPORT_SPEC, importedName);
-      if (tree.destinationName != null) {
+      if (tree.destinationName == null) {
+        exportSpec.setShorthandProperty(true);
+        exportSpec.addChildToBack(importedName.cloneTree());
+      } else {
         Node destinationName = processName(tree.destinationName, true);
         destinationName.setToken(Token.NAME);
         exportSpec.addChildToBack(destinationName);
@@ -2260,10 +2339,16 @@ class IRFactory {
       maybeWarnForFeature(tree, Feature.MODULES);
 
       Node firstChild = transformOrEmpty(tree.defaultBindingIdentifier, tree);
-      Node secondChild = (tree.nameSpaceImportIdentifier != null)
-          ? newStringNode(Token.IMPORT_STAR, tree.nameSpaceImportIdentifier.value)
-          : transformListOrEmpty(Token.IMPORT_SPECS, tree.importSpecifierList);
-      setSourceInfo(secondChild, tree);
+      Node secondChild;
+      if (tree.nameSpaceImportIdentifier == null) {
+        secondChild = transformListOrEmpty(Token.IMPORT_SPECS, tree.importSpecifierList);
+        // Currently source info is "import {foo} from '...';" expression. If needed this should be
+        // changed to use only "{foo}" part.
+        setSourceInfo(secondChild, tree);
+      } else {
+        secondChild = newStringNode(Token.IMPORT_STAR, tree.nameSpaceImportIdentifier.value);
+        setSourceInfo(secondChild, tree.nameSpaceImportIdentifier);
+      }
       Node thirdChild = processString(tree.moduleSpecifier);
 
       return newNode(Token.IMPORT, firstChild, secondChild, thirdChild);
@@ -2273,7 +2358,10 @@ class IRFactory {
       Node importedName = processName(tree.importedName, true);
       importedName.setToken(Token.NAME);
       Node importSpec = newNode(Token.IMPORT_SPEC, importedName);
-      if (tree.destinationName != null) {
+      if (tree.destinationName == null) {
+        importSpec.setShorthandProperty(true);
+        importSpec.addChildToBack(importedName.cloneTree());
+      } else {
         importSpec.addChildToBack(processName(tree.destinationName));
       }
       return importSpec;
@@ -2588,20 +2676,6 @@ class IRFactory {
       }
     }
 
-    void maybeWarnForFeature(ParseTree node, Feature feature) {
-      features = features.with(feature);
-      if (!isSupportedForInputLanguageMode(feature)) {
-
-        errorReporter.warning(
-            "this language feature is only supported for "
-            + LanguageMode.minimumRequiredFor(feature)
-            + " mode or better: "
-            + feature,
-            sourceName,
-            lineno(node), charno(node));
-      }
-    }
-
     void maybeProcessAccessibilityModifier(ParseTree parseTree, Node n, @Nullable TokenType type) {
       if (type != null) {
         Visibility access;
@@ -2624,7 +2698,7 @@ class IRFactory {
     }
 
     void maybeWarnTypeSyntax(ParseTree node, Feature feature) {
-      if (config.languageMode != LanguageMode.TYPESCRIPT) {
+      if (config.languageMode() != LanguageMode.TYPESCRIPT) {
         errorReporter.warning(
             "type syntax is only supported in ES6 typed mode: " + feature,
             sourceName,
@@ -2975,17 +3049,13 @@ class IRFactory {
           result.append('\u000B');
           break;
         case '\n':
-          features = features.with(Feature.STRING_CONTINUATION);
-          if (isEs5OrBetterMode()) {
-            errorReporter.warning(STRING_CONTINUATION_WARNING,
-                sourceName,
-                lineno(token.location.start), charno(token.location.start));
-          } else {
-            errorReporter.error(STRING_CONTINUATION_ERROR,
-                sourceName,
-                lineno(token.location.start), charno(token.location.start));
-          }
           // line continuation, skip the line break
+          maybeWarnForFeature(token, Feature.STRING_CONTINUATION);
+          errorReporter.warning(
+              STRING_CONTINUATION_WARNING,
+              sourceName,
+              lineno(token.location.start),
+              charno(token.location.start));
           break;
         case '0':
           if (cur + 1 >= value.length()) {
@@ -3063,17 +3133,17 @@ class IRFactory {
   }
 
   boolean isSupportedForInputLanguageMode(Feature feature) {
-    return config.languageMode.featureSet.has(feature);
+    return config.languageMode().featureSet.has(feature);
   }
 
   boolean isEs5OrBetterMode() {
-    return config.languageMode.featureSet.contains(FeatureSet.ES5);
+    return config.languageMode().featureSet.contains(FeatureSet.ES5);
   }
 
   private boolean inStrictContext() {
     // TODO(johnlenz): in ECMASCRIPT5/6 is a "mixed" mode and we should track the context
     // that we are in, if we want to support it.
-    return config.strictMode == StrictMode.STRICT;
+    return config.strictMode().isStrict();
   }
 
   double normalizeNumber(LiteralToken token) {
@@ -3083,21 +3153,16 @@ class IRFactory {
     checkState(length > 0);
     checkState(value.charAt(0) != '-' && value.charAt(0) != '+');
     if (value.charAt(0) == '.') {
-      return Double.valueOf('0' + value);
+      return Double.parseDouble('0' + value);
     } else if (value.charAt(0) == '0' && length > 1) {
       switch (value.charAt(1)) {
         case '.':
         case 'e':
         case 'E':
-          return Double.valueOf(value);
+          return Double.parseDouble(value);
         case 'b':
         case 'B': {
-          features = features.with(Feature.BINARY_LITERALS);
-          if (!isSupportedForInputLanguageMode(Feature.BINARY_LITERALS)) {
-            errorReporter.warning(BINARY_NUMBER_LITERAL_WARNING,
-                sourceName,
-                lineno(token.location.start), charno(token.location.start));
-          }
+          maybeWarnForFeature(token, Feature.BINARY_LITERALS);
           double v = 0;
           int c = 1;
           while (++c < length) {
@@ -3107,12 +3172,7 @@ class IRFactory {
         }
         case 'o':
         case 'O': {
-          features = features.with(Feature.OCTAL_LITERALS);
-          if (!isSupportedForInputLanguageMode(Feature.OCTAL_LITERALS)) {
-            errorReporter.warning(OCTAL_NUMBER_LITERAL_WARNING,
-                sourceName,
-                lineno(token.location.start), charno(token.location.start));
-          }
+          maybeWarnForFeature(token, Feature.OCTAL_LITERALS);
           double v = 0;
           int c = 1;
           while (++c < length) {
@@ -3138,13 +3198,8 @@ class IRFactory {
             if (isOctalDigit(digit)) {
               v = (v * 8) + octaldigit(digit);
             } else {
-              if (inStrictContext()) {
-                errorReporter.error(INVALID_ES5_STRICT_OCTAL, sourceName,
-                    lineno(location.start), charno(location.start));
-              } else {
-                errorReporter.error(INVALID_OCTAL_DIGIT, sourceName,
-                    lineno(location.start), charno(location.start));
-              }
+              errorReporter.error(INVALID_OCTAL_DIGIT, sourceName,
+                  lineno(location.start), charno(location.start));
               return 0;
             }
           }
@@ -3165,7 +3220,7 @@ class IRFactory {
               "Unexpected character in number literal: " + value.charAt(1));
       }
     } else {
-      return Double.valueOf(value);
+      return Double.parseDouble(value);
     }
   }
 

@@ -34,7 +34,7 @@ public class ExportTestFunctions implements CompilerPass {
           "^(?:((\\w+\\.)+prototype\\.||window\\.)*"
               + "(setUpPage|setUp|shouldRunTests|tearDown|tearDownPage|test[\\w\\$]+))$");
 
-  private AbstractCompiler compiler;
+  private final AbstractCompiler compiler;
   private final String exportSymbolFunction;
   private final String exportPropertyFunction;
 
@@ -123,7 +123,7 @@ public class ExportTestFunctions implements CompilerPass {
       exportClass(scriptNode, classNode, className, classNode);
     }
 
-    private void exportClass(Node scriptNode, Node classNode, String className, Node baseNode) {
+    private void exportClass(Node scriptNode, Node classNode, String className, Node addAfter) {
       Node classMembers = classNode.getLastChild();
       for (Node maybeMemberFunctionDef : classMembers.children()) {
         if (maybeMemberFunctionDef.isMemberFunctionDef()) {
@@ -148,8 +148,9 @@ public class ExportTestFunctions implements CompilerPass {
 
             Node expression = IR.exprResult(call);
 
-            scriptNode.addChildAfter(expression, baseNode);
+            scriptNode.addChildAfter(expression, addAfter);
             compiler.reportChangeToEnclosingScope(expression);
+            addAfter = expression;
           }
         }
       }

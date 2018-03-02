@@ -62,6 +62,9 @@ final class ClosureCodeRemoval implements CompilerPass {
   private final List<RemovableAssignment> abstractMethodAssignmentNodes =
        new ArrayList<>();
 
+  /** List of member function definition nodes annotated with @abstract. */
+  private final List<Node> abstractMemberFunctionNodes = new ArrayList<>();
+
   /**
    * List of assertion functions.
    */
@@ -134,7 +137,8 @@ final class ClosureCodeRemoval implements CompilerPass {
   }
 
   /**
-   * Identifies all assignments of the abstract method to a variable.
+   * Identifies all assignments of the abstract method to a variable and all methods annotated with
+   * "@abstract" in their JSDoc.
    */
   private class FindAbstractMethods extends AbstractPostOrderCallback {
     @Override
@@ -151,10 +155,14 @@ final class ClosureCodeRemoval implements CompilerPass {
               new RemovableAssignment(n.getFirstChild(), n, t));
         } else if (n.getJSDocInfo() != null
             && n.getJSDocInfo().isAbstract()
-            && !n.getJSDocInfo().isConstructor()) {
+            && !(n.getJSDocInfo().isConstructor() || valueNode.isClass())) {
           // @abstract
           abstractMethodAssignmentNodes.add(
               new RemovableAssignment(n.getFirstChild(), n, t));
+        }
+      } else if (n.isMemberFunctionDef() && parent.isClassMembers()) {
+        if (n.getJSDocInfo() != null && n.getJSDocInfo().isAbstract()) {
+          abstractMemberFunctionNodes.add(n);
         }
       }
     }
@@ -218,6 +226,13 @@ final class ClosureCodeRemoval implements CompilerPass {
       assignment.remove();
     }
 
+    for (Node memberFunction : abstractMemberFunctionNodes) {
+      compiler.reportFunctionDeleted(memberFunction.getFirstChild());
+      Node parent = memberFunction.getParent();
+      parent.removeChild(memberFunction);
+      compiler.reportChangeToEnclosingScope(parent);
+    }
+
     for (Node call : assertionCalls) {
       // If the assertion is an expression, just strip the whole thing.
       compiler.reportChangeToEnclosingScope(call);
@@ -233,7 +248,7 @@ final class ClosureCodeRemoval implements CompilerPass {
           parent.replaceChild(call, NodeUtil.newUndefinedNode(call));
         } else {
           Node replacement = firstArg.detach();
-          replacement.setJSType(call.getJSType());
+          replacement.setTypeI(call.getTypeI());
           parent.replaceChild(call, replacement);
         }
         NodeUtil.markFunctionsDeleted(call, compiler);

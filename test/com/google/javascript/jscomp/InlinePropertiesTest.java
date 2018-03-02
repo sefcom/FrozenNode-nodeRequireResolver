@@ -22,7 +22,7 @@ import com.google.javascript.rhino.Node;
 public final class InlinePropertiesTest extends TypeICompilerTestCase {
 
   private static final String EXTERNS =
-      LINE_JOINER.join(
+      lines(
           MINIMAL_EXTERNS,
           "Function.prototype.call=function(){};",
           "Function.prototype.inherits=function(){};",
@@ -57,7 +57,17 @@ public final class InlinePropertiesTest extends TypeICompilerTestCase {
   protected CompilerPass getProcessor(Compiler compiler) {
     final CompilerPass pass =  new InlineProperties(compiler);
     if (runSmartNameRemoval) {
-      final CompilerPass removalPass = new NameAnalyzer(compiler, true, null);
+      final CompilerPass removalPass =
+          new RemoveUnusedCode.Builder(compiler)
+              .removeLocalVars(true)
+              .removeGlobals(true)
+              .preserveFunctionExpressionNames(true)
+              .removeUnusedPrototypeProperties(true)
+              .allowRemovalOfExternProperties(false)
+              .removeUnusedThisProperties(true)
+              .removeUnusedObjectDefinePropertiesDefinitions(true)
+              .removeUnusedConstructorProperties(true)
+              .build();
       return new CompilerPass(){
 
         @Override
@@ -88,20 +98,20 @@ public final class InlinePropertiesTest extends TypeICompilerTestCase {
 
   public void testConstInstanceProp1() {
     // Replace a reference to known constant property.
-    test(LINE_JOINER.join(
+    test(lines(
         "/** @constructor */",
         "function C() {",
         "  this.foo = 1;",
         "}",
         "new C().foo;"),
-        LINE_JOINER.join(
+        lines(
         "/** @constructor */",
         "function C() {",
         "  this.foo = 1;",
         "}",
         "new C(), 1;"));
 
-    test(LINE_JOINER.join(
+    test(lines(
         "/** @constructor */",
         "function C() {",
         "  {",
@@ -109,7 +119,7 @@ public final class InlinePropertiesTest extends TypeICompilerTestCase {
         "  }",
         "}",
         "new C().foo;"),
-        LINE_JOINER.join(
+        lines(
         "/** @constructor */",
         "function C() {",
         "  {",
@@ -121,14 +131,14 @@ public final class InlinePropertiesTest extends TypeICompilerTestCase {
 
   public void testConstInstanceProp2() {
     // Replace a constant reference
-    test(LINE_JOINER.join(
+    test(lines(
         "/** @constructor */",
         "function C() {",
         "  this.foo = 1;",
         "}",
         "var x = new C();",
         "x.foo;"),
-        LINE_JOINER.join(
+        lines(
         "/** @constructor */",
         "function C() {",
         "  this.foo = 1",
@@ -140,7 +150,7 @@ public final class InlinePropertiesTest extends TypeICompilerTestCase {
 
   public void testConstInstanceProp3() {
     // Replace a constant reference
-    test(LINE_JOINER.join(
+    test(lines(
         "/** @constructor */",
         "function C() {",
         "  this.foo = 1;",
@@ -148,7 +158,7 @@ public final class InlinePropertiesTest extends TypeICompilerTestCase {
         "/** @type {C} */",
         "var x = new C();",
         "x.foo;"),
-        LINE_JOINER.join(
+        lines(
         "/** @constructor */",
         "function C() {",
         "  this.foo = 1",
@@ -162,7 +172,7 @@ public final class InlinePropertiesTest extends TypeICompilerTestCase {
     // This pass replies on DisambiguateProperties to distinguish like named
     // properties so it doesn't handle this case.
     testSame(
-        LINE_JOINER.join(
+        lines(
         "/** @constructor */",
         "function C() {",
         "  this.foo = 1;",
@@ -174,18 +184,40 @@ public final class InlinePropertiesTest extends TypeICompilerTestCase {
         "new C().foo;\n"));
   }
 
+  public void testConstInstanceProp5() {
+    test(
+        lines(
+            "/** @constructor */",
+            "function Foo() {",
+            "  /** @type {?number} */",
+            "  this.a = 1;",
+            "  /** @type {number} */",
+            "  this.b = 2;",
+            "}",
+            "var x = (new Foo).b;"),
+        lines(
+            "/** @constructor */",
+            "function Foo() {",
+            "  /** @type {?number} */",
+            "  this.a = 1;",
+            "  /** @type {number} */",
+            "  this.b = 2;",
+            "}",
+            "var x = (new Foo, 2);"));
+  }
+
 
   public void testConstClassProps1() {
     // Inline constant class properties,
     test(
-        LINE_JOINER.join(
+        lines(
             "/** @constructor */",
             "function C() {",
             "}",
             "C.bar = 2;",
             "C.foo = 1;",
             "var z = C.foo;"),
-        LINE_JOINER.join(
+        lines(
             "/** @constructor */",
             "function C() {",
             "}",
@@ -197,7 +229,7 @@ public final class InlinePropertiesTest extends TypeICompilerTestCase {
   public void testConstClassProps2() {
     // Don't confuse, class properties with instance properties
     testSame(
-        LINE_JOINER.join(
+        lines(
             "/** @constructor */",
             "function C() {",
             "  this.foo = 1;",
@@ -208,7 +240,7 @@ public final class InlinePropertiesTest extends TypeICompilerTestCase {
   public void testConstClassProps3() {
     // Don't confuse, class properties with prototype properties
     testSame(
-        LINE_JOINER.join(
+        lines(
             "/** @constructor */",
             "function C() {}",
             "C.prototype.foo = 1;",
@@ -218,7 +250,7 @@ public final class InlinePropertiesTest extends TypeICompilerTestCase {
   public void testConstClassProps4() {
     // Don't confuse unique constructors with similiar function types
     testSame(
-        LINE_JOINER.join(
+        lines(
             "/** @constructor */",
             "function C() {}",
             "/** @constructor @extends {C} */",
@@ -232,7 +264,7 @@ public final class InlinePropertiesTest extends TypeICompilerTestCase {
   public void testConstClassProps5() {
     // Don't confuse subtype constructors properties
     testSame(
-        LINE_JOINER.join(
+        lines(
             "/** @constructor */",
             "function C() {}",
             "/** @constructor @extends {C} */",
@@ -244,7 +276,7 @@ public final class InlinePropertiesTest extends TypeICompilerTestCase {
   public void testConstClassProps6() {
     // Don't inline to unknowns
     testSame(
-        LINE_JOINER.join(
+        lines(
             "/** @constructor */",
             "function C() {}",
             "C.foo = 1;",
@@ -254,7 +286,7 @@ public final class InlinePropertiesTest extends TypeICompilerTestCase {
   public void testConstClassProps7() {
     // Don't inline to Function prop
     testSame(
-        LINE_JOINER.join(
+        lines(
             "/** @constructor */",
             "function C() {}",
             "C.foo = 1;",
@@ -262,7 +294,7 @@ public final class InlinePropertiesTest extends TypeICompilerTestCase {
   }
 
   public void testNonConstClassProp1() {
-    testSame(LINE_JOINER.join(
+    testSame(lines(
         "/** @constructor */",
         "function C() {",
         "}",
@@ -272,7 +304,7 @@ public final class InlinePropertiesTest extends TypeICompilerTestCase {
   }
 
   public void testNonConstClassProp2() {
-    testSame(LINE_JOINER.join(
+    testSame(lines(
         "/** @constructor */",
         "function C() {",
         "}",
@@ -282,7 +314,7 @@ public final class InlinePropertiesTest extends TypeICompilerTestCase {
   }
 
   public void testNonConstClassProp3() {
-    testSame(LINE_JOINER.join(
+    testSame(lines(
         "/** @constructor */",
         "function C() {",
         "}",
@@ -295,7 +327,7 @@ public final class InlinePropertiesTest extends TypeICompilerTestCase {
   }
 
   public void testNonConstInstanceProp1() {
-    testSame(LINE_JOINER.join(
+    testSame(lines(
         "/** @constructor */",
         "function C() {",
         "  this.foo = 1;",
@@ -306,7 +338,7 @@ public final class InlinePropertiesTest extends TypeICompilerTestCase {
   }
 
   public void testNonConstInstanceProp2() {
-    testSame(LINE_JOINER.join(
+    testSame(lines(
         "/** @constructor */",
         "function C() {",
         "  this.foo = 1;",
@@ -317,7 +349,7 @@ public final class InlinePropertiesTest extends TypeICompilerTestCase {
   }
 
   public void testNonConstructorInstanceProp1() {
-    testSame(LINE_JOINER.join(
+    testSame(lines(
         "function C() {",
         "  this.foo = 1;",
         "  return this;",
@@ -326,7 +358,7 @@ public final class InlinePropertiesTest extends TypeICompilerTestCase {
   }
 
   public void testConditionalInstanceProp1() {
-    testSame(LINE_JOINER.join(
+    testSame(lines(
         "/** @constructor */",
         "function C() {",
         "  if (false) this.foo = 1;",
@@ -335,12 +367,12 @@ public final class InlinePropertiesTest extends TypeICompilerTestCase {
   }
 
   public void testConstPrototypeProp1() {
-    test(LINE_JOINER.join(
+    test(lines(
         "/** @constructor */",
         "function C() {}",
         "C.prototype.foo = 1;",
         "new C().foo;\n"),
-        LINE_JOINER.join(
+        lines(
         "/** @constructor */",
         "function C() {}",
         "C.prototype.foo = 1;",
@@ -348,13 +380,13 @@ public final class InlinePropertiesTest extends TypeICompilerTestCase {
   }
 
   public void testConstPrototypeProp2() {
-    test(LINE_JOINER.join(
+    test(lines(
         "/** @constructor */",
         "function C() {}",
         "C.prototype.foo = 1;",
         "var x = new C();",
         "x.foo;\n"),
-        LINE_JOINER.join(
+        lines(
         "/** @constructor */",
         "function C() {}",
         "C.prototype.foo = 1;",
@@ -363,7 +395,7 @@ public final class InlinePropertiesTest extends TypeICompilerTestCase {
   }
 
   public void testConstPrototypePropInGlobalBlockScope() {
-    test(LINE_JOINER.join(
+    test(lines(
         "/** @constructor */",
         "function C() {}",
         "{",
@@ -371,7 +403,7 @@ public final class InlinePropertiesTest extends TypeICompilerTestCase {
         "}",
         "var x = new C();",
         "x.foo;"),
-        LINE_JOINER.join(
+        lines(
         "/** @constructor */",
         "function C() {}",
         "{",
@@ -382,7 +414,7 @@ public final class InlinePropertiesTest extends TypeICompilerTestCase {
   }
 
   public void testGlobalThisNotInlined() {
-    testSame(LINE_JOINER.join(
+    testSame(lines(
         "this.foo = 1;",
         "/** @constructor */",
         "function C() {",
@@ -392,14 +424,14 @@ public final class InlinePropertiesTest extends TypeICompilerTestCase {
 
   public void testConstPrototypePropFromSuper() {
     test(
-        LINE_JOINER.join(
+        lines(
             "/** @constructor */",
             "function C() {}",
             "C.prototype.foo = 1;",
             "/** @constructor @extends {C} */",
             "function D() {}",
             "(new D).foo;"),
-        LINE_JOINER.join(
+        lines(
             "/** @constructor */",
             "function C() {}",
             "C.prototype.foo = 1;",
@@ -410,13 +442,13 @@ public final class InlinePropertiesTest extends TypeICompilerTestCase {
 
   public void testTypedPropInlining() {
     test(
-        LINE_JOINER.join(
+        lines(
             "/** @constructor */",
             "function C() {}",
             "C.prototype.foo = 1;",
             "function f(/** !C */ x) { return x.foo; }",
             "f(new C);"),
-        LINE_JOINER.join(
+        lines(
             "/** @constructor */",
             "function C() {}",
             "C.prototype.foo = 1;",
@@ -426,7 +458,7 @@ public final class InlinePropertiesTest extends TypeICompilerTestCase {
 
   public void testTypeMismatchNoPropInlining() {
     testSame(
-        LINE_JOINER.join(
+        lines(
             "/** @constructor */",
             "function C() {}",
             "C.prototype.foo = 1;",
@@ -436,7 +468,7 @@ public final class InlinePropertiesTest extends TypeICompilerTestCase {
 
   public void testStructuralInterfacesNoPropInlining() {
     testSame(
-        LINE_JOINER.join(
+        lines(
             "/** @record */ function I() {}",
             "/** @type {number|undefined} */ I.prototype.foo;",
             "",
@@ -453,7 +485,7 @@ public final class InlinePropertiesTest extends TypeICompilerTestCase {
     this.runSmartNameRemoval = true;
 
     test(
-        LINE_JOINER.join(
+        lines(
             "/** @record */",
             "function I() {",
             "  /** @type {number} */ this.foo;",
@@ -464,7 +496,7 @@ public final class InlinePropertiesTest extends TypeICompilerTestCase {
             "",
             "function f(/** ? */ x) { return x.foo; }",
             "f(new C());"),
-        LINE_JOINER.join(
+        lines(
             "/** @constructor @implements {I} */",
             "function C() { /** @type {number} */ this.foo = 1; }",
             "",

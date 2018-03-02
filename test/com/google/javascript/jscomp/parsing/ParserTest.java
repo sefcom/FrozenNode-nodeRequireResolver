@@ -100,6 +100,9 @@ public final class ParserTest extends BaseJSTypeTestCase {
     parse("(-x)**y");
     // Parens are not required for unary operator on the right operand
     parse("x**-y");
+    parse("x/y**z");
+
+    parse("2 ** 3 > 3");
 
     mode = LanguageMode.ECMASCRIPT6;
     strictMode = SLOPPY;
@@ -184,7 +187,7 @@ public final class ParserTest extends BaseJSTypeTestCase {
   }
 
   public void testBreakCrossFunction() {
-    parseError("while(1) { function f() { break; } }", UNLABELED_BREAK);
+    parseError("while(1) { var f = function() { break; } }", UNLABELED_BREAK);
   }
 
   public void testBreakCrossFunctionInFor() {
@@ -228,12 +231,12 @@ public final class ParserTest extends BaseJSTypeTestCase {
   }
 
   public void testContinueNotCrossFunction1() {
-    parse("a:switch(1){case(1):function f(){a:while(1){continue a;}}}");
+    parse("a:switch(1){case(1):var f = function(){a:while(1){continue a;}}}");
   }
 
   public void testContinueNotCrossFunction2() {
     parseError(
-        "a:switch(1){case(1):function f(){while(1){continue a;}}}",
+        "a:switch(1){case(1):var f = function(){while(1){continue a;}}}",
         UNDEFINED_LABEL + " \"a\"");
   }
 
@@ -317,6 +320,17 @@ public final class ParserTest extends BaseJSTypeTestCase {
 
   public void testNonDuplicateLabelCrossFunction() {
     parse("foo:(function(){foo:2})");
+  }
+
+  public void testLabeledFunctionDeclaration() {
+    parseError(
+        "foo:function f() {}", "Functions can only be declared at top level or inside a block.");
+  }
+
+  public void testLabeledClassDeclaration() {
+    mode = LanguageMode.ECMASCRIPT6;
+    parseError(
+        "foo:class Foo {}", "Classes can only be declared at top level or inside a block.");
   }
 
   public void testLinenoCharnoAssign1() throws Exception {
@@ -1104,12 +1118,9 @@ public final class ParserTest extends BaseJSTypeTestCase {
         parse("x = 1\ny = 2"),
         parse("x = 1; y = 2;"));
 
-    // This fails because an EMPTY statement
-    // is inserted after the 'x=1'.
-    // TODO(tbreisacher): Fix and re-enable.
-    //assertNodeEquality(
-    //    parse("x = 1\n;y = 2"),
-    //    parse("x = 1; y = 2;"));
+    assertNodeEquality(
+        parse("x = 1\n;y = 2"),
+        parse("x = 1;; y = 2;"));
 
     // if/else statements
     assertNodeEquality(
@@ -1201,46 +1212,53 @@ public final class ParserTest extends BaseJSTypeTestCase {
     expectFeatures(Feature.COMPUTED_PROPERTIES);
 
     // Method
-    testComputedProperty(Joiner.on('\n').join(
-        "var x = {",
-        "  [prop + '_']() {}",
-        "}"));
+    testComputedProperty("var x = {  [prop + '_']() {} }");
+    // NOTE: we treat string and number keys as if they were computed properties for method
+    // shorthand, but not getters and setters.
+    testComputedProperty("var x = {  'abc'() {} }");
+    testComputedProperty("var x = {  123() {} }");
 
     // Getter
-    testComputedProperty(Joiner.on('\n').join(
-        "var x = {",
-        "  get [prop + '_']() {}",
-        "}"));
+    testComputedProperty("var x = {  get [prop + '_']() {} }");
 
     // Setter
-    testComputedProperty(Joiner.on('\n').join(
-        "var x = {",
-        "  set [prop + '_'](val) {}",
-        "}"));
+    testComputedProperty("var x = { set [prop + '_'](val) {} }");
 
     // Generator method
     mode = LanguageMode.ECMASCRIPT6;
     strictMode = SLOPPY;
-    parse(Joiner.on('\n').join(
-        "var x = {",
-        "  *[prop + '_']() {}",
-        "}"));
+    parse("var x = { *[prop + '_']() {} }");
+    parse("var x = { *'abc'() {} }");
+    parse("var x = { *123() {} }");
 
+    mode = LanguageMode.ECMASCRIPT8;
+    parse("var x = { async [prop + '_']() {} }");
+    parse("var x = { async 'abc'() {} }");
+    parse("var x = { async 123() {} }");
   }
 
   public void testComputedMethodClass() {
     mode = LanguageMode.ECMASCRIPT6;
     strictMode = SLOPPY;
     expectFeatures(Feature.CLASSES, Feature.COMPUTED_PROPERTIES);
-    parse(Joiner.on('\n').join(
-        "class X {",
-        "  [prop + '_']() {}",
-        "}"));
+    parse("class X { [prop + '_']() {} }");
+    // Note that we pretend string and number keys are computed property names, because
+    // this makes it easier to treat class and object-literal cases consistently.
+    parse("class X { 'abc'() {} }");
+    parse("class X { 123() {} }");
 
-    parse(Joiner.on('\n').join(
-        "class X {",
-        "  static [prop + '_']() {}",
-        "}"));
+    parse("class X { static [prop + '_']() {} }");
+    parse("class X { static 'abc'() {} }");
+    parse("class X { static 123() {} }");
+
+    parse("class X { *[prop + '_']() {} }");
+    parse("class X { *'abc'() {} }");
+    parse("class X { *123() {} }");
+
+    mode = LanguageMode.ECMASCRIPT8;
+    parse("class X { async [prop + '_']() {} }");
+    parse("class X { async 'abc'() {} }");
+    parse("class X { async 123() {} }");
   }
 
   public void testComputedProperty() {
@@ -1459,15 +1477,10 @@ public final class ParserTest extends BaseJSTypeTestCase {
 
     expectFeatures(Feature.DESTRUCTURING, Feature.ARRAY_PATTERN_REST);
     parse("var [first, ...rest] = foo();");
-
-    expectFeatures(Feature.DESTRUCTURING, Feature.ARRAY_PATTERN_REST, Feature.LET_DECLARATIONS);
     parse("let [first, ...rest] = foo();");
-
-    expectFeatures(Feature.DESTRUCTURING, Feature.ARRAY_PATTERN_REST, Feature.CONST_DECLARATIONS);
     parse("const [first, ...rest] = foo();");
 
     // nested destructuring in regular parameters and rest parameters
-    expectFeatures(Feature.DESTRUCTURING, Feature.ARRAY_PATTERN_REST);
     parse("var [first, {a, b}, ...[re, st, ...{length}]] = foo();");
 
     expectFeatures();
@@ -1484,6 +1497,59 @@ public final class ParserTest extends BaseJSTypeTestCase {
         getRequiresEs6Message(Feature.ARRAY_PATTERN_REST));
   }
 
+  public void testObjectDestructuringDeclarationRest() {
+    mode = LanguageMode.ES_NEXT;
+    strictMode = SLOPPY;
+
+    expectFeatures(Feature.DESTRUCTURING, Feature.OBJECT_PATTERN_REST);
+    parse("var {first, ...rest} = foo();");
+    parse("let {first, ...rest} = foo();");
+    parse("const {first, ...rest} = foo();");
+
+    expectFeatures();
+    parseError(
+        "var {first, ...more = 'default'} = foo();",
+        "A default value cannot be specified after '...'");
+    parseError("var {first, ...more, last} = foo();", "'}' expected");
+
+    mode = LanguageMode.ECMASCRIPT6;
+    parseWarning(
+        "var {first, ...rest} = foo();",
+        getRequiresEsNextMessage(Feature.OBJECT_PATTERN_REST));
+  }
+
+  public void testArrayLiteralDeclarationSpread() {
+    mode = LanguageMode.ECMASCRIPT6;
+    strictMode = SLOPPY;
+
+    expectFeatures(Feature.SPREAD_EXPRESSIONS);
+    parse("var o = [first, ...spread];");
+
+    mode = LanguageMode.ECMASCRIPT5;
+    parseWarning(
+        "var o = [first, ...spread];",
+        getRequiresEs6Message(Feature.SPREAD_EXPRESSIONS));
+  }
+
+  public void testObjectLiteralDeclarationSpread() {
+    mode = LanguageMode.ES_NEXT;
+    strictMode = SLOPPY;
+
+    expectFeatures(Feature.OBJECT_LITERALS_WITH_SPREAD);
+    parse("var o = {first: 1, ...spread};");
+
+    mode = LanguageMode.ECMASCRIPT5;
+    parseWarning(
+        "var o = {first: 1, ...spread};",
+        getRequiresEs6Message(Feature.SPREAD_EXPRESSIONS),
+        getRequiresEsNextMessage(Feature.OBJECT_LITERALS_WITH_SPREAD));
+
+    mode = LanguageMode.ECMASCRIPT6;
+    parseWarning(
+        "var o = {first: 1, ...spread};",
+        getRequiresEsNextMessage(Feature.OBJECT_LITERALS_WITH_SPREAD));
+  }
+
   public void testArrayDestructuringAssignRest() {
     mode = LanguageMode.ECMASCRIPT6;
     strictMode = SLOPPY;
@@ -1498,6 +1564,17 @@ public final class ParserTest extends BaseJSTypeTestCase {
     parseWarning("var [first, ...rest] = foo();",
         getRequiresEs6Message(Feature.DESTRUCTURING),
         getRequiresEs6Message(Feature.ARRAY_PATTERN_REST));
+  }
+
+  public void testObjectDestructuringAssignRest() {
+    mode = LanguageMode.ES_NEXT;
+    strictMode = SLOPPY;
+    expectFeatures(Feature.DESTRUCTURING, Feature.OBJECT_PATTERN_REST);
+    parse("const {first, ...rest} = foo();");
+
+    mode = LanguageMode.ECMASCRIPT6;
+    parseWarning("var {first, ...rest} = foo();",
+        getRequiresEsNextMessage(Feature.OBJECT_PATTERN_REST));
   }
 
   public void testArrayDestructuringAssignRestInvalid() {
@@ -1797,16 +1874,31 @@ public final class ParserTest extends BaseJSTypeTestCase {
         getRequiresEs6Message(Feature.LET_DECLARATIONS));
   }
 
-  // Ensure that we only add the feature for function declarations (i.e.
-  // function f() {} ) and not function expressions (e.g. var f = function() {} )
-  public void testBlockScopeFunctionDeclaration() {
-    expectFeatures(Feature.BLOCK_SCOPED_FUNCTION_DECLARATION);
-    parse("if (1) { function f() {} }");
+  public void testBlockScopedFunctionDeclaration() {
+    mode = LanguageMode.ECMASCRIPT6;
 
+    expectFeatures(Feature.BLOCK_SCOPED_FUNCTION_DECLARATION);
+    parse("{ function foo() {} }");
+    parse("if (true) { function foo() {} }");
+    parse("{ function* gen() {} }");
+    parse("if (true) function foo() {}");
+    parse("if (true) function foo() {} else {}");
+    parse("if (true) {} else function foo() {}");
+    parse("if (true) function foo() {} else function foo() {}");
+
+    mode = LanguageMode.ECMASCRIPT5;
     expectFeatures();
-    Node result = parse("if (1) { var f = function() {} }");
-    FeatureSet features = (FeatureSet) result.getProp(Node.FEATURE_SET);
-    assertFS(features).doesNotHave(Feature.BLOCK_SCOPED_FUNCTION_DECLARATION);
+    // Function expressions and functions directly inside other functions do not trigger this
+    parse("function foo() {}");
+    parse("(function foo() {})");
+    parse("function foo() { function bar() {} }");
+    parse("{ var foo = function() {}; }");
+    parse("{ var foo = function bar() {}; }");
+    parse("{ (function() {})(); }");
+    parse("{ (function foo() {})(); }");
+
+    parseWarning(
+        "{ function f() {} }", getRequiresEs6Message(Feature.BLOCK_SCOPED_FUNCTION_DECLARATION));
   }
 
   public void testLetForbidden3() {
@@ -2072,18 +2164,21 @@ public final class ParserTest extends BaseJSTypeTestCase {
     expectFeatures(Feature.STRING_CONTINUATION);
     mode = LanguageMode.ECMASCRIPT3;
     strictMode = SLOPPY;
-    Node n = parseError("'one\\\ntwo';",
-        "String continuations are not supported in this language mode.");
+    Node n = parseWarning(
+        "'one\\\ntwo';",
+        requiresLanguageModeMessage(LanguageMode.ECMASCRIPT5, Feature.STRING_CONTINUATION),
+        "String continuations are not recommended. See"
+                + " https://google.github.io/styleguide/jsguide.html#features-strings-no-line-continuations");
     assertThat(n.getFirstFirstChild().getString()).isEqualTo("onetwo");
 
     mode = LanguageMode.ECMASCRIPT5;
     parseWarning("'one\\\ntwo';", "String continuations are not recommended. See"
-        + " https://google.github.io/styleguide/javascriptguide.xml?showone=Multiline_string_literals#Multiline_string_literals");
+        + " https://google.github.io/styleguide/jsguide.html#features-strings-no-line-continuations");
     assertThat(n.getFirstFirstChild().getString()).isEqualTo("onetwo");
 
     mode = LanguageMode.ECMASCRIPT6;
     parseWarning("'one\\\ntwo';", "String continuations are not recommended. See"
-        + " https://google.github.io/styleguide/javascriptguide.xml?showone=Multiline_string_literals#Multiline_string_literals");
+        + " https://google.github.io/styleguide/jsguide.html#features-strings-no-line-continuations");
     assertThat(n.getFirstFirstChild().getString()).isEqualTo("onetwo");
   }
 
@@ -2118,7 +2213,7 @@ public final class ParserTest extends BaseJSTypeTestCase {
     testTemplateLiteral("`hello ${name} ${world}`.length;");
   }
 
-  public void testTemplateLiteral() {
+  public void testTemplateLiterals() {
     expectFeatures(Feature.TEMPLATE_LITERALS);
     testTemplateLiteral("``");
     testTemplateLiteral("`\"`");
@@ -2159,7 +2254,7 @@ public final class ParserTest extends BaseJSTypeTestCase {
     expectFeatures(Feature.TEMPLATE_LITERALS);
     Node n = parseWarning("`string \\\ncontinuation`",
         "String continuations are not recommended. See"
-        + " https://google.github.io/styleguide/javascriptguide.xml?showone=Multiline_string_literals#Multiline_string_literals");
+        + " https://google.github.io/styleguide/jsguide.html#features-strings-no-line-continuations");
     Node templateLiteral = n.getFirstFirstChild();
     Node stringNode = templateLiteral.getFirstChild();
     assertNode(stringNode).hasType(Token.STRING);
@@ -2226,11 +2321,9 @@ public final class ParserTest extends BaseJSTypeTestCase {
     expectFeatures(Feature.BINARY_LITERALS);
     mode = LanguageMode.ECMASCRIPT3;
     strictMode = SLOPPY;
-    parseWarning("0b0001;",
-        "Binary integer literals are not supported in this language mode.");
+    parseWarning("0b0001;", getRequiresEs6Message(Feature.BINARY_LITERALS));
     mode = LanguageMode.ECMASCRIPT5;
-    parseWarning("0b0001;",
-        "Binary integer literals are not supported in this language mode.");
+    parseWarning("0b0001;", getRequiresEs6Message(Feature.BINARY_LITERALS));
     mode = LanguageMode.ECMASCRIPT6;
     parse("0b0001;");
   }
@@ -2239,11 +2332,9 @@ public final class ParserTest extends BaseJSTypeTestCase {
     expectFeatures(Feature.OCTAL_LITERALS);
     mode = LanguageMode.ECMASCRIPT3;
     strictMode = SLOPPY;
-    parseWarning("0o0001;",
-        "Octal integer literals are not supported in this language mode.");
+    parseWarning("0o0001;", getRequiresEs6Message(Feature.OCTAL_LITERALS));
     mode = LanguageMode.ECMASCRIPT5;
-    parseWarning("0o0001;",
-        "Octal integer literals are not supported in this language mode.");
+    parseWarning("0o0001;", getRequiresEs6Message(Feature.OCTAL_LITERALS));
     mode = LanguageMode.ECMASCRIPT6;
     parse("0o0001;");
   }
@@ -3731,9 +3822,13 @@ public final class ParserTest extends BaseJSTypeTestCase {
     return requiresLanguageModeMessage(LanguageMode.ECMASCRIPT6, feature);
   }
 
+  private static String getRequiresEsNextMessage(Feature feature) {
+    return requiresLanguageModeMessage(LanguageMode.ES_NEXT, feature);
+  }
+
   private static String requiresLanguageModeMessage(LanguageMode languageMode, Feature feature) {
     return String.format(
-        "this language feature is only supported for %s mode or better: %s",
+        "This language feature is only supported for %s mode or better: %s",
         languageMode,
         feature);
   }
@@ -3765,9 +3860,7 @@ public final class ParserTest extends BaseJSTypeTestCase {
     Node script = result.ast;
 
     // check expected features if specified
-    if (expectedFeatures != null) {
-      assertFS(result.features).contains(expectedFeatures);
-    }
+    assertFS(result.features).contains(expectedFeatures);
 
     // verifying that all errors were seen
     testErrorReporter.assertHasEncounteredAllErrors();
@@ -3794,9 +3887,7 @@ public final class ParserTest extends BaseJSTypeTestCase {
         testErrorReporter);
 
     // check expected features if specified
-    if (expectedFeatures != null) {
-      assertFS(result.features).contains(expectedFeatures);
-    }
+    assertFS(result.features).contains(expectedFeatures);
 
     // verifying that all warnings were seen
     testErrorReporter.assertHasEncounteredAllErrors();

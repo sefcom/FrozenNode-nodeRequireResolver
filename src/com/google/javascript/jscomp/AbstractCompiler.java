@@ -202,18 +202,6 @@ public abstract class AbstractCompiler implements SourceExcerptProvider {
   public abstract CodingConvention getCodingConvention();
 
   /**
-   * Report code changes.
-   *
-   * Passes should call reportCodeChange when they alter the JS tree. This is
-   * verified by CompilerTestCase. This allows us to optimize to a fixed point.
-   *
-   * @deprecated
-   * Use #reportChangeToEnclosingScope or NodeTraversal#reportCodeChange instead
-   */
-  @Deprecated
-  public abstract void reportCodeChange();
-
-  /**
    * Passes that make modifications in a scope that is different than the Compiler.currentScope use
    * this (eg, InlineVariables and many others)
    */
@@ -230,11 +218,6 @@ public abstract class AbstractCompiler implements SourceExcerptProvider {
    * tracking which is necessary to streamline optimizations.
    */
   abstract void reportFunctionDeleted(Node node);
-
-  /**
-   * Logs a message under a central logger.
-   */
-  abstract void addToDebugLog(String... message);
 
   /**
    * Sets the CssRenamingMap.
@@ -257,7 +240,7 @@ public abstract class AbstractCompiler implements SourceExcerptProvider {
    *     modules.
    * @return A SCRIPT node (never null).
    */
-  abstract Node getNodeForCodeInsertion(JSModule module);
+  abstract Node getNodeForCodeInsertion(@Nullable JSModule module);
 
   /**
    * Only used by passes in the old type checker.
@@ -280,15 +263,6 @@ public abstract class AbstractCompiler implements SourceExcerptProvider {
    * Global type registry used by NTI.
    */
   abstract <T extends TypeIRegistry> T getGlobalTypeInfo();
-
-  /**
-   * Used by three passes that run in sequence (optimize-returns,
-   * optimize-parameters, remove-unused-variables), to avoid having them
-   * recompute it independently.
-   */
-  abstract DefinitionUseSiteFinder getDefinitionFinder();
-
-  abstract void setDefinitionFinder(DefinitionUseSiteFinder defFinder);
 
   abstract void setExternExports(String externExports);
 
@@ -364,9 +338,6 @@ public abstract class AbstractCompiler implements SourceExcerptProvider {
    * registered for the given type.
    */
   abstract <T> T getIndex(Class<T> type);
-
-  @Deprecated
-  abstract void setChangeScope(Node n);
 
   /** A monotonically increasing value to identify a change */
   abstract int getChangeStamp();
@@ -614,6 +585,9 @@ public abstract class AbstractCompiler implements SourceExcerptProvider {
    * Gets the module loader.
    */
   abstract ModuleLoader getModuleLoader();
+
+  /** Lookup the type of a module from its name. */
+  abstract CompilerInput.ModuleType getModuleTypeByName(String moduleName);
 
   /**
    * Sets an annotation for the given key.

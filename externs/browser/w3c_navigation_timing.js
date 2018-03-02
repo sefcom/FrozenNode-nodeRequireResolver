@@ -121,10 +121,39 @@ function PerformanceNavigation() {}
 /** @type {number} */ PerformanceNavigation.prototype.type;
 /** @type {number} */ PerformanceNavigation.prototype.redirectCount;
 
+/**
+ * https://w3c.github.io/longtasks/#taskattributiontiming
+ * @constructor
+ * @extends {PerformanceEntry}
+ */
+function TaskAttributionTiming() {}
+/** @type {string} */ TaskAttributionTiming.prototype.containerId;
+/** @type {string} */ TaskAttributionTiming.prototype.containerName;
+/** @type {string} */ TaskAttributionTiming.prototype.containerSrc;
+/** @type {string} */ TaskAttributionTiming.prototype.containerType;
+
+/**
+ * https://w3c.github.io/longtasks/#performancelongtasktiming
+ * @constructor
+ * @extends {PerformanceEntry}
+ */
+function PerformanceLongTaskTiming() {}
+/** @type {!Array<!TaskAttributionTiming>} */
+PerformanceLongTaskTiming.prototype.attribution;
+
+
 /** @constructor */
 function Performance() {}
-/** @type {PerformanceTiming} */ Performance.prototype.timing;
-/** @type {PerformanceNavigation} */ Performance.prototype.navigation;
+
+/** @type {PerformanceTiming} */
+Performance.prototype.timing;
+
+/** @type {PerformanceNavigation} */
+Performance.prototype.navigation;
+
+/** @type {number} */
+Performance.prototype.timeOrigin;
+
 
 /**
  * Clears the buffer used to store the current list of
@@ -155,7 +184,7 @@ Performance.prototype.setResourceTimingBufferSize = function(maxSize) {};
 Performance.prototype.getEntries = function() {};
 
 /**
- * @param {string} entryType Only return {@code PerformanceEntry}s with this
+ * @param {string} entryType Only return `PerformanceEntry`s with this
  *     entryType.
  * @return {!Array<!PerformanceEntry>} A copy of the PerformanceEntry list,
  *     in chronological order with respect to startTime.
@@ -164,8 +193,8 @@ Performance.prototype.getEntries = function() {};
 Performance.prototype.getEntriesByType = function(entryType) {};
 
 /**
- * @param {string} name Only return {@code PerformanceEntry}s with this name.
- * @param {string=} opt_entryType Only return {@code PerformanceEntry}s with
+ * @param {string} name Only return `PerformanceEntry`s with this name.
+ * @param {string=} opt_entryType Only return `PerformanceEntry`s with
  *     this entryType.
  * @return {!Array<!PerformanceEntry>} PerformanceEntry list in chronological
  *     order with respect to startTime.

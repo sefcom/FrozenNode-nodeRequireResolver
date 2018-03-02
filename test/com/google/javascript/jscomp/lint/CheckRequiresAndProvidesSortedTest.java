@@ -21,6 +21,7 @@ import static com.google.javascript.jscomp.lint.CheckRequiresAndProvidesSorted.P
 import static com.google.javascript.jscomp.lint.CheckRequiresAndProvidesSorted.REQUIRES_NOT_SORTED;
 
 import com.google.javascript.jscomp.Compiler;
+import com.google.javascript.jscomp.CompilerOptions;
 import com.google.javascript.jscomp.CompilerOptions.LanguageMode;
 import com.google.javascript.jscomp.CompilerPass;
 import com.google.javascript.jscomp.CompilerTestCase;
@@ -42,59 +43,102 @@ public final class CheckRequiresAndProvidesSortedTest extends CompilerTestCase {
     setAcceptedLanguage(LanguageMode.ECMASCRIPT_2017);
   }
 
+  @Override
+  protected CompilerOptions getOptions() {
+    CompilerOptions options = super.getOptions();
+    options.setPrettyPrint(true);
+    options.setPreserveTypeAnnotations(true);
+    options.setPreferSingleQuotes(true);
+    options.setEmitUseStrict(false);
+    return options;
+  }
+
   public void testNoWarning_require() {
-    testSame("goog.require('a.b');\ngoog.require('a.c')");
-    testSame(
-        LINE_JOINER.join(
+    testNoWarning("goog.require('a.b');\ngoog.require('a.c')");
+    testNoWarning(
+        lines(
             "goog.require('namespace');",
             "goog.require('namespace.ExampleClass');",
             "goog.require('namespace.ExampleClass.ExampleInnerClass');"));
-    testSame(
-        LINE_JOINER.join(
+    testNoWarning(
+        lines(
             "goog.require('namespace.Example');",
             "goog.require('namespace.example');"));
   }
 
   public void testNoWarning_provide() {
-    testSame("goog.provide('a.b');\ngoog.provide('a.c')");
-    testSame(
-        LINE_JOINER.join(
+    testNoWarning("goog.provide('a.b');\ngoog.provide('a.c')");
+    testNoWarning(
+        lines(
             "goog.provide('namespace');",
             "goog.provide('namespace.ExampleClass');",
             "goog.provide('namespace.ExampleClass.ExampleInnerClass');"));
-    testSame(
-        LINE_JOINER.join(
+    testNoWarning(
+        lines(
             "goog.provide('namespace.Example');",
             "goog.provide('namespace.example');"));
   }
 
   public void testWarning_require() {
-    testWarning("goog.require('a.c');\ngoog.require('a.b')", REQUIRES_NOT_SORTED);
+    test(
+        srcs("goog.require('a.c');\ngoog.require('a.b')"),
+        warning(REQUIRES_NOT_SORTED).withMessageContaining(lines(
+            "The correct order is:",
+            "",
+            "goog.require('a.b');",
+            "goog.require('a.c');")));
 
-    testWarning("goog.require('a.c');\ngoog.require('a')", REQUIRES_NOT_SORTED);
+    test(
+        srcs("goog.require('a.c');\ngoog.require('a')"),
+        warning(REQUIRES_NOT_SORTED).withMessageContaining(lines(
+            "The correct order is:",
+            "",
+            "goog.require('a');",
+            "goog.require('a.c');")));
   }
 
   public void testWarning_requireWithJSDoc() {
-    testWarning(
-        LINE_JOINER.join(
+    test(
+        srcs(lines(
             "goog.require('a.c');",
             "/** @suppress {extraRequire} */",
-            "goog.require('a.b')"),
-        REQUIRES_NOT_SORTED);
+            "goog.require('a.b')")),
+        warning(REQUIRES_NOT_SORTED).withMessageContaining(lines(
+            "The correct order is:",
+            "",
+            "/**",
+            " @suppress {extraRequire}",
+            " */",
+            "goog.require('a.b');",
+            "goog.require('a.c');")));
   }
 
   public void testWarning_provide() {
-    testWarning("goog.provide('a.c');\ngoog.provide('a.b')", PROVIDES_NOT_SORTED);
-    testWarning("goog.provide('a.c');\ngoog.provide('a')", PROVIDES_NOT_SORTED);
+    test(
+        srcs("goog.provide('a.c');\ngoog.provide('a.b')"),
+        warning(PROVIDES_NOT_SORTED).withMessageContaining(lines(
+            "The correct order is:",
+            "",
+            "goog.provide('a.b');",
+            "goog.provide('a.c');")));
+    test(
+        srcs("goog.provide('a.c');\ngoog.provide('a')"),
+        warning(PROVIDES_NOT_SORTED).withMessageContaining(lines(
+            "The correct order is:",
+            "",
+            "goog.provide('a');",
+            "goog.provide('a.c');")));
   }
 
   public void testWarning_requiresFirst() {
-    testWarning("goog.require('a');\ngoog.provide('b')", PROVIDES_AFTER_REQUIRES);
+    test(
+        srcs("goog.require('a');\ngoog.provide('b')"),
+        warning(PROVIDES_AFTER_REQUIRES));
   }
 
   public void testB3473189() {
-    testSame(
-        LINE_JOINER.join(
+    testNoWarning(
+        lines(
             "goog.provide('abc');",
             "if (typeof goog != 'undefined' && typeof goog.provide == 'function') {",
             "  goog.provide('MyLib.Base');",
@@ -102,22 +146,26 @@ public final class CheckRequiresAndProvidesSortedTest extends CompilerTestCase {
   }
 
   public void testGoogModule_shorthandAndStandalone() {
-    testWarning(
-        LINE_JOINER.join(
+    test(
+        srcs(lines(
             "goog.module('m');",
             "",
             "goog.require('a.c');",
             "const d = goog.require('a.b.d');",
             "goog.require('a.b.c');",
             "",
-            "alert(1);"),
-        REQUIRES_NOT_SORTED);
-
+            "alert(1);")),
+        warning(REQUIRES_NOT_SORTED).withMessageContaining(lines(
+            "The correct order is:",
+            "",
+            "const d = goog.require('a.b.d');",
+            "goog.require('a.b.c');",
+            "goog.require('a.c');")));
   }
 
   public void testGoogModule_destructuring() {
-    testWarning(
-        LINE_JOINER.join(
+    test(
+        srcs(lines(
             "goog.module('m');",
             "",
             "goog.require('z');",
@@ -125,23 +173,33 @@ public final class CheckRequiresAndProvidesSortedTest extends CompilerTestCase {
             "var {someFunction, anotherFunction} = goog.require('example.utils');",
             "var {A_CONST, ANOTHER_CONST} = goog.require('example.constants');",
             "",
-            "alert(1);"),
-        REQUIRES_NOT_SORTED);
+            "alert(1);")),
+        warning(REQUIRES_NOT_SORTED).withMessageContaining(lines(
+            "The correct order is:",
+            "",
+            "var {A_CONST, ANOTHER_CONST} = goog.require('example.constants');",
+            "var {someFunction, anotherFunction} = goog.require('example.utils');",
+            "goog.require('a');",
+            "goog.require('z');")));
   }
 
   public void testGoogModule_emptyDestructuring() {
-    testWarning(
-        LINE_JOINER.join(
+    test(
+        srcs(lines(
             "goog.module('m');",
             "",
             "const {FOO} = goog.require('example.constants');",
             "const {} = goog.require('just.forthe.side.effects');",
             "",
-            "alert(1);"),
-        REQUIRES_NOT_SORTED);
+            "alert(1);")),
+        warning(REQUIRES_NOT_SORTED).withMessageContaining(lines(
+            "The correct order is:",
+            "",
+            "const {} = goog.require('just.forthe.side.effects');",
+            "const {FOO} = goog.require('example.constants');")));
 
     testNoWarning(
-        LINE_JOINER.join(
+        lines(
             "goog.module('m');",
             "",
             "const {} = goog.require('just.forthe.side.effects');",
@@ -151,8 +209,9 @@ public final class CheckRequiresAndProvidesSortedTest extends CompilerTestCase {
   }
 
   public void testGoogModule_allThreeStyles() {
-    testWarning(
-        LINE_JOINER.join(
+    test(
+        srcs(
+            lines(
             "/** @fileoverview @suppress {extraRequire} */",
             "goog.module('m');",
             "",
@@ -160,73 +219,106 @@ public final class CheckRequiresAndProvidesSortedTest extends CompilerTestCase {
             "goog.require('standalone.two');",
             "const {destructuring} = goog.require('c');",
             "goog.require('standalone.one');",
-            "const shorthand1 = goog.require('b');"),
-        REQUIRES_NOT_SORTED);
+            "const shorthand1 = goog.require('b');")),
+        warning(REQUIRES_NOT_SORTED).withMessageContaining(lines(
+            "The correct order is:",
+            "",
+            "const shorthand1 = goog.require('b');",
+            "const shorthand2 = goog.require('a');",
+            "const {destructuring} = goog.require('c');",
+            "goog.require('standalone.one');",
+            "goog.require('standalone.two');")));
   }
 
   public void testGoogModule_shorthand() {
-    testWarning(
-        LINE_JOINER.join(
+    test(
+        srcs(lines(
             "goog.module('m');",
             "",
             "var d = goog.require('a.b.d');",
             "var c = goog.require('a.c');",
             "",
-            "alert(1);"),
-        REQUIRES_NOT_SORTED);
+            "alert(1);")),
+        warning(REQUIRES_NOT_SORTED).withMessageContaining(lines(
+            "The correct order is:",
+            "",
+            "var c = goog.require('a.c');",
+            "var d = goog.require('a.b.d');")));
   }
 
   public void testGoogModule_shorthand_destructuring() {
-    testWarning(
-        LINE_JOINER.join(
+    test(
+        srcs(lines(
             "goog.module('m');",
             "",
             "var a = goog.require('a.b.d');",
             "var {b} = goog.require('a.a.a');",
             "var c = goog.require('a.c');",
             "",
-            "alert(1);"),
-        REQUIRES_NOT_SORTED);
+            "alert(1);")),
+        warning(REQUIRES_NOT_SORTED).withMessageContaining(lines(
+            "The correct order is:",
+            "",
+            "var a = goog.require('a.b.d');",
+            "var c = goog.require('a.c');",
+            "var {b} = goog.require('a.a.a');")));
   }
 
   public void testGoogModule_standalone() {
-    testWarning(
-        LINE_JOINER.join(
+    test(
+        srcs(
+            lines(
             "goog.module('m');",
             "",
             "goog.require('a.c');",
             "goog.require('a.b.d');",
             "goog.require('a.b.c');",
             "",
-            "alert(1);"),
-        REQUIRES_NOT_SORTED);
+            "alert(1);")),
+        warning(REQUIRES_NOT_SORTED).withMessageContaining(lines(
+            "The correct order is:",
+            "",
+            "goog.require('a.b.c');",
+            "goog.require('a.b.d');",
+            "goog.require('a.c');")));
   }
 
   public void testGoogModule_forwardDeclares() {
-    testWarning(
-        LINE_JOINER.join(
+    test(
+        srcs(lines(
             "goog.module('x');",
             "",
             "const s = goog.require('s');",
             "const f = goog.forwardDeclare('f');",
-            "const r = goog.require('r');"),
-        REQUIRES_NOT_SORTED);
+            "const r = goog.require('r');")),
+        warning(REQUIRES_NOT_SORTED).withMessageContaining(lines(
+            "The correct order is:",
+            "",
+            "const r = goog.require('r');",
+            "const s = goog.require('s');",
+            "const f = goog.forwardDeclare('f');")));
   }
 
   public void testForwardDeclares() {
-    testWarning(
-        LINE_JOINER.join(
+    test(
+        srcs(
+            lines(
             "goog.provide('x');",
             "",
             "goog.require('s');",
             "goog.forwardDeclare('f');",
-            "goog.require('r');"),
-        REQUIRES_NOT_SORTED);
+            "goog.require('r');")),
+        warning(REQUIRES_NOT_SORTED).withMessageContaining(lines(
+            "The correct order is:",
+            "",
+            "goog.require('r');",
+            "goog.require('s');",
+            "goog.forwardDeclare('f');")));
   }
 
   public void testDuplicate() {
     testWarning(
-        LINE_JOINER.join(
+        lines(
             "goog.require('Bar');",
             "goog.require('Bar');"),
         DUPLICATE_REQUIRE);
@@ -234,7 +326,7 @@ public final class CheckRequiresAndProvidesSortedTest extends CompilerTestCase {
 
   public void testDuplicate_shorthand() {
     testWarning(
-        LINE_JOINER.join(
+        lines(
             "const Bar1 = goog.require('Bar');",
             "const Bar2 = goog.require('Bar');"),
         DUPLICATE_REQUIRE);
@@ -242,7 +334,7 @@ public final class CheckRequiresAndProvidesSortedTest extends CompilerTestCase {
 
   public void testDuplicate_destructuring() {
     testWarning(
-        LINE_JOINER.join(
+        lines(
             "const Bar = goog.require('Bar');",
             "const {Foo} = goog.require('Bar');"),
         DUPLICATE_REQUIRE);
@@ -250,14 +342,14 @@ public final class CheckRequiresAndProvidesSortedTest extends CompilerTestCase {
 
   // Just make sure we don't crash.
   public void testEmptyRequire() {
-    testSame("goog.require();");
+    testNoWarning("goog.require();");
   }
 
   // Compiler doesn't sort ES6 modules yet, because semantics not yet finalized.
   // Simple test to make sure compiler does not crash.
   public void testES6Modules() {
-    testSame(
-        LINE_JOINER.join(
+    testNoWarning(
+        lines(
             "import foo from 'bar';",
             "import bar from 'foo';",
             "import * as a from 'b';",

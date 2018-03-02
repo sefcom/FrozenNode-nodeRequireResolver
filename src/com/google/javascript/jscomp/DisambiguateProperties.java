@@ -41,6 +41,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -323,7 +324,7 @@ class DisambiguateProperties implements CompilerPass {
     }
   }
 
-  private final Map<String, Property> properties = new HashMap<>();
+  private final Map<String, Property> properties = new LinkedHashMap<>();
 
   DisambiguateProperties(
       AbstractCompiler compiler, Map<String, CheckLevel> propertiesToErrorFor) {
@@ -614,7 +615,10 @@ class DisambiguateProperties implements CompilerPass {
       if (prop.skipRenaming || invalidatingTypes.isInvalidating(type)) {
         return null;
       }
-
+      ObjectTypeI maybeObj = type.toMaybeObjectType();
+      if (maybeObj != null) {
+        type = maybeObj.withoutStrayProperties();
+      }
       Iterable<? extends TypeI> alternatives = getTypeAlternatives(type);
       if (alternatives != null) {
         TypeI firstType = relatedType;

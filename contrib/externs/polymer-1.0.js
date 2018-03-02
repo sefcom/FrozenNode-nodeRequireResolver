@@ -635,6 +635,12 @@ Polymer.Gestures.findOriginalTarget = function(ev) {};
 Polymer.Gestures.gestures = {};
 
 /**
+ * @param {Node} node
+ * @param {string} value
+ */
+Polymer.Gestures.setTouchAction = function(node, value) {};
+
+/**
  * @type {!Object}
  */
 Polymer.Gestures.gestures.tap = {};
@@ -1264,6 +1270,24 @@ var TemplatizerNode = function() {};
 
 /** @type {?PolymerElement} */
 TemplatizerNode.prototype._templateInstance;
+
+
+/**
+ * @see https://github.com/Polymer/polymer/blob/1.x/src/lib/template/dom-if.html
+ * @extends {PolymerElement}
+ * @constructor
+ */
+var DomIf = function() {};
+
+
+/**
+ * Forces the element to render its content. Normally rendering is
+ * asynchronous to a provoking change. This is done for efficiency so
+ * that multiple changes trigger only a single render. The render method
+ * should be called if, for example, template rendering is required to
+ * validate application state.
+ */
+DomIf.prototype.render = function() {};
 
 
 

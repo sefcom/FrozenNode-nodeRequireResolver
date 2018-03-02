@@ -2,12 +2,705 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9ba8c76d-324d-4e6c-8169-b92a136a08b6" name="Default" comment="">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/contrib/externs/jquery-3.3.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/debian/changelog" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/debian/closure-compiler.1.txt" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/debian/closure-compiler.install" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/debian/closure-compiler.manpages" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/debian/compat" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/debian/control" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/debian/copyright" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/debian/libclosure-compiler-java-doc.install" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/debian/libclosure-compiler-java.install" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/debian/manpage_encoding_declaration.UTF-8" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/debian/maven.rules" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/debian/rules" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/externs/browser/es6_proxy.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/externs/browser/web_app_manifest.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/AbstractScope.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/AbstractVar.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/BlackHoleErrorManager.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CheckConstPrivateProperties.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CheckSuper.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6NormalizeShorthandProperties.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6RewriteBlockScopedFunctionDeclaration.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6RewriteModulesToCommonJsModules.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6RewriteScriptsToModules.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/EsNextToEs8Converter.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/FileAwareWarningsGuard.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PrintStreamJSONErrorManager.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/RemoveUnusedCode.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ScopedName.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/deps/WebpackModuleResolver.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/gwt/super/java/lang/Thread.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ijs/CheckTypeSummaryWarningsGuard.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ijs/ClassUtil.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ijs/ConvertToTypedInterface.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ijs/FileInfo.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ijs/JsdocUtil.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ijs/PotentialDeclaration.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/js/es6/conformance.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/js/es6/generator_engine.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/js/es6/modules/runtime.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/js/es6/number/parsefloat.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/js/es6/util/assign.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/js/modules.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/lint/package.html" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/SymbolType.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CheckConstPrivatePropertiesTest.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CheckSuperTest.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/Es6RewriteBlockScopedFunctionDeclarationTest.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/Es6RewriteModulesToCommonJsModulesTest.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/Es6RewriteScriptsToModulesTest.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/EsNextToEs8ConverterTest.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/NameBasedDefinitionProviderTest.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/RemoveUnusedCodeClassPropertiesTest.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/RemoveUnusedCodeNameAnalyzerTest.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/RemoveUnusedCodePrototypePropertiesTest.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/RemoveUnusedCodeTest.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/TypeCheckNoTranspileTest.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ijs/ConvertToTypedInterfaceTest.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/generator_allow_call_test.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/module_tests/fq_jsdoc_test.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/module_tests/module_destructuring_test.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/module_tests/module_es3_test.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/module_tests/module_es6_test.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/module_tests/module_runtime_test.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/module_tests/module_test_resources/mutable_exports.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/module_tests/module_test_resources/reexport_mutable_exports.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/module_tests/mutable_exports_test.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/module_tests/nesting_test.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/module_tests/reexport_mutable_exports_test.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/object_spread_test.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/polyfill_tests/number_parsefloat_test.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/polyfill_tests/number_parseint_test.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/simulated_j2cl_test.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CommandLineRunner.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CommandLineRunner.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CompilerOptions.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CompilerOptions.java" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/README.md" afterPath="$PROJECT_DIR$/myREADME.md" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/README_org.md" afterPath="$PROJECT_DIR$/README.md" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/contrib/externs/angular-1.3-q_templated.js" afterPath="$PROJECT_DIR$/contrib/externs/angular-1.3-q_templated.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/contrib/externs/angular-1.4-q_templated.js" afterPath="$PROJECT_DIR$/contrib/externs/angular-1.4-q_templated.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/contrib/externs/angular-1.4.js" afterPath="$PROJECT_DIR$/contrib/externs/angular-1.4.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/contrib/externs/angular-1.5-q_templated.js" afterPath="$PROJECT_DIR$/contrib/externs/angular-1.5-q_templated.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/contrib/externs/angular-1.6-q_templated.js" afterPath="$PROJECT_DIR$/contrib/externs/angular-1.6-q_templated.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/contrib/externs/angular-1.6.js" afterPath="$PROJECT_DIR$/contrib/externs/angular-1.6.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/contrib/externs/angular-material-1.1.js" afterPath="$PROJECT_DIR$/contrib/externs/angular-material-1.1.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/contrib/externs/angular-material.js" afterPath="$PROJECT_DIR$/contrib/externs/angular-material.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/contrib/externs/angular_ui_router.js" afterPath="$PROJECT_DIR$/contrib/externs/angular_ui_router.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/contrib/externs/api/gadgets/opensocial.js" afterPath="$PROJECT_DIR$/contrib/externs/api/gadgets/opensocial.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/contrib/externs/chai-3.5.js" afterPath="$PROJECT_DIR$/contrib/externs/chai-3.5.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/contrib/externs/chrome.js" afterPath="$PROJECT_DIR$/contrib/externs/chrome.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/contrib/externs/chrome_extensions.js" afterPath="$PROJECT_DIR$/contrib/externs/chrome_extensions.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/contrib/externs/google_feed_api.js" afterPath="$PROJECT_DIR$/contrib/externs/google_feed_api.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/contrib/externs/polymer-1.0.js" afterPath="$PROJECT_DIR$/contrib/externs/polymer-1.0.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/contrib/externs/sinon-1.17.js" afterPath="$PROJECT_DIR$/contrib/externs/sinon-1.17.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/contrib/externs/ui-bootstrap.js" afterPath="$PROJECT_DIR$/contrib/externs/ui-bootstrap.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/externs/browser/fileapi.js" afterPath="$PROJECT_DIR$/externs/browser/fileapi.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/externs/browser/flash.js" afterPath="$PROJECT_DIR$/externs/browser/flash.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/externs/browser/google.js" afterPath="$PROJECT_DIR$/externs/browser/google.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/externs/browser/html5.js" afterPath="$PROJECT_DIR$/externs/browser/html5.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/externs/browser/ie_dom.js" afterPath="$PROJECT_DIR$/externs/browser/ie_dom.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/externs/browser/streamsapi.js" afterPath="$PROJECT_DIR$/externs/browser/streamsapi.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/externs/browser/w3c_css.js" afterPath="$PROJECT_DIR$/externs/browser/w3c_css.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/externs/browser/w3c_dom1.js" afterPath="$PROJECT_DIR$/externs/browser/w3c_dom1.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/externs/browser/w3c_dom2.js" afterPath="$PROJECT_DIR$/externs/browser/w3c_dom2.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/externs/browser/w3c_event.js" afterPath="$PROJECT_DIR$/externs/browser/w3c_event.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/externs/browser/w3c_eventsource.js" afterPath="$PROJECT_DIR$/externs/browser/w3c_eventsource.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/externs/browser/w3c_navigation_timing.js" afterPath="$PROJECT_DIR$/externs/browser/w3c_navigation_timing.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/externs/browser/w3c_requestidlecallback.js" afterPath="$PROJECT_DIR$/externs/browser/w3c_requestidlecallback.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/externs/browser/w3c_rtc.js" afterPath="$PROJECT_DIR$/externs/browser/w3c_rtc.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/externs/browser/w3c_webcrypto.js" afterPath="$PROJECT_DIR$/externs/browser/w3c_webcrypto.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/externs/browser/w3c_xml.js" afterPath="$PROJECT_DIR$/externs/browser/w3c_xml.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/externs/browser/webgl.js" afterPath="$PROJECT_DIR$/externs/browser/webgl.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/externs/browser/webkit_notifications.js" afterPath="$PROJECT_DIR$/externs/browser/webkit_notifications.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/externs/browser/window.js" afterPath="$PROJECT_DIR$/externs/browser/window.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/externs/es3.js" afterPath="$PROJECT_DIR$/externs/es3.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/externs/es5.js" afterPath="$PROJECT_DIR$/externs/es5.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/externs/es6.js" afterPath="$PROJECT_DIR$/externs/es6.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gen/com/google/javascript/jscomp/Conformance.java" afterPath="$PROJECT_DIR$/gen/com/google/javascript/jscomp/Conformance.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gen/com/google/javascript/jscomp/Requirement.java" afterPath="$PROJECT_DIR$/gen/com/google/javascript/jscomp/Requirement.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gen/com/google/javascript/jscomp/RequirementOrBuilder.java" afterPath="$PROJECT_DIR$/gen/com/google/javascript/jscomp/RequirementOrBuilder.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/pom-gwt.xml" afterPath="$PROJECT_DIR$/pom-gwt.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/pom-main.xml" afterPath="$PROJECT_DIR$/pom-main.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/pom.xml" afterPath="$PROJECT_DIR$/pom.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/debugging/sourcemap/SourceMapObjectParserJs.java" afterPath="$PROJECT_DIR$/src/com/google/debugging/sourcemap/SourceMapObjectParserJs.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/AbstractCommandLineRunner.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/AbstractCommandLineRunner.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/AbstractCompiler.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/AbstractCompiler.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/AggressiveInlineAliases.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/AggressiveInlineAliases.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/AliasStrings.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/AliasStrings.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/AmbiguateProperties.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/AmbiguateProperties.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/AnalyzePrototypeProperties.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/AnalyzePrototypeProperties.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/AnonymousFunctionNamingCallback.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/AnonymousFunctionNamingCallback.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/AstValidator.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/AstValidator.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/BasicErrorManager.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/BasicErrorManager.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ByPathWarningsGuard.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ByPathWarningsGuard.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ChangeVerifier.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ChangeVerifier.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CheckAccessControls.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CheckAccessControls.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CheckConformance.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CheckConformance.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CheckGlobalNames.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CheckGlobalNames.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CheckMissingAndExtraRequires.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CheckMissingAndExtraRequires.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CheckSideEffects.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CheckSideEffects.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CheckUnusedPrivateProperties.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CheckUnusedPrivateProperties.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ChromeCodingConvention.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ChromeCodingConvention.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CleanupPasses.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CleanupPasses.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ClosureCheckModule.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ClosureCheckModule.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ClosureCodeRemoval.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ClosureCodeRemoval.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ClosureCodingConvention.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ClosureCodingConvention.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ClosureRewriteClass.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ClosureRewriteClass.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ClosureRewriteModule.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ClosureRewriteModule.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CoalesceVariableNames.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CoalesceVariableNames.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CodePrinter.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CodePrinter.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CodingConventions.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CodingConventions.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CollapseAnonymousFunctions.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CollapseAnonymousFunctions.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CollapseProperties.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CollapseProperties.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CollectFunctionNames.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CollectFunctionNames.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CompilationLevel.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CompilationLevel.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Compiler.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Compiler.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CompilerInput.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CompilerInput.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CompilerOptionsPreprocessor.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CompilerOptionsPreprocessor.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ComposeWarningsGuard.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ComposeWarningsGuard.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ConformanceRules.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ConformanceRules.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ConstCheck.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ConstCheck.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ControlFlowAnalysis.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ControlFlowAnalysis.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CoverageInstrumentationPass.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CoverageInstrumentationPass.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CreateSyntheticBlocks.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CreateSyntheticBlocks.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CrossModuleReferenceCollector.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CrossModuleReferenceCollector.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/DataFlowAnalysis.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/DataFlowAnalysis.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/DeadAssignmentsElimination.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/DeadAssignmentsElimination.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/DeadPropertyAssignmentElimination.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/DeadPropertyAssignmentElimination.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/DefaultPassConfig.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/DefaultPassConfig.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/DefinitionUseSiteFinder.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/DefinitionUseSiteFinder.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/DefinitionsRemover.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/DefinitionsRemover.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/DevirtualizePrototypeMethods.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/DevirtualizePrototypeMethods.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/DiagnosticGroup.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/DiagnosticGroup.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/DiagnosticGroups.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/DiagnosticGroups.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/DisambiguateProperties.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/DisambiguateProperties.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/DotFormatter.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/DotFormatter.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/EarlyEs6ToEs3Converter.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/EarlyEs6ToEs3Converter.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/EmptyMessageBundle.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/EmptyMessageBundle.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6CheckModule.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6CheckModule.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6ConvertSuper.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6ConvertSuper.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6ConvertSuperConstructorCalls.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6ConvertSuperConstructorCalls.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6ExternsCheck.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6ExternsCheck.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6ExtractClasses.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6ExtractClasses.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6RenameVariablesInParamLists.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6RenameVariablesInParamLists.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6RewriteArrowFunction.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6RewriteArrowFunction.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6RewriteBlockScopedDeclaration.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6RewriteBlockScopedDeclaration.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6RewriteClass.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6RewriteClass.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6RewriteDestructuring.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6RewriteDestructuring.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6RewriteGenerators.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6RewriteGenerators.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6RewriteModules.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6RewriteModules.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6SplitVariableDeclarations.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6SplitVariableDeclarations.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6SyntacticScopeCreator.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6SyntacticScopeCreator.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6ToEs3ClassSideInheritance.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6ToEs3ClassSideInheritance.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6ToEs3Util.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6ToEs3Util.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6TypedToEs6Converter.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es6TypedToEs6Converter.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es7ToEs6Converter.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Es7ToEs6Converter.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ExportTestFunctions.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ExportTestFunctions.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ExpressionDecomposer.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ExpressionDecomposer.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ExtractPrototypeMemberDeclarations.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ExtractPrototypeMemberDeclarations.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/FindModuleDependencies.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/FindModuleDependencies.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/FlowSensitiveInlineVariables.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/FlowSensitiveInlineVariables.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/FunctionArgumentInjector.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/FunctionArgumentInjector.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/FunctionInjector.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/FunctionInjector.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/FunctionRewriter.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/FunctionRewriter.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/FunctionToBlockMutator.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/FunctionToBlockMutator.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/FunctionTypeBuilder.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/FunctionTypeBuilder.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/GatherExternProperties.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/GatherExternProperties.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/GlobalNamespace.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/GlobalNamespace.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/GlobalTypeInfo.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/GlobalTypeInfo.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/GlobalTypeInfoCollector.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/GlobalTypeInfoCollector.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/GlobalVarReferenceMap.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/GlobalVarReferenceMap.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/IncrementalScopeCreator.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/IncrementalScopeCreator.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/InjectRuntimeLibraries.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/InjectRuntimeLibraries.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/InlineAliases.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/InlineAliases.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/InlineCostEstimator.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/InlineCostEstimator.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/InlineFunctions.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/InlineFunctions.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/InlineObjectLiterals.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/InlineObjectLiterals.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/InlineProperties.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/InlineProperties.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/InlineSimpleMethods.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/InlineSimpleMethods.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/InlineVariables.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/InlineVariables.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/InvalidatingTypes.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/InvalidatingTypes.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/J2clClinitPrunerPass.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/J2clClinitPrunerPass.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/J2clConstantHoisterPass.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/J2clConstantHoisterPass.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/J2clEqualitySameRewriterPass.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/J2clEqualitySameRewriterPass.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/J2clPass.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/J2clPass.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/J2clPropertyInlinerPass.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/J2clPropertyInlinerPass.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/J2clSourceFileChecker.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/J2clSourceFileChecker.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/JSDocInfoPrinter.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/JSDocInfoPrinter.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/JSModule.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/JSModule.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/JSModuleGraph.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/JSModuleGraph.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/JsAst.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/JsAst.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/JsMessage.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/JsMessage.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/JsMessageExtractor.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/JsMessageExtractor.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/LateEs6ToEs3Converter.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/LateEs6ToEs3Converter.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/LazyParsedDependencyInfo.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/LazyParsedDependencyInfo.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/LightweightMessageFormatter.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/LightweightMessageFormatter.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/LinkedFlowScope.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/LinkedFlowScope.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/LintPassConfig.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/LintPassConfig.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Linter.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Linter.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/LiveVariablesAnalysis.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/LiveVariablesAnalysis.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/MakeDeclaredNamesUnique.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/MakeDeclaredNamesUnique.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/MaybeReachingVariableUse.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/MaybeReachingVariableUse.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/MemoizedScopeCreator.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/MemoizedScopeCreator.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/MethodCompilerPass.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/MethodCompilerPass.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/MinimizeExitPoints.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/MinimizeExitPoints.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/MoveFunctionDeclarations.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/MoveFunctionDeclarations.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/MustBeReachingVariableDef.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/MustBeReachingVariableDef.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/NTIScope.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/NTIScope.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/NameAnonymousFunctionsMapped.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/NameAnonymousFunctionsMapped.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/NameBasedDefinitionProvider.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/NameBasedDefinitionProvider.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/NewTypeInference.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/NewTypeInference.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/NodeIterators.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/NodeIterators.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/NodeNameExtractor.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/NodeNameExtractor.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/NodeTraversal.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/NodeTraversal.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/NodeUtil.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/NodeUtil.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Normalize.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Normalize.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/OptimizeArgumentsArray.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/OptimizeArgumentsArray.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/OptimizeCalls.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/OptimizeCalls.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/OptimizeParameters.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/OptimizeParameters.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/OptimizeReturns.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/OptimizeReturns.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PassConfig.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PassConfig.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PassFactory.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PassFactory.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PassNames.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PassNames.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PeepholeCollectPropertyAssignments.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PeepholeCollectPropertyAssignments.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PeepholeFoldConstants.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PeepholeFoldConstants.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PeepholeMinimizeConditions.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PeepholeMinimizeConditions.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PeepholeRemoveDeadCode.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PeepholeRemoveDeadCode.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PeepholeReplaceKnownMethods.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PeepholeReplaceKnownMethods.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PeepholeSubstituteAlternateSyntax.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PeepholeSubstituteAlternateSyntax.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PhaseOptimizer.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PhaseOptimizer.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PolymerClassDefinition.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PolymerClassDefinition.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PolymerClassRewriter.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PolymerClassRewriter.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PolymerPass.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PolymerPass.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PolymerPassErrors.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PolymerPassErrors.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PolymerPassFindExterns.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PolymerPassFindExterns.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PolymerPassStaticUtils.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PolymerPassStaticUtils.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PreprocessorSymbolTable.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PreprocessorSymbolTable.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ProcessClosurePrimitives.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ProcessClosurePrimitives.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ProcessCommonJSModules.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ProcessCommonJSModules.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ProcessDefines.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ProcessDefines.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PureFunctionIdentifier.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/PureFunctionIdentifier.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Reference.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Reference.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ReferenceCollectingCallback.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ReferenceCollectingCallback.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/RemoveUnusedPolyfills.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/RemoveUnusedPolyfills.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/RenameLabels.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/RenameLabels.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/RenameProperties.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/RenameProperties.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/RenameVars.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/RenameVars.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ReplaceIdGenerators.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ReplaceIdGenerators.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ReplaceMessages.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ReplaceMessages.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/RescopeGlobalSymbols.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/RescopeGlobalSymbols.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Result.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Result.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/RewriteAsyncFunctions.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/RewriteAsyncFunctions.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/RewriteJsonToModule.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/RewriteJsonToModule.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/RewritePolyfills.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/RewritePolyfills.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/RhinoErrorReporter.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/RhinoErrorReporter.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/RuntimeTypeCheck.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/RuntimeTypeCheck.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Scope.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Scope.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ScopeCreator.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ScopeCreator.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ScopedAliases.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ScopedAliases.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/SideEffectsAnalysis.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/SideEffectsAnalysis.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/SimpleInference.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/SimpleInference.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/SourceFile.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/SourceFile.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/SourceInformationAnnotator.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/SourceInformationAnnotator.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/SourceMapInput.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/SourceMapInput.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/StatementFusion.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/StatementFusion.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/StrictModeCheck.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/StrictModeCheck.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/StripCode.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/StripCode.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/SubstituteEs6Syntax.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/SubstituteEs6Syntax.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/SuppressDocWarningsGuard.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/SuppressDocWarningsGuard.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/SymbolTable.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/SymbolTable.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/SyntacticScopeCreator.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/SyntacticScopeCreator.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/TagNameToType.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/TagNameToType.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Tracer.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Tracer.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/TranspilationPasses.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/TranspilationPasses.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/TypeCheck.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/TypeCheck.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/TypeInferencePass.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/TypeInferencePass.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/TypeMismatch.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/TypeMismatch.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/TypeTransformation.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/TypeTransformation.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/TypeValidator.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/TypeValidator.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/TypedScope.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/TypedScope.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/TypedScopeCreator.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/TypedScopeCreator.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/TypedVar.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/TypedVar.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/UnreachableCodeElimination.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/UnreachableCodeElimination.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ValidityCheck.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ValidityCheck.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Var.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/Var.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/VarCheck.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/VarCheck.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/VariableMap.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/VariableMap.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/VariableReferenceCheck.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/VariableReferenceCheck.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/VariableVisibilityAnalysis.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/VariableVisibilityAnalysis.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ant/CompileTask.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/ant/CompileTask.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/conformance.proto" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/conformance.proto" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/debugger/common/CompilationParam.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/debugger/common/CompilationParam.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/deps/ClosureBundler.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/deps/ClosureBundler.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/deps/DependencyFile.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/deps/DependencyFile.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/deps/DependencyInfo.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/deps/DependencyInfo.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/deps/DepsFileParser.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/deps/DepsFileParser.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/deps/DepsGenerator.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/deps/DepsGenerator.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/deps/Es6SortedDependencies.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/deps/Es6SortedDependencies.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/deps/JsFileParser.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/deps/JsFileParser.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/deps/ModuleLoader.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/deps/ModuleLoader.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/deps/ModuleResolver.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/deps/ModuleResolver.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/deps/NodeModuleResolver.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/deps/NodeModuleResolver.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/deps/SimpleDependencyInfo.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/deps/SimpleDependencyInfo.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/graph/AdjacencyGraph.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/graph/AdjacencyGraph.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/graph/DiGraph.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/graph/DiGraph.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/graph/FixedPointGraphTraversal.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/graph/FixedPointGraphTraversal.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/graph/Graph.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/graph/Graph.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/graph/LinkedDirectedGraph.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/graph/LinkedDirectedGraph.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/graph/LinkedUndirectedGraph.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/graph/LinkedUndirectedGraph.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/graph/StandardUnionFind.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/graph/StandardUnionFind.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/gwt/client/GwtRunner.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/gwt/client/GwtRunner.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/gwt/client/JsfileParser.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/gwt/client/JsfileParser.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/gwt/linker/MinimalLinker.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/gwt/linker/MinimalLinker.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/gwt/super/com/google/javascript/jscomp/ConformanceConfig.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/gwt/super/com/google/javascript/jscomp/ConformanceConfig.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/gwt/super/com/google/javascript/jscomp/Requirement.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/gwt/super/com/google/javascript/jscomp/Requirement.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/js/es6/execute_async_generator.js" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/js/es6/execute_async_generator.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/js/es6/map.js" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/js/es6/map.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/js/es6/math/hypot.js" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/js/es6/math/hypot.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/js/es6/number.js" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/js/es6/number.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/js/es6/object/assign.js" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/js/es6/object/assign.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/js/es6/promise.js" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/js/es6/promise.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/js/es6/set.js" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/js/es6/set.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/js/es6/symbol.js" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/js/es6/symbol.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/js/es6/weakmap.js" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/js/es6/weakmap.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/js/es6/weakset.js" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/js/es6/weakset.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/js/es6_runtime.js" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/js/es6_runtime.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/js/polyfills.txt" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/js/polyfills.txt" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/js/util/polyfill.js" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/js/util/polyfill.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/lint/CheckEnums.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/lint/CheckEnums.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/lint/CheckJSDocStyle.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/lint/CheckJSDocStyle.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/lint/CheckRequiresAndProvidesSorted.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/lint/CheckRequiresAndProvidesSorted.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/lint/CheckUselessBlocks.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/lint/CheckUselessBlocks.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/newtypes/DeclaredFunctionType.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/newtypes/DeclaredFunctionType.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/newtypes/FunctionType.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/newtypes/FunctionType.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/newtypes/JSType.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/newtypes/JSType.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/newtypes/JSTypeCreatorFromJSDoc.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/newtypes/JSTypeCreatorFromJSDoc.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/newtypes/JSTypes.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/newtypes/JSTypes.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/newtypes/Namespace.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/newtypes/Namespace.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/newtypes/NamespaceLit.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/newtypes/NamespaceLit.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/newtypes/NominalType.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/newtypes/NominalType.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/newtypes/ObjectType.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/newtypes/ObjectType.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/newtypes/Property.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/newtypes/Property.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/newtypes/RawNominalType.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/newtypes/RawNominalType.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/newtypes/TypeParameters.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/newtypes/TypeParameters.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/newtypes/TypeWithPropertiesStatics.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/newtypes/TypeWithPropertiesStatics.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/parsing/Annotation.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/parsing/Annotation.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/parsing/Config.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/parsing/Config.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/parsing/IRFactory.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/parsing/IRFactory.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/parsing/JsDocInfoParser.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/parsing/JsDocInfoParser.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/parsing/ParserConfig.properties" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/parsing/ParserConfig.properties" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/parsing/ParserRunner.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/parsing/ParserRunner.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/parsing/TypeTransformationParser.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/parsing/TypeTransformationParser.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/parsing/parser/FeatureSet.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/parsing/parser/FeatureSet.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/parsing/parser/Parser.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/parsing/parser/Parser.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/parsing/parser/Scanner.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/parsing/parser/Scanner.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/parsing/parser/testing/FeatureSetSubject.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/parsing/parser/testing/FeatureSetSubject.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/parsing/parser/util/ErrorReporter.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/parsing/parser/util/ErrorReporter.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/regex/RegExpTree.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/regex/RegExpTree.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/resources.json" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/resources.json" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/resources/ResourceLoader.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/resources/ResourceLoader.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/resources/super-gwt/com/google/javascript/jscomp/resources/ResourceLoader.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/resources/super-gwt/com/google/javascript/jscomp/resources/ResourceLoader.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/testing/JSErrorSubject.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/testing/JSErrorSubject.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/testing/NodeSubject.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/testing/NodeSubject.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/testing/TypeSubject.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/testing/TypeSubject.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/transpile/BaseTranspiler.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/transpile/BaseTranspiler.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/transpile/TranspilerBuilder.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/transpile/TranspilerBuilder.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/type/ChainableReverseAbstractInterpreter.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/type/ChainableReverseAbstractInterpreter.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/type/ClosureReverseAbstractInterpreter.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/type/ClosureReverseAbstractInterpreter.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/type/FlowScope.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/type/FlowScope.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/refactoring/ApplySuggestedFixes.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/refactoring/ApplySuggestedFixes.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/refactoring/ErrorToFixMapper.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/refactoring/ErrorToFixMapper.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/refactoring/JsFlumeCallback.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/refactoring/JsFlumeCallback.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/refactoring/Matchers.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/refactoring/Matchers.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/refactoring/RefactoringDriver.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/refactoring/RefactoringDriver.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/refactoring/RefasterJs.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/refactoring/RefasterJs.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/refactoring/RefasterJsScanner.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/refactoring/RefasterJsScanner.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/refactoring/SuggestedFix.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/refactoring/SuggestedFix.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/refactoring/examples/GoogBindToArrow.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/refactoring/examples/GoogBindToArrow.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/refactoring/examples/refasterjs/set_anchor_href.js" afterPath="$PROJECT_DIR$/src/com/google/javascript/refactoring/examples/refasterjs/set_anchor_href.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/refactoring/examples/refasterjs/set_location_href.js" afterPath="$PROJECT_DIR$/src/com/google/javascript/refactoring/examples/refasterjs/set_location_href.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/refactoring/examples/refasterjs/window_open.js" afterPath="$PROJECT_DIR$/src/com/google/javascript/refactoring/examples/refasterjs/window_open.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/refactoring/examples/refasterjs/window_open_nonconst_name.js" afterPath="$PROJECT_DIR$/src/com/google/javascript/refactoring/examples/refasterjs/window_open_nonconst_name.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/refactoring/testing/RefasterJsTestUtils.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/refactoring/testing/RefasterJsTestUtils.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/rhino/IR.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/rhino/IR.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/rhino/JSDocInfo.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/rhino/JSDocInfo.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/rhino/JSDocInfoBuilder.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/rhino/JSDocInfoBuilder.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/rhino/Messages.properties" afterPath="$PROJECT_DIR$/src/com/google/javascript/rhino/Messages.properties" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/rhino/Node.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/rhino/Node.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/rhino/ObjectTypeI.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/rhino/ObjectTypeI.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/rhino/TypeI.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/rhino/TypeI.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/InstanceObjectType.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/InstanceObjectType.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/JSType.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/JSType.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/JSTypeNative.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/JSTypeNative.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/JSTypeRegistry.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/JSTypeRegistry.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/ModificationVisitor.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/ModificationVisitor.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/NoObjectType.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/NoObjectType.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/NoType.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/NoType.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/ObjectType.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/ObjectType.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/Property.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/Property.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/PropertyMap.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/PropertyMap.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/PrototypeObjectType.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/PrototypeObjectType.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/ProxyObjectType.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/ProxyObjectType.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/SimpleSlot.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/SimpleSlot.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/StaticTypedScope.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/StaticTypedScope.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/StaticTypedSlot.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/StaticTypedSlot.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/TemplateTypeMapReplacer.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/TemplateTypeMapReplacer.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/UnionType.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/UnionType.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/UnionTypeBuilder.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/UnionTypeBuilder.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/UnknownType.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/UnknownType.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/Visitor.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/rhino/jstype/Visitor.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/rhino/testing/AbstractStaticScope.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/rhino/testing/AbstractStaticScope.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/rhino/testing/Asserts.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/rhino/testing/Asserts.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/rhino/testing/BaseJSTypeTestCase.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/rhino/testing/BaseJSTypeTestCase.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/rhino/testing/TestErrorReporter.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/rhino/testing/TestErrorReporter.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/debugging/sourcemap/SourceMapTestCase.java" afterPath="$PROJECT_DIR$/test/com/google/debugging/sourcemap/SourceMapTestCase.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/AggressiveInlineAliasesTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/AggressiveInlineAliasesTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/AliasStringsTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/AliasStringsTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/AmbiguatePropertiesTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/AmbiguatePropertiesTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/AngularPassTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/AngularPassTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/AstValidatorTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/AstValidatorTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/BaseReplaceScriptTestCase.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/BaseReplaceScriptTestCase.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ChangeVerifierTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ChangeVerifierTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CheckAccessControlsPolymerTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CheckAccessControlsPolymerTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CheckAccessControlsTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CheckAccessControlsTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CheckConformanceTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CheckConformanceTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CheckGlobalThisTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CheckGlobalThisTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CheckJsDocTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CheckJsDocTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CheckMissingReturnTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CheckMissingReturnTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CheckProvidesTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CheckProvidesTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CheckRegExpTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CheckRegExpTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CheckSideEffectsTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CheckSideEffectsTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CheckSuspiciousCodeTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CheckSuspiciousCodeTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CheckTemplateParamsTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CheckTemplateParamsTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CheckUnreachableCodeTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CheckUnreachableCodeTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CheckUnusedPrivatePropertiesInPolymerElementTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CheckUnusedPrivatePropertiesInPolymerElementTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CheckUnusedPrivatePropertiesTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CheckUnusedPrivatePropertiesTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ChromePassTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ChromePassTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ClosureCheckModuleTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ClosureCheckModuleTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ClosureCodeRemovalTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ClosureCodeRemovalTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ClosureOptimizePrimitivesTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ClosureOptimizePrimitivesTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ClosurePrimitivesIntegrationTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ClosurePrimitivesIntegrationTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ClosureReverseAbstractInterpreterTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ClosureReverseAbstractInterpreterTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ClosureRewriteClassTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ClosureRewriteClassTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ClosureRewriteModuleTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ClosureRewriteModuleTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CoalesceVariableNamesTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CoalesceVariableNamesTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CodePrinterTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CodePrinterTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CollapseAnonymousFunctionsTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CollapseAnonymousFunctionsTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CollapsePropertiesTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CollapsePropertiesTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CollectFunctionNamesTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CollectFunctionNamesTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CommandLineRunnerTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CommandLineRunnerTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CommonJSIntegrationTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CommonJSIntegrationTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CompilerOptionsTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CompilerOptionsTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CompilerTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CompilerTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CompilerTestCase.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CompilerTestCase.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CompilerTypeTestCase.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CompilerTypeTestCase.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ConstCheckTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ConstCheckTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ControlFlowAnalysisTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ControlFlowAnalysisTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CreateSyntheticBlocksTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CreateSyntheticBlocksTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CrossModuleCodeMotionTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CrossModuleCodeMotionTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CrossModuleReferenceCollectorTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/CrossModuleReferenceCollectorTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/DartSuperAccessorsPassTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/DartSuperAccessorsPassTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/DataFlowAnalysisTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/DataFlowAnalysisTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/DeadAssignmentsEliminationTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/DeadAssignmentsEliminationTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/DeadPropertyAssignmentEliminationTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/DeadPropertyAssignmentEliminationTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/DeclaredGlobalExternsOnWindowTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/DeclaredGlobalExternsOnWindowTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/DefaultNameGeneratorTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/DefaultNameGeneratorTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/DefinitionUseSiteFinderTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/DefinitionUseSiteFinderTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/DefinitionsRemoverTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/DefinitionsRemoverTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/DenormalizeTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/DenormalizeTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/DevirtualizePrototypeMethodsTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/DevirtualizePrototypeMethodsTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/DisambiguatePrivatePropertiesTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/DisambiguatePrivatePropertiesTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/DisambiguatePropertiesTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/DisambiguatePropertiesTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/DotFormatterTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/DotFormatterTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/Es6CheckModuleTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/Es6CheckModuleTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/Es6ExternsCheckTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/Es6ExternsCheckTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/Es6ExtractClassesTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/Es6ExtractClassesTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/Es6RenameVariablesInParamListsTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/Es6RenameVariablesInParamListsTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/Es6RewriteArrowFunctionTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/Es6RewriteArrowFunctionTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/Es6RewriteBlockScopedDeclarationTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/Es6RewriteBlockScopedDeclarationTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/Es6RewriteClassTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/Es6RewriteClassTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/Es6RewriteDestructuringTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/Es6RewriteDestructuringTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/Es6RewriteGeneratorsTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/Es6RewriteGeneratorsTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/Es6RewriteModulesTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/Es6RewriteModulesTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/Es6SyntacticScopeCreatorTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/Es6SyntacticScopeCreatorTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/Es6ToEs3ClassSideInheritanceTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/Es6ToEs3ClassSideInheritanceTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/Es6ToEs3ConverterTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/Es6ToEs3ConverterTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/Es6TypedToEs6ConverterTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/Es6TypedToEs6ConverterTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/Es7ToEs6ConverterTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/Es7ToEs6ConverterTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ExportTestFunctionsTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ExportTestFunctionsTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ExpressionDecomposerTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ExpressionDecomposerTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ExternExportsPassTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ExternExportsPassTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ExtraRequireTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ExtraRequireTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ExtractPrototypeMemberDeclarationsTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ExtractPrototypeMemberDeclarationsTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/FlowSensitiveInlineVariablesTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/FlowSensitiveInlineVariablesTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/FunctionArgumentInjectorTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/FunctionArgumentInjectorTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/FunctionInjectorTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/FunctionInjectorTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/FunctionRewriterTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/FunctionRewriterTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/FunctionToBlockMutatorTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/FunctionToBlockMutatorTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/FunctionTypeBuilderTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/FunctionTypeBuilderTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/GatherExternPropertiesTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/GatherExternPropertiesTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/GatherSideEffectSubexpressionsCallbackTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/GatherSideEffectSubexpressionsCallbackTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/GenerateExportsTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/GenerateExportsTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/GoldenFileComparer.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/GoldenFileComparer.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ImplicitNullabilityCheckTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ImplicitNullabilityCheckTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/IncrementalScopeCreatorTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/IncrementalScopeCreatorTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/InferConstsTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/InferConstsTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/InferJSDocInfoTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/InferJSDocInfoTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/InlineAliasesTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/InlineAliasesTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/InlineAndCollapsePropertiesTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/InlineAndCollapsePropertiesTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/InlineFunctionsTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/InlineFunctionsTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/InlineObjectLiteralsTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/InlineObjectLiteralsTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/InlinePropertiesTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/InlinePropertiesTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/InlineSimpleMethodsTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/InlineSimpleMethodsTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/InlineVariablesTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/InlineVariablesTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/IntegrationTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/IntegrationTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/IntegrationTestCase.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/IntegrationTestCase.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/J2clAssertRemovalPassTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/J2clAssertRemovalPassTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/J2clClinitPrunerPassTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/J2clClinitPrunerPassTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/J2clConstantHoisterPassTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/J2clConstantHoisterPassTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/J2clEqualitySameRewriterPassTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/J2clEqualitySameRewriterPassTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/J2clPassTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/J2clPassTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/J2clPropertyInlinerPassTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/J2clPropertyInlinerPassTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/J2clSourceFileCheckerTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/J2clSourceFileCheckerTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/JSDocInfoPrinterTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/JSDocInfoPrinterTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/JSModuleGraphTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/JSModuleGraphTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/JsMessageExtractorTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/JsMessageExtractorTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/JsMessageVisitorTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/JsMessageVisitorTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/LazyParsedDependencyInfoTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/LazyParsedDependencyInfoTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/LiveVariablesAnalysisTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/LiveVariablesAnalysisTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/MakeDeclaredNamesUniqueTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/MakeDeclaredNamesUniqueTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/MarkNoSideEffectCallsTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/MarkNoSideEffectCallsTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/MaybeReachingVariableUseTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/MaybeReachingVariableUseTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/MemoizedScopeCreatorTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/MemoizedScopeCreatorTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/MinimizeExitPointsTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/MinimizeExitPointsTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/MissingProvideTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/MissingProvideTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/MissingRequireTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/MissingRequireTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/MoveFunctionDeclarationsTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/MoveFunctionDeclarationsTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/MultiPassTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/MultiPassTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/MustBeReachingVariableDefTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/MustBeReachingVariableDefTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/NameAnonymousFunctionsMappedTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/NameAnonymousFunctionsMappedTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/NameAnonymousFunctionsTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/NameAnonymousFunctionsTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/NewTypeInferenceTTLTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/NewTypeInferenceTTLTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/NewTypeInferenceTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/NewTypeInferenceTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/NewTypeInferenceTestBase.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/NewTypeInferenceTestBase.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/NewTypeInferenceWithTranspilationTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/NewTypeInferenceWithTranspilationTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/NewTypeInferenceWithTypeSyntaxTranspilationTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/NewTypeInferenceWithTypeSyntaxTranspilationTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/NodeTraversalTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/NodeTraversalTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/NodeUtilTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/NodeUtilTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/NormalizeTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/NormalizeTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/OptimizeCallsTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/OptimizeCallsTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/OptimizeParametersTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/OptimizeParametersTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/OptimizeReturnsTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/OptimizeReturnsTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/PartialCompilationTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/PartialCompilationTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/PeepholeCollectPropertyAssignmentsTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/PeepholeCollectPropertyAssignmentsTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/PeepholeFoldConstantsTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/PeepholeFoldConstantsTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/PeepholeIntegrationTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/PeepholeIntegrationTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/PeepholeMinimizeConditionsTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/PeepholeMinimizeConditionsTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/PeepholeRemoveDeadCodeTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/PeepholeRemoveDeadCodeTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/PeepholeReplaceKnownMethodsTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/PeepholeReplaceKnownMethodsTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/PeepholeSubstituteAlternateSyntaxTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/PeepholeSubstituteAlternateSyntaxTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/PhaseOptimizerTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/PhaseOptimizerTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/PolymerBehaviorExtractorTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/PolymerBehaviorExtractorTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/PolymerClassDefinitionTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/PolymerClassDefinitionTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/PolymerClassRewriterTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/PolymerClassRewriterTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/PolymerPassFindExternsTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/PolymerPassFindExternsTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/PolymerPassSuppressBehaviorsTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/PolymerPassSuppressBehaviorsTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/PolymerPassTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/PolymerPassTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ProcessClosurePrimitivesTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ProcessClosurePrimitivesTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ProcessCommonJSModulesTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ProcessCommonJSModulesTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ProcessDefinesTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ProcessDefinesTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/PureFunctionIdentifierTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/PureFunctionIdentifierTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/RandomNameGeneratorTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/RandomNameGeneratorTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/RecordFunctionInformationTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/RecordFunctionInformationTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ReferenceCollectingCallbackTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ReferenceCollectingCallbackTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/RemoveSuperMethodsPassTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/RemoveSuperMethodsPassTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/RemoveUnusedPolyfillsTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/RemoveUnusedPolyfillsTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/RenameLabelsTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/RenameLabelsTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/RenameLocalVarsTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/RenameLocalVarsTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/RenamePropertiesTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/RenamePropertiesTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/RenameVarsTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/RenameVarsTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ReplaceCssNamesTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ReplaceCssNamesTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ReplaceIdGeneratorsTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ReplaceIdGeneratorsTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ReplaceMessagesForChromeTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ReplaceMessagesForChromeTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ReplaceMessagesTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ReplaceMessagesTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ReplaceStringsTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ReplaceStringsTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/RescopeGlobalSymbolsTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/RescopeGlobalSymbolsTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/RewriteAsyncFunctionsTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/RewriteAsyncFunctionsTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/RewriteJsonToModuleTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/RewriteJsonToModuleTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/RhinoErrorReporterTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/RhinoErrorReporterTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/RuntimeTypeCheckTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/RuntimeTypeCheckTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ScopedAliasesTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ScopedAliasesTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ShadowVariablesTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ShadowVariablesTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/SideEffectsAnalysisTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/SideEffectsAnalysisTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/SimpleReplaceScriptTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/SimpleReplaceScriptTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/SingleFileCheckRequiresTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/SingleFileCheckRequiresTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/SourceFileTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/SourceFileTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/StatementFusionTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/StatementFusionTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/StrictModeCheckTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/StrictModeCheckTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/StripCodeTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/StripCodeTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/SubstituteEs6SyntaxTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/SubstituteEs6SyntaxTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/SymbolTableTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/SymbolTableTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/SyntacticScopeCreatorTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/SyntacticScopeCreatorTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/TemplateAstMatcherTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/TemplateAstMatcherTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/TranspileAfterNTITest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/TranspileAfterNTITest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/TypeCheckFunctionCheckTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/TypeCheckFunctionCheckTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/TypeCheckTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/TypeCheckTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/TypeICompilerTestCase.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/TypeICompilerTestCase.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/TypeMatchingStrategyTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/TypeMatchingStrategyTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/TypeTransformationTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/TypeTransformationTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/TypeValidatorTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/TypeValidatorTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/TypedScopeCreatorTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/TypedScopeCreatorTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/UnreachableCodeEliminationTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/UnreachableCodeEliminationTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ValidityCheckTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/ValidityCheckTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/VarCheckTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/VarCheckTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/VariableReferenceCheckTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/VariableReferenceCheckTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/WarningsGuardTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/WarningsGuardTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/WhitespaceWrapGoogModulesTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/WhitespaceWrapGoogModulesTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/XidTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/XidTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/deps/ClosureBundlerTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/deps/ClosureBundlerTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/deps/DependencyInfoTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/deps/DependencyInfoTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/deps/DepsFileParserTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/deps/DepsFileParserTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/deps/Es6SortedDependenciesTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/deps/Es6SortedDependenciesTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/deps/JsFileParserTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/deps/JsFileParserTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/deps/ModuleLoaderTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/deps/ModuleLoaderTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/lint/CheckArrayWithGoogObjectTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/lint/CheckArrayWithGoogObjectTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/lint/CheckInterfacesTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/lint/CheckInterfacesTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/lint/CheckJSDocStyleTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/lint/CheckJSDocStyleTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/lint/CheckNullableReturnTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/lint/CheckNullableReturnTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/lint/CheckPrimitiveAsObjectTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/lint/CheckPrimitiveAsObjectTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/lint/CheckRequiresAndProvidesSortedTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/lint/CheckRequiresAndProvidesSortedTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/lint/CheckUselessBlocksTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/lint/CheckUselessBlocksTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/parsing/JsDocInfoParserTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/parsing/JsDocInfoParserTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/parsing/ParserTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/parsing/ParserTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/regex/CharRangesTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/regex/CharRangesTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/async_function_test.js" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/async_function_test.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/generator_test.js" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/generator_test.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/let_const_rename_test.js" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/let_const_rename_test.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/polyfill_tests/array_includes_test.js" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/polyfill_tests/array_includes_test.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/polyfill_tests/force_polyfills.js" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/polyfill_tests/force_polyfills.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/polyfill_tests/math_hypot_test.js" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/polyfill_tests/math_hypot_test.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/polyfill_tests/object_entries_test.js" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/polyfill_tests/object_entries_test.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/polyfill_tests/object_getownpropertydescriptors_test.js" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/polyfill_tests/object_getownpropertydescriptors_test.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/polyfill_tests/object_values_test.js" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/polyfill_tests/object_values_test.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/polyfill_tests/promise/fake_thenable.js" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/polyfill_tests/promise/fake_thenable.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/polyfill_tests/promise/force_polyfills.js" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/polyfill_tests/promise/force_polyfills.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/polyfill_tests/promise/promise_testing.js" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/polyfill_tests/promise/promise_testing.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/polyfill_tests/reflect/force_polyfills.js" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/polyfill_tests/reflect/force_polyfills.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/polyfill_tests/string_padend_test.js" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/polyfill_tests/string_padend_test.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/polyfill_tests/string_padstart_test.js" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/polyfill_tests/string_padstart_test.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/polyfill_tests/testing.js" afterPath="$PROJECT_DIR$/test/com/google/javascript/jscomp/runtime_tests/polyfill_tests/testing.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/refactoring/ErrorToFixMapperTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/refactoring/ErrorToFixMapperTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/refactoring/MatchersTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/refactoring/MatchersTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/refactoring/RefasterJsScannerTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/refactoring/RefasterJsScannerTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/refactoring/SuggestedFixTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/refactoring/SuggestedFixTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/refactoring/examples/RefactoringTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/refactoring/examples/RefactoringTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/refactoring/examples/testdata/set_location_href_test_in.js" afterPath="$PROJECT_DIR$/test/com/google/javascript/refactoring/examples/testdata/set_location_href_test_in.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/refactoring/examples/testdata/set_location_href_test_out.js" afterPath="$PROJECT_DIR$/test/com/google/javascript/refactoring/examples/testdata/set_location_href_test_out.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/rhino/JSDocInfoTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/rhino/JSDocInfoTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/rhino/NodeTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/rhino/NodeTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/rhino/jstype/JSTypeRegistryTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/rhino/jstype/JSTypeRegistryTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/javascript/rhino/jstype/JSTypeTest.java" afterPath="$PROJECT_DIR$/test/com/google/javascript/rhino/jstype/JSTypeTest.java" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/README.md" afterPath="$PROJECT_DIR$/README_org.md" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/myREADME.md" afterPath="$PROJECT_DIR$/README.md" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -21,8 +714,8 @@
       <file leaf-file-name="CodeGenerator.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="42517">
-              <caret line="2501" column="1" lean-forward="false" selection-start-line="2501" selection-start-column="1" selection-end-line="2501" selection-end-column="1" />
+            <state relative-caret-position="145">
+              <caret line="2480" column="48" lean-forward="true" selection-start-line="2480" selection-start-column="48" selection-end-line="2480" selection-end-column="48" />
               <folding>
                 <element signature="e#0#80135#0" expanded="true" />
                 <element signature="imports" expanded="true" />
@@ -49,11 +742,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="myREADME.md" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/myREADME.md">
+      <file leaf-file-name="README.md" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/README.md">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="34">
-              <caret line="2" column="0" lean-forward="false" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="0" />
+              <caret line="2" column="0" lean-forward="true" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -62,10 +755,11 @@
       <file leaf-file-name="CompilerOptions.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CompilerOptions.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="434">
-              <caret line="3447" column="1" lean-forward="false" selection-start-line="3447" selection-start-column="1" selection-end-line="3447" selection-end-column="1" />
+            <state relative-caret-position="178">
+              <caret line="3020" column="59" lean-forward="false" selection-start-line="3020" selection-start-column="54" selection-end-line="3020" selection-end-column="59" />
               <folding>
                 <element signature="e#0#111183#0" expanded="true" />
+                <element signature="imports" expanded="true" />
                 <element signature="e#2808#2809#0" expanded="true" />
                 <element signature="e#2841#2842#0" expanded="true" />
                 <element signature="e#2881#2882#0" expanded="true" />
@@ -462,6 +1156,8 @@
                 <element signature="e#107824#107825#0" expanded="true" />
                 <element signature="e#107872#107873#0" expanded="true" />
                 <element signature="e#107944#107945#0" expanded="true" />
+                <element signature="e#110280#110281#0" expanded="true" />
+                <element signature="e#110352#110353#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -470,8 +1166,8 @@
       <file leaf-file-name="CommandLineRunner.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CommandLineRunner.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="34153">
-              <caret line="2068" column="1" lean-forward="false" selection-start-line="2068" selection-start-column="1" selection-end-line="2068" selection-end-column="1" />
+            <state relative-caret-position="178">
+              <caret line="794" column="21" lean-forward="false" selection-start-line="794" selection-start-column="16" selection-end-line="794" selection-end-column="21" />
               <folding>
                 <element signature="e#0#77037#0" expanded="true" />
                 <element signature="e#34634#34635#0" expanded="true" />
@@ -550,10 +1246,10 @@
         <option value="$PROJECT_DIR$/src/com/google/javascript/jscomp/Compiler.java" />
         <option value="$PROJECT_DIR$/README_James.md" />
         <option value="$PROJECT_DIR$/README.md" />
-        <option value="$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java" />
-        <option value="$PROJECT_DIR$/src/com/google/javascript/jscomp/CompilerOptions.java" />
-        <option value="$PROJECT_DIR$/src/com/google/javascript/jscomp/CommandLineRunner.java" />
         <option value="$PROJECT_DIR$/myREADME.md" />
+        <option value="$PROJECT_DIR$/src/com/google/javascript/jscomp/CommandLineRunner.java" />
+        <option value="$PROJECT_DIR$/src/com/google/javascript/jscomp/CompilerOptions.java" />
+        <option value="$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java" />
       </list>
     </option>
   </component>
@@ -587,41 +1283,6 @@
             <path>
               <item name="closure-compiler-myAttempt" type="b2602c69:ProjectViewProjectNode" />
               <item name="closure-compiler-myAttempt" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="closure-compiler-myAttempt" type="b2602c69:ProjectViewProjectNode" />
-              <item name="closure-compiler-myAttempt" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="closure-compiler-myAttempt" type="b2602c69:ProjectViewProjectNode" />
-              <item name="closure-compiler-myAttempt" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="com" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="closure-compiler-myAttempt" type="b2602c69:ProjectViewProjectNode" />
-              <item name="closure-compiler-myAttempt" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="com" type="462c0819:PsiDirectoryNode" />
-              <item name="google" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="closure-compiler-myAttempt" type="b2602c69:ProjectViewProjectNode" />
-              <item name="closure-compiler-myAttempt" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="com" type="462c0819:PsiDirectoryNode" />
-              <item name="google" type="462c0819:PsiDirectoryNode" />
-              <item name="javascript" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="closure-compiler-myAttempt" type="b2602c69:ProjectViewProjectNode" />
-              <item name="closure-compiler-myAttempt" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="com" type="462c0819:PsiDirectoryNode" />
-              <item name="google" type="462c0819:PsiDirectoryNode" />
-              <item name="javascript" type="462c0819:PsiDirectoryNode" />
-              <item name="jscomp" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -1003,19 +1664,19 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="java-line">
           <url>file://$PROJECT_DIR$/src/com/google/javascript/jscomp/Compiler.java</url>
-          <line>2276</line>
+          <line>2248</line>
           <properties />
           <option name="timeStamp" value="37" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="java-line">
           <url>file://$PROJECT_DIR$/src/com/google/javascript/jscomp/Compiler.java</url>
-          <line>857</line>
+          <line>859</line>
           <properties />
           <option name="timeStamp" value="39" />
         </line-breakpoint>
         <line-breakpoint type="java-line">
           <url>file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java</url>
-          <line>2242</line>
+          <line>2500</line>
           <properties />
           <option name="timeStamp" value="77" />
         </line-breakpoint>
@@ -1025,24 +1686,6 @@
           <properties />
           <option name="timeStamp" value="79" />
         </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java</url>
-          <line>2181</line>
-          <properties />
-          <option name="timeStamp" value="81" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java</url>
-          <line>2135</line>
-          <properties />
-          <option name="timeStamp" value="83" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java</url>
-          <line>2171</line>
-          <properties />
-          <option name="timeStamp" value="86" />
-        </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java</url>
           <line>2012</line>
@@ -1051,21 +1694,9 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CodePrinter.java</url>
-          <line>898</line>
+          <line>895</line>
           <properties />
           <option name="timeStamp" value="88" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java</url>
-          <line>2346</line>
-          <properties />
-          <option name="timeStamp" value="89" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java</url>
-          <line>2078</line>
-          <properties />
-          <option name="timeStamp" value="90" />
         </line-breakpoint>
       </breakpoints>
       <breakpoints-dialog>
@@ -1121,7 +1752,7 @@
         <state relative-caret-position="15266">
           <caret line="898" column="0" lean-forward="false" selection-start-line="898" selection-start-column="0" selection-end-line="898" selection-end-column="0" />
           <folding>
-            <element signature="e#0#28108#0" expanded="false" />
+            <element signature="e#0#28109#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -1131,7 +1762,7 @@
         <state relative-caret-position="14569">
           <caret line="857" column="0" lean-forward="false" selection-start-line="857" selection-start-column="0" selection-end-line="857" selection-end-column="0" />
           <folding>
-            <element signature="e#0#122288#0" expanded="true" />
+            <element signature="e#0#121068#0" expanded="true" />
             <element signature="imports" expanded="true" />
           </folding>
         </state>
@@ -1178,7 +1809,7 @@
         <state relative-caret-position="15266">
           <caret line="898" column="0" lean-forward="false" selection-start-line="898" selection-start-column="0" selection-end-line="898" selection-end-column="0" />
           <folding>
-            <element signature="e#0#28108#0" expanded="false" />
+            <element signature="e#0#28109#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -1188,7 +1819,7 @@
         <state relative-caret-position="14569">
           <caret line="857" column="0" lean-forward="false" selection-start-line="857" selection-start-column="0" selection-end-line="857" selection-end-column="0" />
           <folding>
-            <element signature="e#0#122288#0" expanded="true" />
+            <element signature="e#0#121068#0" expanded="true" />
             <element signature="imports" expanded="true" />
           </folding>
         </state>
@@ -1199,7 +1830,7 @@
         <state relative-caret-position="14654">
           <caret line="898" column="0" lean-forward="false" selection-start-line="898" selection-start-column="0" selection-end-line="898" selection-end-column="0" />
           <folding>
-            <element signature="e#0#28108#0" expanded="false" />
+            <element signature="e#0#28109#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -1245,7 +1876,7 @@
         <state relative-caret-position="14569">
           <caret line="857" column="0" lean-forward="false" selection-start-line="857" selection-start-column="0" selection-end-line="857" selection-end-column="0" />
           <folding>
-            <element signature="e#0#122288#0" expanded="true" />
+            <element signature="e#0#121068#0" expanded="true" />
             <element signature="imports" expanded="true" />
           </folding>
         </state>
@@ -1292,7 +1923,7 @@
         <state relative-caret-position="15266">
           <caret line="898" column="0" lean-forward="false" selection-start-line="898" selection-start-column="0" selection-end-line="898" selection-end-column="0" />
           <folding>
-            <element signature="e#0#28108#0" expanded="false" />
+            <element signature="e#0#28109#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -1302,7 +1933,7 @@
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#0#122288#0" expanded="true" />
+            <element signature="e#0#121068#0" expanded="true" />
             <element signature="imports" expanded="true" />
           </folding>
         </state>
@@ -1510,7 +2141,7 @@
         <state relative-caret-position="158">
           <caret line="2458" column="0" lean-forward="false" selection-start-line="2458" selection-start-column="0" selection-end-line="2458" selection-end-column="0" />
           <folding>
-            <element signature="e#0#122288#0" expanded="true" />
+            <element signature="e#0#121068#0" expanded="true" />
             <element signature="imports" expanded="true" />
           </folding>
         </state>
@@ -1521,52 +2152,22 @@
         <state relative-caret-position="566">
           <caret line="897" column="5" lean-forward="false" selection-start-line="897" selection-start-column="5" selection-end-line="897" selection-end-column="5" />
           <folding>
-            <element signature="e#0#28108#0" expanded="false" />
+            <element signature="e#0#28109#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/README.md">
+    <entry file="file://$PROJECT_DIR$/README_org.md">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="42517">
-          <caret line="2501" column="1" lean-forward="false" selection-start-line="2501" selection-start-column="1" selection-end-line="2501" selection-end-column="1" />
-          <folding>
-            <element signature="e#0#80135#0" expanded="true" />
-            <element signature="imports" expanded="true" />
-            <element signature="e#3168#3169#0" expanded="true" />
-            <element signature="e#3212#3213#0" expanded="true" />
-            <element signature="e#3318#3319#0" expanded="true" />
-            <element signature="e#3370#3371#0" expanded="true" />
-            <element signature="e#3448#3449#0" expanded="true" />
-            <element signature="e#3482#3483#0" expanded="true" />
-            <element signature="e#3655#3656#0" expanded="true" />
-            <element signature="e#3676#3677#0" expanded="true" />
-            <element signature="e#3708#3709#0" expanded="true" />
-            <element signature="e#3739#3740#0" expanded="true" />
-            <element signature="e#37286#37287#0" expanded="true" />
-            <element signature="e#37342#37343#0" expanded="true" />
-            <element signature="e#47994#47995#0" expanded="true" />
-            <element signature="e#48050#48051#0" expanded="true" />
-            <element signature="e#48104#48105#0" expanded="true" />
-            <element signature="e#48166#48167#0" expanded="true" />
-            <element signature="e#52730#52731#0" expanded="true" />
-            <element signature="e#52806#52807#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CommandLineRunner.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="34153">
-          <caret line="2068" column="1" lean-forward="false" selection-start-line="2068" selection-start-column="1" selection-end-line="2068" selection-end-column="1" />
+        <state relative-caret-position="178">
+          <caret line="794" column="21" lean-forward="false" selection-start-line="794" selection-start-column="16" selection-end-line="794" selection-end-column="21" />
           <folding>
             <element signature="e#0#77037#0" expanded="true" />
             <element signature="e#34634#34635#0" expanded="true" />
@@ -1595,10 +2196,11 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CompilerOptions.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="434">
-          <caret line="3447" column="1" lean-forward="false" selection-start-line="3447" selection-start-column="1" selection-end-line="3447" selection-end-column="1" />
+        <state relative-caret-position="178">
+          <caret line="3020" column="59" lean-forward="false" selection-start-line="3020" selection-start-column="54" selection-end-line="3020" selection-end-column="59" />
           <folding>
             <element signature="e#0#111183#0" expanded="true" />
+            <element signature="imports" expanded="true" />
             <element signature="e#2808#2809#0" expanded="true" />
             <element signature="e#2841#2842#0" expanded="true" />
             <element signature="e#2881#2882#0" expanded="true" />
@@ -1995,14 +2597,45 @@
             <element signature="e#107824#107825#0" expanded="true" />
             <element signature="e#107872#107873#0" expanded="true" />
             <element signature="e#107944#107945#0" expanded="true" />
+            <element signature="e#110280#110281#0" expanded="true" />
+            <element signature="e#110352#110353#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/myREADME.md">
+    <entry file="file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="145">
+          <caret line="2480" column="48" lean-forward="true" selection-start-line="2480" selection-start-column="48" selection-end-line="2480" selection-end-column="48" />
+          <folding>
+            <element signature="e#0#80135#0" expanded="true" />
+            <element signature="imports" expanded="true" />
+            <element signature="e#3168#3169#0" expanded="true" />
+            <element signature="e#3212#3213#0" expanded="true" />
+            <element signature="e#3318#3319#0" expanded="true" />
+            <element signature="e#3370#3371#0" expanded="true" />
+            <element signature="e#3448#3449#0" expanded="true" />
+            <element signature="e#3482#3483#0" expanded="true" />
+            <element signature="e#3655#3656#0" expanded="true" />
+            <element signature="e#3676#3677#0" expanded="true" />
+            <element signature="e#3708#3709#0" expanded="true" />
+            <element signature="e#3739#3740#0" expanded="true" />
+            <element signature="e#37286#37287#0" expanded="true" />
+            <element signature="e#37342#37343#0" expanded="true" />
+            <element signature="e#47994#47995#0" expanded="true" />
+            <element signature="e#48050#48051#0" expanded="true" />
+            <element signature="e#48104#48105#0" expanded="true" />
+            <element signature="e#48166#48167#0" expanded="true" />
+            <element signature="e#52730#52731#0" expanded="true" />
+            <element signature="e#52806#52807#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/README.md">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="34">
-          <caret line="2" column="0" lean-forward="false" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="0" />
+          <caret line="2" column="0" lean-forward="true" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="0" />
           <folding />
         </state>
       </provider>

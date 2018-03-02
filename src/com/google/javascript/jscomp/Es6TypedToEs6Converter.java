@@ -426,19 +426,17 @@ public final class Es6TypedToEs6Converter implements NodeTraversal.Callback, Hot
         n.detach();
         NodeUtil.markFunctionsDeleted(n, compiler);
       }
-      if (!processedOverloads.contains(overloadStack)) {
-        Node original = overloadStack.peek().get(name);
-        processedOverloads.add(original);
-        Node paramList = original.getSecondChild();
-        paramList.removeChildren();
-        Node originalParent = original.getParent();
-        Node originalJsDocNode = originalParent.isMemberFunctionDef() || originalParent.isAssign()
-            ? originalParent : original;
-        JSDocInfoBuilder builder = new JSDocInfoBuilder(false);
-        builder.recordType(new JSTypeExpression(
-            convertWithLocation(TypeDeclarationsIR.namedType("Function")), n.getSourceFileName()));
-        originalJsDocNode.setJSDocInfo(builder.build());
-      }
+      Node original = overloadStack.peek().get(name);
+      processedOverloads.add(original);
+      Node paramList = original.getSecondChild();
+      paramList.removeChildren();
+      Node originalParent = original.getParent();
+      Node originalJsDocNode = originalParent.isMemberFunctionDef() || originalParent.isAssign()
+          ? originalParent : original;
+      JSDocInfoBuilder builder = new JSDocInfoBuilder(false);
+      builder.recordType(new JSTypeExpression(
+          convertWithLocation(TypeDeclarationsIR.namedType("Function")), n.getSourceFileName()));
+      originalJsDocNode.setJSDocInfo(builder.build());
       return;
     }
     overloadStack.peek().put(name, n);
@@ -880,7 +878,7 @@ public final class Es6TypedToEs6Converter implements NodeTraversal.Callback, Hot
   }
 
   private class ScanNamespaces implements NodeTraversal.Callback {
-    private Map<String, Namespace> namespaces = new HashMap<>();
+    private final Map<String, Namespace> namespaces = new HashMap<>();
 
     @Override
     public boolean shouldTraverse(NodeTraversal t, Node n, Node parent) {
@@ -942,8 +940,8 @@ public final class Es6TypedToEs6Converter implements NodeTraversal.Callback, Hot
 
   private static class Namespace {
     private final String name;
-    private Set<String> typeNames;
-    private Namespace parent;
+    private final Set<String> typeNames;
+    private final Namespace parent;
 
     private Namespace(String name, Namespace parent) {
       this.name = name;

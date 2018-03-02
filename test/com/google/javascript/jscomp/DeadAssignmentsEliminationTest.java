@@ -166,7 +166,7 @@ public final class DeadAssignmentsEliminationTest extends CompilerTestCase {
   }
 
   public void testErrorHandling2() {
-    inFunction(LINE_JOINER.join(
+    inFunction(lines(
         "try {",
         "} catch (e) {",
         "  e = 1; ",
@@ -175,7 +175,7 @@ public final class DeadAssignmentsEliminationTest extends CompilerTestCase {
         "}"
     ));
 
-    inFunction(LINE_JOINER.join(
+    inFunction(lines(
         "try {",
         "} catch (e) {",
         "    e = 1;",
@@ -582,7 +582,7 @@ public final class DeadAssignmentsEliminationTest extends CompilerTestCase {
 
   public void testClassMethods() {
     test(
-        LINE_JOINER.join(
+        lines(
             "class C{",
             "  func() {",
             "    var x;",
@@ -590,7 +590,7 @@ public final class DeadAssignmentsEliminationTest extends CompilerTestCase {
             "  }",
             "}"
         ),
-        LINE_JOINER.join(
+        lines(
             "class C{",
             "  func() {",
             "    var x;",
@@ -599,7 +599,7 @@ public final class DeadAssignmentsEliminationTest extends CompilerTestCase {
             "}"));
 
     test(
-        LINE_JOINER.join(
+        lines(
             "class C{",
             "  constructor(x, y) {",
             "    this.x = x;",
@@ -612,7 +612,7 @@ public final class DeadAssignmentsEliminationTest extends CompilerTestCase {
             "  }",
             "}"
         ),
-        LINE_JOINER.join(
+        lines(
             "class C{",
             "  constructor(x, y) {",
             "    this.x = x;",
@@ -628,14 +628,14 @@ public final class DeadAssignmentsEliminationTest extends CompilerTestCase {
 
   public void testGenerators() {
     test(
-        LINE_JOINER.join(
+        lines(
             "function* f() {",
             "  var x, y;",
             "  x = 1; y = 2;",
             "  yield y;",
             "}"
         ),
-        LINE_JOINER.join(
+        lines(
             "function* f() {",
             "  var x, y;",
             "  1; y = 2;",
@@ -662,17 +662,119 @@ public final class DeadAssignmentsEliminationTest extends CompilerTestCase {
 
     inFunction("var a, b, c; [a, b, c] = [1, 2, 3]; return a + c;");
 
+    inFunction(
+        "var a, b; a = 1; b = 2; [a, b] = [3, 4]; return a + b;",
+        "var a, b; 1; 2; [a, b] = [3, 4]; return a + b;");
+
+    inFunction("var x; x = {}; [x.a] = [3];");
+  }
+
+  public void testDestructuringDeclarationRvalue() {
+    // Test array destructuring
+    inFunction(
+        lines(
+            "let arr = []",
+            "if (CONDITION) {",
+            "  arr = [3];",
+            "}",
+            "let [foo] = arr;",
+            "use(foo);"));
+
+    // Test object destructuring
+    inFunction(
+        lines(
+            "let obj = {}",
+            "if (CONDITION) {",
+            "  obj = {foo: 3};",
+            "}",
+            "let {foo} = obj;",
+            "use(foo);"));
+  }
+
+  public void testDestructuringAssignmentRValue() {
+    // Test array destructuring
+    inFunction(
+        lines(
+            "let arr = []",
+            "if (CONDITION) {",
+            "  arr = [3];",
+            "}",
+            "let foo;",
+            "[foo] = arr;",
+            "use(foo);"));
+
+    // Test object destructuring
+    inFunction(
+        lines(
+            "let obj = {}",
+            "if (CONDITION) {",
+            "  obj = {foo: 3};",
+            "}",
+            "let foo;",
+            "({foo} = obj);",
+            "use(foo);"));
+  }
+
+  public void testForOfWithDestructuring() {
+    inFunction(
+        lines(
+            "let x;",
+            "x = [];",
+            "var y = 5;", // Don't eliminate because if arr is empty, y will remain 5.
+            "for ([y = x] of arr) { y; }",
+            "y;"));
+
+    inFunction(
+        lines(
+            "let x;",
+            "x = [];",
+            "for (let [y = x] of arr) { y; }"));
+
+    inFunction("for (let [key, value] of arr) {}");
+    inFunction("for (let [key, value] of arr) { key; value; }");
+    inFunction(
+        "var a; a = 3; for (let [a] of arr) { a; }", "var a; 3; for (let [a] of arr) { a; }");
+  }
+
+  public void testReferenceInDestructuringPatternDefaultValue() {
+    inFunction(
+        lines(
+            "let bar = [];",
+            "const {foo = bar} = obj;",
+            "foo;"));
+
+    inFunction(
+        lines(
+            "let bar;",
+            "bar = [];",
+            "const {foo = bar} = obj;",
+            "foo;"));
+
+    inFunction("let bar; bar = 3; const [foo = bar] = arr; foo;");
+    inFunction("let foo, bar; bar = 3; [foo = bar] = arr; foo;");
+  }
+
+  public void testReferenceInDestructuringPatternComputedProperty() {
+    inFunction("let str; str = 'bar'; const {[str + 'baz']: foo} = obj; foo;");
+
+    inFunction(
+        lines(
+            "let obj = {};",
+            "let str, foo;",
+            "str = 'bar';",
+            "({[str + 'baz']: foo} = obj);",
+            "foo;"));
   }
 
   public void testDefaultParameter() {
     test(
-        LINE_JOINER.join(
+        lines(
             "function f(x, y = 12) {",
             "  var z;",
             "  z = y;",
             "}"
         ),
-        LINE_JOINER.join(
+        lines(
             "function f(x, y = 12) {",
             "  var z;",
             "  y;",
@@ -681,7 +783,7 @@ public final class DeadAssignmentsEliminationTest extends CompilerTestCase {
 
   public void testObjectLiterals() {
     test(
-        LINE_JOINER.join(
+        lines(
             "var obj = {",
             "  f() {",
             "  var x;",
@@ -689,13 +791,17 @@ public final class DeadAssignmentsEliminationTest extends CompilerTestCase {
             "  }",
             "}"
         ),
-        LINE_JOINER.join(
+        lines(
             "var obj = {",
             "  f() {",
             "  var x;",
             "  2;",
             "  }",
             "}"));
+  }
+
+  public void testObjectLiteralsComputedProperties() {
+    inFunction("let a; a = 2; let obj = {[a]: 3}; obj");
   }
 
   public void testLet() {
@@ -706,13 +812,19 @@ public final class DeadAssignmentsEliminationTest extends CompilerTestCase {
         "let a; let b; foo(); b = 2; return b;");
   }
 
-  public void testConst() {
+  public void testConst1() {
     inFunction("const a = 1;");
+  }
+
+  public void testConst2() {
+    test(
+        "async function f(d) { if (d) { d = 5; } const a = 1; const b = 2; const [x, y] = b; }",
+        "async function f(d) { if (d) {     5; } const a = 1; const b = 2; const [x, y] = b; }");
   }
 
   public void testBlockScoping() {
     inFunction(
-        LINE_JOINER.join(
+        lines(
             "let x;",
             "{",
             "  let x;",
@@ -721,7 +833,7 @@ public final class DeadAssignmentsEliminationTest extends CompilerTestCase {
             "x = 2;",
             "return x;"
         ),
-        LINE_JOINER.join(
+        lines(
             "let x;",
             "{",
             "  let x$jscomp$1;",
@@ -731,7 +843,7 @@ public final class DeadAssignmentsEliminationTest extends CompilerTestCase {
             "return x;"));
 
     inFunction(
-        LINE_JOINER.join(
+        lines(
             "let x;",
             "x = 2",
             "{",
@@ -740,7 +852,7 @@ public final class DeadAssignmentsEliminationTest extends CompilerTestCase {
             "}",
             "print(x);"
         ),
-        LINE_JOINER.join(
+        lines(
             "let x;",
             "x = 2;",
             "{",

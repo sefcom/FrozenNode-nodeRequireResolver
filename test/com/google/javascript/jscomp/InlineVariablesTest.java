@@ -56,7 +56,7 @@ public final class InlineVariablesTest extends CompilerTestCase {
 
   public void testPassDoesntProduceInvalidCode1() {
     testSame(
-        LINE_JOINER.join(
+        lines(
             "function f(x = void 0) {",
             "  var z;",
             "  {",
@@ -70,7 +70,7 @@ public final class InlineVariablesTest extends CompilerTestCase {
 
   public void testPassDoesntProduceInvalidCode2() {
     testSame(
-        LINE_JOINER.join(
+        lines(
             "function f(x = void 0) {",
             "  {",
             "    var z;",
@@ -84,7 +84,7 @@ public final class InlineVariablesTest extends CompilerTestCase {
 
   public void testPassDoesntProduceInvalidCode3() {
    test(
-        LINE_JOINER.join(
+        lines(
             "function f(x = void 0) {",
             "  var z;",
             "  const y = {};",
@@ -94,7 +94,7 @@ public final class InlineVariablesTest extends CompilerTestCase {
             "    return z;",
             "  }",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "function f(x = void 0) {",
             "  const y = {};",
             "  x && (y['x'] = x);",
@@ -108,6 +108,10 @@ public final class InlineVariablesTest extends CompilerTestCase {
 
   public void testInlineGlobal() {
     test("var x = 1; var z = x;", "var z = 1;");
+  }
+
+  public void testNoInlineAnnotation() {
+    testSame("/** @noinline */ var x = 1; var z = x;");
   }
 
   public void testNoInlineExportedName() {
@@ -800,11 +804,12 @@ public final class InlineVariablesTest extends CompilerTestCase {
   public void testSideEffectOrder() {
     // z can not be changed by the call to y, so x can be inlined.
     String EXTERNS = "var z; function f(){}";
-    test(EXTERNS,
-         "var x = f(y.a, y); z = x;",
-         "z = f(y.a, y);");
+    test(
+        externs(EXTERNS),
+        srcs("var x = f(y.a, y); z = x;"),
+        expected("z = f(y.a, y);"));
     // z.b can be changed by the call to y, so x can not be inlined.
-    testSame(EXTERNS, "var x = f(y.a, y); z.b = x;");
+    testSame(externs(EXTERNS), srcs("var x = f(y.a, y); z.b = x;"));
   }
 
   public void testInlineParameterAlias1() {
@@ -900,7 +905,7 @@ public final class InlineVariablesTest extends CompilerTestCase {
   // Successfully inlines 'values' and 'e'
   public void testInlineIntoForLoop1() {
     test(
-        LINE_JOINER.join(
+        lines(
             "function calculate_hashCode() {",
             "  var values = [1, 2, 3, 4, 5];",
             "  var hashCode = 1;",
@@ -910,7 +915,7 @@ public final class InlineVariablesTest extends CompilerTestCase {
             "  }",
             "  return hashCode;",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "function calculate_hashCode() {",
             "  var hashCode = 1;",
             "  var $array = [1, 2, 3, 4, 5];",
@@ -926,7 +931,7 @@ public final class InlineVariablesTest extends CompilerTestCase {
   // TODO(tbreisacher): Investigate and see if we can improve this.
   public void testInlineIntoForLoop2() {
     test(
-        LINE_JOINER.join(
+        lines(
             "function calculate_hashCode() {",
             "  let values = [1, 2, 3, 4, 5];",
             "  let hashCode = 1;",
@@ -936,7 +941,7 @@ public final class InlineVariablesTest extends CompilerTestCase {
             "  }",
             "  return hashCode;",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "function calculate_hashCode() {",
             "  let values = [1, 2, 3, 4, 5];",
             "  let hashCode = 1;",
@@ -950,7 +955,7 @@ public final class InlineVariablesTest extends CompilerTestCase {
   // This used to be inlined, but regressed when we switched to the ES6 scope creator.
   public void testNoInlineCatchAliasVar1() {
     testSame(
-        LINE_JOINER.join(
+        lines(
             "try {",
             "} catch (e) {",
             "  var y = e;",
@@ -962,7 +967,7 @@ public final class InlineVariablesTest extends CompilerTestCase {
   // This used to be inlined, but regressed when we switched to the ES6 scope creator.
   public void testNoInlineCatchAliasVar2() {
     testSame(
-        LINE_JOINER.join(
+        lines(
             "try {",
             "} catch (e) {",
             "  var y; y = e;",
@@ -973,14 +978,14 @@ public final class InlineVariablesTest extends CompilerTestCase {
 
   public void testInlineCatchAliasLet1() {
     test(
-        LINE_JOINER.join(
+        lines(
             "try {",
             "} catch (e) {",
             "  let y = e;",
             "  g();" ,
             "  y;y;" ,
             "}"),
-        LINE_JOINER.join(
+        lines(
             "try {",
             "} catch (e) {",
             "  g();",
@@ -990,14 +995,14 @@ public final class InlineVariablesTest extends CompilerTestCase {
 
   public void testInlineCatchAliasLet2() {
     test(
-        LINE_JOINER.join(
+        lines(
             "try {",
             "} catch (e) {",
             "  let y; y = e;",
             "  g();",
             "  y;y;",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "try {",
             "} catch (e) {",
             "  e;",
@@ -1008,7 +1013,7 @@ public final class InlineVariablesTest extends CompilerTestCase {
 
   public void testInlineThis() {
     test(
-        LINE_JOINER.join(
+        lines(
             "/** @constructor */",
             "function C() {}",
             "",
@@ -1018,7 +1023,7 @@ public final class InlineVariablesTest extends CompilerTestCase {
             "    alert(self);",
             "  }",
             "};"),
-        LINE_JOINER.join(
+        lines(
             "(/** @constructor */",
             "function C() {}).prototype.m = function() {",
             "  if (true) {",
@@ -1049,7 +1054,7 @@ public final class InlineVariablesTest extends CompilerTestCase {
   public void testLocalsOnly2() {
     inlineLocalsOnly = true;
     test(
-        LINE_JOINER.join(
+        lines(
             "/** @const */",
             "var X=1; X;",
             "function f() {",
@@ -1249,7 +1254,7 @@ public final class InlineVariablesTest extends CompilerTestCase {
   public void testNoInlineRedeclaredExterns() {
     String externs = "var test = 1;";
     String code = "/** @suppress {duplicate} */ var test = 2;alert(test);";
-    testSame(externs, code);
+    testSame(externs(externs), srcs(code));
   }
 
   public void testBug6598844() {
@@ -1355,7 +1360,7 @@ public final class InlineVariablesTest extends CompilerTestCase {
   // GitHub issue #1234: https://github.com/google/closure-compiler/issues/1234
   public void testSwitchGithubIssue1234() {
     testSame(
-        LINE_JOINER.join(
+        lines(
             "var x;",
             "switch ('a') {",
             "  case 'a':",
@@ -1369,13 +1374,13 @@ public final class InlineVariablesTest extends CompilerTestCase {
 
   public void testLetConst() {
     test(
-        LINE_JOINER.join(
+        lines(
             "function f(x) {",
             "  if (true) {",
             "    let y = x; y; y;",
             "  }",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "function f(x) {",
             "  if (true) {",
             "    x; x;",
@@ -1383,13 +1388,13 @@ public final class InlineVariablesTest extends CompilerTestCase {
             "}"));
 
     test(
-        LINE_JOINER.join(
+        lines(
             "function f(x) {",
             "  if (true) {",
             "    const y = x; y; y;",
             "    }",
             "  }"),
-        LINE_JOINER.join(
+        lines(
             "function f(x) {",
             "  if (true) {",
             "    x; x;",
@@ -1397,14 +1402,14 @@ public final class InlineVariablesTest extends CompilerTestCase {
             "}"));
 
     test(
-        LINE_JOINER.join(
+        lines(
             "function f(x) {",
             "  let y;",
             "  {",
             "    let y = x; y;",
             "  }",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "function f(x) {",
             "  let y;",
             "  {",
@@ -1413,14 +1418,14 @@ public final class InlineVariablesTest extends CompilerTestCase {
             "}"));
 
     test(
-        LINE_JOINER.join(
+        lines(
             "function f(x) {",
             "  let y = x; y; const g = 2; ",
             "  {",
             "    const g = 3; let y = g; y;",
             "  }",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "function f(x) {",
             "  x; const g = 2;",
             "  {3;}",
@@ -1429,25 +1434,25 @@ public final class InlineVariablesTest extends CompilerTestCase {
 
   public void testGenerators() {
     test(
-        LINE_JOINER.join(
+        lines(
             "function* f() {",
             "  let x = 1;",
             "  yield x;",
             "}"
         ),
-        LINE_JOINER.join(
+        lines(
             "function* f() {",
             "  yield 1;",
             "}"));
 
     test(
-        LINE_JOINER.join(
+        lines(
             "function* f(x) {",
             "  let y = x++",
             "  yield y;",
             "}"
         ),
-        LINE_JOINER.join(
+        lines(
             "function* f(x) {",
             "  yield x++;",
             "}"));
@@ -1472,7 +1477,7 @@ public final class InlineVariablesTest extends CompilerTestCase {
 
   public void testTaggedTemplateLiterals() {
     test(
-        LINE_JOINER.join(
+        lines(
             "var name = 'Foo';",
             "function myTag(strings, nameExp, numExp) {",
             "  var modStr;",
@@ -1484,7 +1489,7 @@ public final class InlineVariablesTest extends CompilerTestCase {
             "}",
             "var output = myTag`My name is ${name} ${3}`;"
         ),
-        LINE_JOINER.join(
+        lines(
             "var output = function myTag(strings, nameExp, numExp) {",
             "  var modStr;",
             "  if (numExp > 2) {",
@@ -1495,7 +1500,7 @@ public final class InlineVariablesTest extends CompilerTestCase {
             "}`My name is ${'Foo'} ${3}`;"));
 
     test(
-        LINE_JOINER.join(
+        lines(
             "var name = 'Foo';",
             "function myTag(strings, nameExp, numExp) {",
             "  var modStr;",
@@ -1507,7 +1512,7 @@ public final class InlineVariablesTest extends CompilerTestCase {
             "}",
             "var output = myTag`My name is ${name} ${3}`;",
             "output = myTag`My name is ${name} ${2}`;"),
-        LINE_JOINER.join(
+        lines(
             "function myTag(strings, nameExp, numExp) {",
             "  var modStr;",
             "  if (numExp > 2) {",
@@ -1522,14 +1527,16 @@ public final class InlineVariablesTest extends CompilerTestCase {
 
   public void testDestructuring() {
     test(
-        LINE_JOINER.join(
+        lines(
             "var [a, b, c] = [1, 2, 3]",
             "var x = a;",
             "x; x;"
         ),
-        LINE_JOINER.join(
+        lines(
             "var [a, b, c] = [1, 2, 3]",
             "a; a;"));
+
+    testSame("var x = 1; ({[0]: x} = {});");
   }
 
   public void testFunctionInlinedAcrossScript() {

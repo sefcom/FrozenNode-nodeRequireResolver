@@ -91,8 +91,10 @@ final class PolymerPassStaticUtils {
         continue;
       }
       for (Node keyToQuote : keyNode.getFirstChild().children()) {
-        keyToQuote.setQuotedString();
-        compiler.reportChangeToEnclosingScope(keyToQuote);
+        if (!keyToQuote.isQuotedString()) {
+          keyToQuote.setQuotedString();
+          compiler.reportChangeToEnclosingScope(keyToQuote);
+        }
       }
     }
   }
@@ -113,10 +115,6 @@ final class PolymerPassStaticUtils {
 
     ImmutableList.Builder<MemberDefinition> members = ImmutableList.builder();
     for (Node keyNode : properties.children()) {
-      if (!keyNode.hasChildren()) {
-        compiler.report(JSError.make(keyNode, PolymerPassErrors.POLYMER_SHORTHAND_NOT_SUPPORTED));
-        continue;
-      }
       members.add(new MemberDefinition(NodeUtil.getBestJSDocInfo(keyNode), keyNode,
           keyNode.getFirstChild()));
     }

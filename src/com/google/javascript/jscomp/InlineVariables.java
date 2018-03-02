@@ -23,6 +23,7 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.javascript.jscomp.CodingConvention.SubclassRelationship;
 import com.google.javascript.jscomp.ReferenceCollectingCallback.Behavior;
+import com.google.javascript.rhino.JSDocInfo;
 import com.google.javascript.rhino.Node;
 import com.google.javascript.rhino.TypeI;
 import java.util.HashMap;
@@ -122,7 +123,7 @@ class InlineVariables implements CompilerPass {
   private static class IdentifyLocals implements Predicate<Var> {
     @Override
     public boolean apply(Var var) {
-      return var.scope.isLocal();
+      return var.isLocal();
     }
   }
 
@@ -347,7 +348,8 @@ class InlineVariables implements CompilerPass {
           || compiler
               .getCodingConvention()
               .isPropertyRenameFunction(var.nameNode.getOriginalQualifiedName())
-          || staleVars.contains(var);
+          || staleVars.contains(var)
+          || hasNoInlineAnnotation(var);
     }
 
     /**
@@ -738,5 +740,10 @@ class InlineVariables implements CompilerPass {
       }
       return true;
     }
+  }
+
+  private static boolean hasNoInlineAnnotation(Var var) {
+    JSDocInfo jsDocInfo = var.getJSDocInfo();
+    return jsDocInfo != null && jsDocInfo.isNoInline();
   }
 }

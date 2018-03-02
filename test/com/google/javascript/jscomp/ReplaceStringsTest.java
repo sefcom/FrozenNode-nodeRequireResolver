@@ -21,6 +21,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.javascript.jscomp.CompilerOptions.PropertyCollapseLevel;
 import com.google.javascript.jscomp.NodeTraversal.AbstractPostOrderCallback;
 import com.google.javascript.jscomp.ReplaceStrings.Result;
 import com.google.javascript.rhino.Node;
@@ -137,7 +138,7 @@ public final class ReplaceStringsTest extends TypeICompilerTestCase {
         if (rename) {
           NodeTraversal.traverseEs6(compiler, js, new Renamer(compiler));
         }
-        new CollapseProperties(compiler).process(externs, js);
+        new CollapseProperties(compiler, PropertyCollapseLevel.ALL).process(externs, js);
         if (runDisambiguateProperties) {
           SourceInformationAnnotator sia =
               new SourceInformationAnnotator("test", false /* checkAnnotated */);
@@ -227,7 +228,7 @@ public final class ReplaceStringsTest extends TypeICompilerTestCase {
 
   public void testThrowError4() {
     testDebugStrings(
-        LINE_JOINER.join(
+        lines(
             "/** @constructor */",
             "var A = function() {};",
             "A.prototype.m = function(child) {",
@@ -240,7 +241,7 @@ public final class ReplaceStringsTest extends TypeICompilerTestCase {
             "  }",
             "  child.parentNode = this;",
             "};"),
-        LINE_JOINER.join(
+        lines(
             "/** @constructor */",
             "var A = function(){};",
             "A.prototype.m = function(child) {",
@@ -537,7 +538,7 @@ public final class ReplaceStringsTest extends TypeICompilerTestCase {
     functionsToInspect = builder.build();
 
     testDebugStrings(
-        LINE_JOINER.join(
+        lines(
             "/** @constructor */",
             "function A() {}",
             "/** @param {string} p",
@@ -559,7 +560,7 @@ public final class ReplaceStringsTest extends TypeICompilerTestCase {
             "var n = ab.f('not replaced');",
             "(new A).f('replaced with a');",
             "(new C).f('replaced with b');"),
-        LINE_JOINER.join(
+        lines(
             "/** @constructor */",
             "function A() {}",
             "/** @param {string} p",

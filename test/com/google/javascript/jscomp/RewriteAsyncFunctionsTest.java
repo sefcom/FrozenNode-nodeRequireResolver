@@ -46,10 +46,143 @@ public class RewriteAsyncFunctionsTest extends CompilerTestCase {
     return (NoninjectingCompiler) super.getLastCompiler();
   }
 
+  public void testInnerArrowFunctionUsingThis() {
+    test(
+        lines(
+            "class X {",
+            "  async m() {",
+            "    return new Promise((resolve, reject) => {",
+            "      return this;",
+            "    });",
+            "  }",
+            "}"),
+        lines(
+            "class X {",
+            "  m() {",
+            "    const $jscomp$async$this = this;",
+            "    function* $jscomp$async$generator() {",
+            "      return new Promise((resolve, reject) => {",
+            "        return $jscomp$async$this",
+            "      });",
+            "    }",
+            "    return $jscomp.executeAsyncGenerator($jscomp$async$generator())",
+            "  }",
+            "}"));
+  }
+
+  public void testInnerSuperCall() {
+    test(
+        lines(
+            "class A {",
+            "  m() {",
+            "    return this;",
+            "  }",
+            "}",
+            "class X extends A {",
+            "  async m() {",
+            "    return super.m();",
+            "  }",
+            "}"),
+        lines(
+            "class A {",
+            "  m() {",
+            "    return this;",
+            "  }",
+            "}",
+            "class X extends A {",
+            "  m() {",
+            "    const $jscomp$async$this = this;",
+            "    const $jscomp$async$super$get$m = () => super.m;",
+            "    function* $jscomp$async$generator() {",
+            "      return $jscomp$async$super$get$m().call($jscomp$async$this);",
+            "    }",
+            "    return $jscomp.executeAsyncGenerator($jscomp$async$generator())",
+            "  }",
+            "}"));
+  }
+
+  public void testInnerSuperReference() {
+    test(
+        lines(
+            "class A {",
+            "  m() {",
+            "    return this;",
+            "  }",
+            "}",
+            "class X extends A {",
+            "  async m() {",
+            "    const tmp = super.m;",
+            "    return tmp.call(null);",
+            "  }",
+            "}"),
+        lines(
+            "class A {",
+            "  m() {",
+            "    return this;",
+            "  }",
+            "}",
+            "class X extends A {",
+            "  m() {",
+            "    const $jscomp$async$super$get$m = () => super.m;",
+            "    function* $jscomp$async$generator() {",
+            "      const tmp = $jscomp$async$super$get$m();",
+            "      return tmp.call(null);",
+            "    }",
+            "    return $jscomp.executeAsyncGenerator($jscomp$async$generator())",
+            "  }",
+            "}"));
+  }
+
+  public void testNestedArrowFunctionUsingThis() {
+    test(
+        lines(
+            "class X {",
+            "  m() {",
+            "    return async () => (() => this);",
+            "  }",
+            "}"),
+        lines(
+            "class X {",
+            "  m() {",
+            "    return () => {",
+            "      const $jscomp$async$this = this;",
+            "      function* $jscomp$async$generator() {",
+            "        return () => $jscomp$async$this;",
+            "      }",
+            "      return $jscomp.executeAsyncGenerator($jscomp$async$generator())",
+            "    }",
+            "  }",
+            "}"));
+  }
+
+  public void testInnerArrowFunctionUsingArguments() {
+    test(
+        lines(
+            "class X {",
+            "  async m() {",
+            "    return new Promise((resolve, reject) => {",
+            "      return arguments;",
+            "    });",
+            "  }",
+            "}"),
+        lines(
+            "class X {",
+            "  m() {",
+            "    const $jscomp$async$arguments = arguments;",
+            "    function* $jscomp$async$generator() {",
+            "      return new Promise((resolve,reject) => {",
+            "        return $jscomp$async$arguments",
+            "      });",
+            "    }",
+            "    return $jscomp.executeAsyncGenerator($jscomp$async$generator())",
+            "  }",
+            "}"));
+  }
+
   public void testRequiredCodeInjected() {
     test(
         "async function foo() { return 1; }",
-        LINE_JOINER.join(
+        lines(
             "function foo() {",
             "  function* $jscomp$async$generator() {",
             "    return 1;",
@@ -62,7 +195,7 @@ public class RewriteAsyncFunctionsTest extends CompilerTestCase {
   public void testAwaitReplacement() {
     test(
         "async function foo(promise) { return await promise; }",
-        LINE_JOINER.join(
+        lines(
             "function foo(promise) {",
             "  function* $jscomp$async$generator() {",
             "    return yield promise;",
@@ -82,7 +215,7 @@ public class RewriteAsyncFunctionsTest extends CompilerTestCase {
   public void testArgumentsReplacement_asyncFunction() {
     test(
         "async function f(a, b, ...rest) { return arguments.length; }",
-        LINE_JOINER.join(
+        lines(
             "function f(a, b, ...rest) {",
             "  const $jscomp$async$arguments = arguments;",
             "  function* $jscomp$async$generator() {",
@@ -94,12 +227,12 @@ public class RewriteAsyncFunctionsTest extends CompilerTestCase {
 
   public void testArgumentsReplacement_asyncClosure() {
     test(
-        LINE_JOINER.join(
+        lines(
             "function outer() {",
             "  async function f() { return arguments.length; }",
             "  return f(arguments)",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "function outer() {",
             "  function f() {",
             "    const $jscomp$async$arguments = arguments;",
@@ -114,14 +247,14 @@ public class RewriteAsyncFunctionsTest extends CompilerTestCase {
 
   public void testArgumentsReplacement_normalClosureInAsync() {
     test(
-        LINE_JOINER.join(
+        lines(
             "async function a() {",
             "  function inner() {",
             "    return arguments.length;",
             "  }",
             "  return inner.apply(undefined, arguments);", // this should get replaced
             "}"),
-        LINE_JOINER.join(
+        lines(
             "function a() {",
             "  const $jscomp$async$arguments = arguments;",
             "  function* $jscomp$async$generator() {",
@@ -137,7 +270,7 @@ public class RewriteAsyncFunctionsTest extends CompilerTestCase {
   public void testClassMethod() {
     test(
         "class A { async f() { return this.x; } }",
-        LINE_JOINER.join(
+        lines(
             "class A {",
             "  f() {",
             "    const $jscomp$async$this = this;",
@@ -151,14 +284,14 @@ public class RewriteAsyncFunctionsTest extends CompilerTestCase {
 
   public void testAsyncClassMethodWithAsyncArrow() {
     test(
-        LINE_JOINER.join(
+        lines(
             "class A {",
             "  async f() {",
             "    let g = async () => { console.log(this, arguments); };",
             "    g();",
             "  }",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "class A {",
             "  f() {",
             "    const $jscomp$async$this = this;",
@@ -179,14 +312,14 @@ public class RewriteAsyncFunctionsTest extends CompilerTestCase {
 
   public void testNonAsyncClassMethodWithAsyncArrow() {
     test(
-        LINE_JOINER.join(
+        lines(
             "class A {",
             "  f() {",
             "    let g = async () => { console.log(this, arguments); };",
             "    g();",
             "  }",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "class A {",
             "  f() {",
             "    let g = () => {",
@@ -205,7 +338,7 @@ public class RewriteAsyncFunctionsTest extends CompilerTestCase {
   public void testArrowFunctionExpressionBody() {
     test(
         "let f = async () => 1;",
-        LINE_JOINER.join(
+        lines(
             "let f = () => {",
             "    function* $jscomp$async$generator() {",
             "      return 1;",

@@ -230,7 +230,7 @@ public final class CheckMissingReturnTest extends CompilerTestCase {
 
   private static String createShorthandFunctionInObjLit(
       String returnType, String body) {
-    return LINE_JOINER.join(
+    return lines(
         "var obj = {",
         "  /** @return {" + returnType + "} */",
         "  foo() {", body, "}",
@@ -262,6 +262,11 @@ public final class CheckMissingReturnTest extends CompilerTestCase {
     testMissingInShorthandFunction(returnType, body);
   }
 
+  /** Creates function with return type {number} */
+  private void testMissing(String body) {
+    testMissing("number", body);
+  }
+
   private void testNotMissing(String returnType, String body) {
     testNotMissingInTraditionalFunction(returnType, body);
     testNotMissingInShorthandFunction(returnType, body);
@@ -272,29 +277,24 @@ public final class CheckMissingReturnTest extends CompilerTestCase {
     testNotMissing("number", body);
   }
 
-  /** Creates function with return type {number} */
-  private void testMissing(String body) {
-    testMissing("number", body);
-  }
-
   public void testArrowFunctions() {
     setAcceptedLanguage(LanguageMode.ECMASCRIPT_2015);
 
     // undefined return statement
-    testNoWarning(LINE_JOINER.join("/** @return {undefined} */", "() => {}"));
+    testNoWarning(lines("/** @return {undefined} */", "() => {}"));
 
     // arrow function with expression function body
-    testSame(LINE_JOINER.join("/** @return {number} */", "() => 1"));
+    testSame(lines("/** @return {number} */", "() => 1"));
 
-    testSame(LINE_JOINER.join("/** @return {number} */", "(a) => (a > 3) ? 1 : 0"));
+    testSame(lines("/** @return {number} */", "(a) => (a > 3) ? 1 : 0"));
 
     // arrow function with block function body
     testSame(
-        LINE_JOINER.join(
+        lines(
             "/** @return {number} */", "(a) => { if (a > 3) { return 1; } else { return 0; }}"));
 
     testWarning(
-        LINE_JOINER.join("/** @return {number} */", "(a) => { if (a > 3) { return 1; } else { } }"),
+        lines("/** @return {number} */", "(a) => { if (a > 3) { return 1; } else { } }"),
         CheckMissingReturn.MISSING_RETURN_STATEMENT);
 
     // arrow function return is object literal

@@ -23,7 +23,7 @@ import com.google.common.base.Joiner;
 import com.google.javascript.jscomp.AbstractCompiler.LifeCycleStage;
 import com.google.javascript.jscomp.ControlFlowGraph.Branch;
 import com.google.javascript.jscomp.DataFlowAnalysis.FlowState;
-import com.google.javascript.jscomp.LiveVariablesAnalysisEs6.LiveVariableLattice;
+import com.google.javascript.jscomp.LiveVariablesAnalysis.LiveVariableLattice;
 import com.google.javascript.jscomp.NodeTraversal.AbstractPostOrderCallback;
 import com.google.javascript.jscomp.NodeTraversal.ScopedCallback;
 import com.google.javascript.jscomp.graph.DiGraph.DiGraphNode;
@@ -35,10 +35,11 @@ import com.google.javascript.jscomp.graph.UndiGraph;
 import com.google.javascript.rhino.IR;
 import com.google.javascript.rhino.Node;
 import com.google.javascript.rhino.Token;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -66,9 +67,9 @@ class CoalesceVariableNames extends AbstractPostOrderCallback implements
 
   private final AbstractCompiler compiler;
   private final Deque<GraphColoring<Var, Void>> colorings;
-  private final Deque<LiveVariablesAnalysisEs6> liveAnalyses;
+  private final Deque<LiveVariablesAnalysis> liveAnalyses;
   private final boolean usePseudoNames;
-  private LiveVariablesAnalysisEs6 liveness;
+  private LiveVariablesAnalysis liveness;
 
   private final Comparator<Var> coloringTieBreaker =
       new Comparator<Var>() {
@@ -89,8 +90,8 @@ class CoalesceVariableNames extends AbstractPostOrderCallback implements
     checkState(compiler.getLifeCycleStage().isNormalized());
 
     this.compiler = compiler;
-    colorings = new LinkedList<>();
-    liveAnalyses = new LinkedList<>();
+    colorings = new ArrayDeque<>();
+    liveAnalyses = new ArrayDeque<>();
     this.usePseudoNames = usePseudoNames;
   }
 
@@ -113,11 +114,11 @@ class CoalesceVariableNames extends AbstractPostOrderCallback implements
     }
 
     Map<String, Var> allVarsInFn = new HashMap<>();
-    List<Var> orderedVars = new LinkedList<>();
+    List<Var> orderedVars = new ArrayList<>();
     NodeUtil.getAllVarsDeclaredInFunction(
         allVarsInFn, orderedVars, t.getCompiler(), t.getScopeCreator(), t.getScope());
 
-    return LiveVariablesAnalysisEs6.MAX_VARIABLES_TO_ANALYZE > orderedVars.size();
+    return LiveVariablesAnalysis.MAX_VARIABLES_TO_ANALYZE > orderedVars.size();
   }
 
   @Override
@@ -133,7 +134,7 @@ class CoalesceVariableNames extends AbstractPostOrderCallback implements
     ControlFlowGraph<Node> cfg = t.getControlFlowGraph();
 
     liveness =
-        new LiveVariablesAnalysisEs6(
+        new LiveVariablesAnalysis(
             cfg, scope, null, compiler, new Es6SyntacticScopeCreator(compiler));
 
     if (compiler.getOptions().getLanguageOut() == CompilerOptions.LanguageMode.ECMASCRIPT3) {
@@ -284,7 +285,7 @@ class CoalesceVariableNames extends AbstractPostOrderCallback implements
       // incorrect semantics. See test case "testCapture".
       if (v.isLet() || v.isConst()) {
         Node nameDecl = NodeUtil.getEnclosingNode(v.getNode(), NodeUtil.isNameDeclaration);
-        if (NodeUtil.getLhsNodesOfDeclaration(nameDecl).size() > 1) {
+        if (NodeUtil.findLhsNodesInNode(nameDecl).size() > 1) {
           continue;
         }
       }
@@ -382,9 +383,19 @@ class CoalesceVariableNames extends AbstractPostOrderCallback implements
     }
 
     void check(Node n) {
+      // For most AST nodes, traverse the subtree in postorder because that's how the expressions
+      // are evaluated.
       if (n == root || !ControlFlowGraph.isEnteringNewCfgNode(n)) {
-        for (Node c = n.getFirstChild(); c != null; c = c.getNext()) {
-          check(c);
+        if ((n.isDestructuringLhs() && n.hasTwoChildren())
+            || (n.isAssign() && n.getFirstChild().isDestructuringPattern())
+            || n.isDefaultValue()) {
+          // Evaluate the rhs of a destructuring assignment/declaration before the lhs.
+          check(n.getSecondChild());
+          check(n.getFirstChild());
+        } else {
+          for (Node c = n.getFirstChild(); c != null; c = c.getNext()) {
+            check(c);
+          }
         }
         visit(n, n.getParent());
       }
@@ -506,6 +517,8 @@ class CoalesceVariableNames extends AbstractPostOrderCallback implements
         } else if (NodeUtil.isNameDeclaration(parent) && n.hasChildren()) {
           // If this is a VAR declaration, if the name node has a child, we are
           // assigning to that name.
+          return var.getName().equals(n.getString());
+        } else if (NodeUtil.isLhsByDestructuring(n)) {
           return var.getName().equals(n.getString());
         }
       } else if (NodeUtil.isAssignmentOp(n)) {

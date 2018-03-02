@@ -17,8 +17,11 @@ package com.google.javascript.jscomp;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.javascript.jscomp.Es6ToEs3Util.arrayFromIterator;
 import static com.google.javascript.jscomp.Es6ToEs3Util.makeIterator;
 
+import com.google.javascript.jscomp.parsing.parser.FeatureSet;
+import com.google.javascript.jscomp.parsing.parser.FeatureSet.Feature;
 import com.google.javascript.rhino.IR;
 import com.google.javascript.rhino.JSDocInfo;
 import com.google.javascript.rhino.JSDocInfoBuilder;
@@ -31,6 +34,8 @@ import com.google.javascript.rhino.TokenStream;
  */
 public final class Es6RewriteDestructuring implements NodeTraversal.Callback, HotSwapCompilerPass {
   private final AbstractCompiler compiler;
+  private static final FeatureSet transpiledFeatures =
+      FeatureSet.BARE_MINIMUM.with(Feature.DEFAULT_PARAMETERS, Feature.DESTRUCTURING);
 
   static final String DESTRUCTURING_TEMP_VAR = "$jscomp$destructuring$var";
 
@@ -42,13 +47,13 @@ public final class Es6RewriteDestructuring implements NodeTraversal.Callback, Ho
 
   @Override
   public void process(Node externs, Node root) {
-    TranspilationPasses.processTranspile(compiler, externs, this);
-    TranspilationPasses.processTranspile(compiler, root, this);
+    TranspilationPasses.processTranspile(compiler, externs, transpiledFeatures, this);
+    TranspilationPasses.processTranspile(compiler, root, transpiledFeatures, this);
   }
 
   @Override
   public void hotSwapScript(Node scriptRoot, Node originalRoot) {
-    TranspilationPasses.hotSwapTranspile(compiler, scriptRoot, this);
+    TranspilationPasses.hotSwapTranspile(compiler, scriptRoot, transpiledFeatures, this);
   }
 
   @Override
@@ -58,7 +63,7 @@ public final class Es6RewriteDestructuring implements NodeTraversal.Callback, Ho
         visitFunction(t, n);
         break;
       case PARAM_LIST:
-        visitParamList(t, n, parent);
+        visitParamList(n, parent);
         break;
       case FOR_OF:
         visitForOf(n);
@@ -100,7 +105,7 @@ public final class Es6RewriteDestructuring implements NodeTraversal.Callback, Ho
   /**
    * Processes trailing default and rest parameters.
    */
-  private void visitParamList(NodeTraversal t, Node paramList, Node function) {
+  private void visitParamList(Node paramList, Node function) {
     Node insertSpot = null;
     Node body = function.getLastChild();
     int i = 0;
@@ -124,9 +129,7 @@ public final class Es6RewriteDestructuring implements NodeTraversal.Callback, Ho
         } else if (defaultValue.isVoid()) {
           // Any kind of 'void literal' is fine, but 'void fun()' or anything
           // else with side effects isn't.  We're not trying to be particularly
-          // smart here and treat 'void {}' for example as if it could cause
-          // side effects.  Any sane person will type 'name=undefined' or
-          // 'name=void 0' so this should not be an issue.
+          // smart here and treat 'void {}' for example as if it could cause side effects.
           isNoop = NodeUtil.isImmutableValue(defaultValue.getFirstChild());
         }
 
@@ -150,17 +153,17 @@ public final class Es6RewriteDestructuring implements NodeTraversal.Callback, Ho
         newParam.setOptionalArg(true);
         newParam.setJSDocInfo(jsDoc);
 
-        t.reportCodeChange();
+        compiler.reportChangeToChangeScope(function);
       } else if (param.isDestructuringPattern()) {
         insertSpot =
             replacePatternParamWithTempVar(
                 function, insertSpot, param, getTempParameterName(function, i));
-        t.reportCodeChange();
+        compiler.reportChangeToChangeScope(function);
       } else if (param.isRest() && param.getFirstChild().isDestructuringPattern()) {
         insertSpot =
             replacePatternParamWithTempVar(
                 function, insertSpot, param.getFirstChild(), getTempParameterName(function, i));
-        t.reportCodeChange();
+        compiler.reportChangeToChangeScope(function);
       }
     }
   }
@@ -346,8 +349,12 @@ public final class Es6RewriteDestructuring implements NodeTraversal.Callback, Ho
   }
 
   /**
-   * Convert 'var [x, y] = rhs' to: var temp = $jscomp.makeIterator(rhs); var x = temp.next().value;
-   * var y = temp.next().value;
+   * Convert <pre>var [x, y] = rhs<pre> to:
+   * <pre>
+   *   var temp = $jscomp.makeIterator(rhs);
+   *   var x = temp.next().value;
+   *   var y = temp.next().value;
+   * </pre>
    */
   private void replaceArrayPattern(
       NodeTraversal t, Node arrayPattern, Node rhs, Node parent, Node nodeToDetach) {
@@ -357,7 +364,6 @@ public final class Es6RewriteDestructuring implements NodeTraversal.Callback, Ho
         makeIterator(compiler, rhs.detach()));
     tempDecl.useSourceInfoIfMissingFromForTree(arrayPattern);
     nodeToDetach.getParent().addChildBefore(tempDecl, nodeToDetach);
-    boolean needsRuntime = false;
 
     for (Node child = arrayPattern.getFirstChild(), next; child != null; child = next) {
       next = child.getNext();
@@ -394,11 +400,7 @@ public final class Es6RewriteDestructuring implements NodeTraversal.Callback, Ho
         //   var temp = $jscomp.makeIterator(rhs);
         //   x = $jscomp.arrayFromIterator(temp);
         newLHS = child.getFirstChild().detach();
-        newRHS =
-            IR.call(
-                NodeUtil.newQName(compiler, "$jscomp.arrayFromIterator"),
-                IR.name(tempVarName));
-        needsRuntime = true;
+        newRHS = arrayFromIterator(compiler, IR.name(tempVarName));
       } else {
         // LHS is just a name (or a nested pattern).
         //   var [x] = rhs;
@@ -424,11 +426,8 @@ public final class Es6RewriteDestructuring implements NodeTraversal.Callback, Ho
       // destructuring pattern.
       visit(t, newLHS, newLHS.getParent());
     }
-    nodeToDetach.detach();
 
-    if (needsRuntime) {
-      compiler.ensureLibraryInjected("es6/util/arrayfromiterator", false);
-    }
+    nodeToDetach.detach();
     t.reportCodeChange();
   }
 

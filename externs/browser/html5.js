@@ -1545,6 +1545,13 @@ HTMLElement.prototype.attachedCallback;
  */
 HTMLElement.prototype.detachedCallback;
 
+/**
+ * Cryptographic nonce used by Content Security Policy.
+ * @see https://html.spec.whatwg.org/multipage/dom.html#elements-in-the-dom:noncedelement
+ * @type {?string}
+ */
+HTMLElement.prototype.nonce;
+
 /** @type {string} */
 HTMLAnchorElement.prototype.download;
 
@@ -1599,6 +1606,12 @@ HTMLIFrameElement.prototype.srcdoc;
  * @see http://www.w3.org/TR/2012/WD-html5-20121025/the-iframe-element.html#attr-iframe-sandbox
  */
 HTMLIFrameElement.prototype.sandbox;
+
+/**
+ * @type {Window}
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/HTMLIFrameElement/contentWindow
+ */
+HTMLIFrameElement.prototype.contentWindow;
 
 /** @type {string} */
 HTMLInputElement.prototype.autocomplete;
@@ -1670,34 +1683,31 @@ HTMLInputElement.prototype.stepUp = function(opt_n) {};
  */
 function HTMLMediaElement() {}
 
-/**
- * @type {number}
- * @const
- */
+/** @const {number} */
+HTMLMediaElement.NETWORK_EMPTY;  // = 0
+
+/** @const {number} */
+HTMLMediaElement.NETWORK_IDLE;  // = 1
+
+/** @const {number} */
+HTMLMediaElement.NETWORK_LOADING;  // = 2
+
+/** @const {number} */
+HTMLMediaElement.NETWORK_NO_SOURCE;  // = 3
+
+/** @const {number} */
 HTMLMediaElement.HAVE_NOTHING;  // = 0
 
-/**
- * @type {number}
- * @const
- */
+/** @const {number} */
 HTMLMediaElement.HAVE_METADATA;  // = 1
 
-/**
- * @type {number}
- * @const
- */
+/** @const {number} */
 HTMLMediaElement.HAVE_CURRENT_DATA;  // = 2
 
-/**
- * @type {number}
- * @const
- */
+/** @const {number} */
 HTMLMediaElement.HAVE_FUTURE_DATA;  // = 3
 
-/**
- * @type {number}
- * @const
- */
+/** @const {number} */
 HTMLMediaElement.HAVE_ENOUGH_DATA;  // = 4
 
 /** @type {MediaError} */
@@ -1718,7 +1728,7 @@ HTMLMediaElement.prototype.autobuffer;
 /** @type {!TimeRanges} */
 HTMLMediaElement.prototype.buffered;
 
-/** @type {!MediaStream} */
+/** @type {?MediaStream} */
 HTMLMediaElement.prototype.srcObject;
 
 /**
@@ -2145,7 +2155,7 @@ function HTMLAudioElement() {}
  * @constructor
  * @extends {HTMLMediaElement}
  * The webkit-prefixed attributes are defined in
- * https://code.google.com/p/chromium/codesearch#chromium/src/third_party/WebKit/Source/core/html/HTMLVideoElement.idl
+ * https://cs.chromium.org/chromium/src/third_party/WebKit/Source/core/html/media/HTMLMediaElement.idl
  */
 function HTMLVideoElement() {}
 
@@ -3645,7 +3655,7 @@ MutationRecord.prototype.oldValue;
 
 /**
  * @see http://www.w3.org/TR/domcore/#mutation-observers
- * @param {function(Array<MutationRecord>, MutationObserver)} callback
+ * @param {function(Array<!MutationRecord>, MutationObserver)} callback
  * @constructor
  */
 function MutationObserver(callback) {}
@@ -4501,6 +4511,18 @@ Navigator.prototype.plugins;
  */
 Navigator.prototype.javaEnabled = function() {};
 
+/**
+ * @type {number}
+ * @see https://developers.google.com/web/updates/2017/12/device-memory
+ * https://github.com/w3c/device-memory
+ */
+Navigator.prototype.deviceMemory;
+
+/**
+ * @type {!StorageManager}
+ * @see https://storage.spec.whatwg.org
+ */
+Navigator.prototype.storage;
 
 /**
  * @constructor
@@ -4659,3 +4681,72 @@ InputDeviceCapabilities.prototype.pointerMovementScrolls;
 
 /** @type {?InputDeviceCapabilities} */
 MouseEvent.prototype.sourceCapabilities;
+
+/**
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/VisualViewport
+ * @constructor
+ * @implements {EventTarget}
+ */
+function VisualViewport() {}
+
+/** @type {number} */
+VisualViewport.prototype.offsetLeft;
+
+/** @type {number} */
+VisualViewport.prototype.offsetTop;
+
+/** @type {number} */
+VisualViewport.prototype.pageLeft;
+
+/** @type {number} */
+VisualViewport.prototype.pageTop;
+
+/** @type {number} */
+VisualViewport.prototype.width;
+
+/** @type {number} */
+VisualViewport.prototype.height;
+
+/** @type {number} */
+VisualViewport.prototype.scale;
+
+/** @override */
+VisualViewport.prototype.addEventListener = function(type, listener,
+    opt_options) {};
+
+/** @override */
+VisualViewport.prototype.removeEventListener = function(type, listener,
+    opt_options) {};
+
+/** @override */
+VisualViewport.prototype.dispatchEvent = function(evt) {};
+
+/** @type {?function(!Event)} */
+VisualViewport.prototype.onresize;
+
+/** @type {?function(!Event)} */
+VisualViewport.prototype.onscroll;
+
+/**
+ * @see https://storage.spec.whatwg.org/
+ * @constructor
+ */
+function StorageManager() {}
+
+/** @return {!Promise<boolean>} */
+StorageManager.prototype.persisted = function() {};
+
+/** @return {!Promise<boolean>} */
+StorageManager.prototype.persist = function() {};
+
+/** @return {!Promise<StorageEstimate>} */
+StorageManager.prototype.estimate = function() {};
+
+/**
+ * @see https://storage.spec.whatwg.org/
+ * @typedef {{
+ *   usage: number,
+ *   quota: number
+ * }}
+ */
+var StorageEstimate;

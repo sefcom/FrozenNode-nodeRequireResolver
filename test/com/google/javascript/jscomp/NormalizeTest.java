@@ -19,6 +19,7 @@ package com.google.javascript.jscomp;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.javascript.jscomp.CompilerOptions.LanguageMode;
+import com.google.javascript.jscomp.CompilerOptions.PropertyCollapseLevel;
 import com.google.javascript.jscomp.NodeTraversal.AbstractPostOrderCallback;
 import com.google.javascript.rhino.Node;
 import java.util.ArrayList;
@@ -113,13 +114,13 @@ public final class NormalizeTest extends CompilerTestCase {
 
   public void testLetManyBlocks() {
     test(
-        LINE_JOINER.join(
+        lines(
             "let a = 'outer';",
             "{ let a = 'inner1'; }",
             "{ let a = 'inner2'; }",
             "{ let a = 'inner3'; }",
             "{ let a = 'inner4'; }"),
-        LINE_JOINER.join(
+        lines(
             "let a = 'outer';",
             "{ let a$jscomp$1 = 'inner1'; }",
             "{ let a$jscomp$2 = 'inner2'; }",
@@ -129,13 +130,13 @@ public final class NormalizeTest extends CompilerTestCase {
 
   public void testLetOutsideAndInsideForLoop() {
     test(
-        LINE_JOINER.join(
+        lines(
             "let a = 'outer';",
             "for (let a = 'inner';;) {",
             "  break;",
             "}",
             "alert(a);"),
-        LINE_JOINER.join(
+        lines(
             "let a = 'outer';",
             "for (let a$jscomp$1 = 'inner';;) {",
             "  break;",
@@ -145,13 +146,13 @@ public final class NormalizeTest extends CompilerTestCase {
 
   public void testLetOutsideAndInsideBlock() {
     test(
-        LINE_JOINER.join(
+        lines(
             "let a = 'outer';",
             "{",
             "  let a = 'inner';",
             "}",
             "alert(a);"),
-        LINE_JOINER.join(
+        lines(
             "let a = 'outer';",
             "{",
             "  let a$jscomp$1 = 'inner';",
@@ -161,13 +162,13 @@ public final class NormalizeTest extends CompilerTestCase {
 
   public void testLetOutsideAndInsideFn() {
     test(
-        LINE_JOINER.join(
+        lines(
             "let a = 'outer';",
             "function f() {",
             "  let a = 'inner';",
             "}",
             "alert(a);"),
-        LINE_JOINER.join(
+        lines(
             "let a = 'outer';",
             "function f() {",
             "  let a$jscomp$1 = 'inner';",
@@ -177,12 +178,12 @@ public final class NormalizeTest extends CompilerTestCase {
 
   public void testRemoveEmptiesFromClass() {
     test(
-        LINE_JOINER.join(
+        lines(
             "class Foo {",
             "  m1() {};",
             "  m2() {};",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "class Foo {",
             "  m1() {}",
             "  m2() {}",
@@ -199,19 +200,19 @@ public final class NormalizeTest extends CompilerTestCase {
 
   public void testLetInGlobalHoistScope() {
     testSame(
-        LINE_JOINER.join(
+        lines(
             "if (true) {",
             "  let x = 1; alert(x);",
             "}"));
 
     test(
-        LINE_JOINER.join(
+        lines(
             "if (true) {",
             "  let x = 1; alert(x);",
             "} else {",
             "  let x = 1; alert(x);",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "if (true) {",
             "  let x = 1; alert(x);",
             "} else {",
@@ -221,19 +222,19 @@ public final class NormalizeTest extends CompilerTestCase {
 
   public void testConstInGlobalHoistScope() {
     testSame(
-        LINE_JOINER.join(
+        lines(
             "if (true) {",
             "  const x = 1; alert(x);",
             "}"));
 
     test(
-        LINE_JOINER.join(
+        lines(
             "if (true) {",
             "  const x = 1; alert(x);",
             "} else {",
             "  const x = 1; alert(x);",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "if (true) {",
             "  const x = 1; alert(x);",
             "} else {",
@@ -243,7 +244,7 @@ public final class NormalizeTest extends CompilerTestCase {
 
   public void testVarReferencedInHoistedFunction() {
     test(
-        LINE_JOINER.join(
+        lines(
             "var f1 = function() {",
             "  var x;",
             "};",
@@ -257,7 +258,7 @@ public final class NormalizeTest extends CompilerTestCase {
             "  }",
             "  f2();",
             "})();"),
-        LINE_JOINER.join(
+        lines(
             "var f1 = function() {",
             "  var x;",
             "};",
@@ -290,9 +291,10 @@ public final class NormalizeTest extends CompilerTestCase {
   }
 
   public void testDuplicateVarInExterns() {
-    test("var extern;",
-        "/** @suppress {duplicate} */ var extern = 3;",
-        "/** @suppress {duplicate} */ var extern = 3;");
+    test(
+        externs("var extern;"),
+        srcs("/** @suppress {duplicate} */ var extern = 3;"),
+        expected("/** @suppress {duplicate} */ var extern = 3;"));
   }
 
   public void testUnhandled() {
@@ -321,6 +323,10 @@ public final class NormalizeTest extends CompilerTestCase {
     // Any other expression.
     test("for(init(); a < 2 ; a++) foo();",
         "init(); for(; a < 2 ; a++) foo()");
+
+    // Verify destructuring var declarations are extracted.
+    test("for (var [a, b] = [1, 2]; a < 2; a = b++) foo();",
+        "var [a, b] = [1, 2]; for (; a < 2; a = b++) foo();");
   }
 
   public void testForIn1() {
@@ -341,6 +347,11 @@ public final class NormalizeTest extends CompilerTestCase {
     // Verify block are properly introduced for ifs.
     test("if (x) for(var a in b) foo()",
         "if (x) { var a; for(a in b) foo() }");
+
+    // Verify names in destructuring declarations are individually declared.
+    test("for (var [a, b] in c) foo();", "var a; var b; for ([a, b] in c) foo();");
+
+    test("for (var {a, b} in c) foo();", "var a; var b; for ({a: a, b: b} in c) foo();");
   }
 
   public void testForIn2() {
@@ -369,6 +380,11 @@ public final class NormalizeTest extends CompilerTestCase {
     // Verify block are properly introduced for ifs.
     test("if (x) for (var a of b) foo()",
         "if (x) { var a; for (a of b) foo() }");
+
+    // Verify names in destructuring declarations are individually declared.
+    test("for (var [a, b] of c) foo();", "var a; var b; for ([a, b] of c) foo();");
+
+    test("for (var {a, b} of c) foo();", "var a; var b; for ({a: a, b: b} of c) foo();");
   }
 
   public void testWhile() {
@@ -381,14 +397,14 @@ public final class NormalizeTest extends CompilerTestCase {
     test("function f() { if (x) return; foo(); function foo() {} }",
         "function f() {function foo() {} if (x) return; foo(); }");
     test(
-        LINE_JOINER.join(
+        lines(
             "function f() { ",
             "  function foo() {} ",
             "  if (x) return;",
             "  foo(); ",
             "  function bar() {} ",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "function f() {",
             "  function foo() {}",
             "  function bar() {}",
@@ -399,8 +415,6 @@ public final class NormalizeTest extends CompilerTestCase {
 
   public void testMoveFunctions2() {
     testSame("function f() { function foo() {} }");
-    test("function f() { f(); a:function bar() {} }",
-        "function f() { f(); a:{ var bar = function () {} }}");
     test("function f() { f(); {function bar() {}}}",
         "function f() { f(); {var bar = function () {}}}");
     test("function f() { f(); if (true) {function bar() {}}}",
@@ -425,8 +439,6 @@ public final class NormalizeTest extends CompilerTestCase {
     test("var f = function f() {}",
         "var f = function f$jscomp$1() {}");
     testSame("var f = function g() {}");
-    test("a:function g() {}",
-        "a:{ var g = function () {} }");
     test("{function g() {}}",
         "{var g = function () {}}");
     testSame("if (function g() {}) {}");
@@ -442,8 +454,6 @@ public final class NormalizeTest extends CompilerTestCase {
 
 
     testSameInFunction("function f() {}");
-    testInFunction("f(); a:function g() {}",
-        "f(); a:{ var g = function () {} }");
     testInFunction("f(); {function g() {}}",
         "f(); {var g = function () {}}");
     testInFunction("f(); if (true) {function g() {}}",
@@ -619,8 +629,10 @@ public final class NormalizeTest extends CompilerTestCase {
   }
 
   public void testSkipRenamingExterns() {
-    test("var EXTERN; var ext; ext.FOO;", "var b = EXTERN; var c = ext.FOO",
-        "var b = EXTERN; var c = ext.FOO");
+    test(
+        externs("var EXTERN; var ext; ext.FOO;"),
+        srcs("var b = EXTERN; var c = ext.FOO"),
+        expected("var b = EXTERN; var c = ext.FOO"));
   }
 
   public void testIssue166e() {
@@ -630,12 +642,12 @@ public final class NormalizeTest extends CompilerTestCase {
 
   public void testIssue166f() {
     test(
-        LINE_JOINER.join(
+        lines(
             "function a() {",
             "  var e = 2;",
             "  try { throw 1 } catch(e) {}",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "function a() {",
             "  var e = 2;",
             "  try { throw 1 } catch(e$jscomp$1) {}",
@@ -644,12 +656,12 @@ public final class NormalizeTest extends CompilerTestCase {
 
   public void testIssue166g() {
     test(
-        LINE_JOINER.join(
+        lines(
             "function a() {",
             "  try { throw 1 } catch(e) {}",
             "  var e = 2;",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "function a() {",
             "  try { throw 1 } catch(e$jscomp$1) {}",
             "  var e = 2;",
@@ -658,7 +670,7 @@ public final class NormalizeTest extends CompilerTestCase {
 
   public void testLetsInSeparateBlocks() {
     test(
-        LINE_JOINER.join(
+        lines(
             "if (x) {",
             "  let e;",
             "  alert(e);",
@@ -667,7 +679,7 @@ public final class NormalizeTest extends CompilerTestCase {
             "  let e;",
             "  alert(e);",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "if (x) {",
             "  let e;",
             "  alert(e);",
@@ -680,7 +692,7 @@ public final class NormalizeTest extends CompilerTestCase {
 
   public void testCatchesInSeparateBlocks() {
     test(
-        LINE_JOINER.join(
+        lines(
             "if (x) {",
             "  try {",
             "    throw 1;",
@@ -695,7 +707,7 @@ public final class NormalizeTest extends CompilerTestCase {
             "    alert(e);",
             "  }",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "if (x) {",
             "  try {",
             "    throw 1;",
@@ -714,13 +726,13 @@ public final class NormalizeTest extends CompilerTestCase {
 
   public void testDeclInCatchBlock() {
     test(
-        LINE_JOINER.join(
+        lines(
             "var x;",
             "try {",
             "} catch (e) {",
             "  let x;",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "var x;",
             "try {",
             "} catch (e) {",
@@ -730,14 +742,20 @@ public final class NormalizeTest extends CompilerTestCase {
 
   public void testIssue() {
     allowExternsChanges();
-    test("var a,b,c; var a,b", "a(), b()", "a(), b()");
+    test(
+        externs("var a,b,c; var a,b"),
+        srcs("a(), b()"),
+        expected("a(), b()"));
   }
 
   public void testNormalizeSyntheticCode() {
     Compiler compiler = new Compiler();
+    CompilerOptions options = new CompilerOptions();
+    options.setEmitUseStrict(false);
     compiler.init(
         new ArrayList<SourceFile>(),
-        new ArrayList<SourceFile>(), new CompilerOptions());
+        new ArrayList<SourceFile>(),
+        options);
     String code = "function f(x) {} function g(x) {}";
     Node ast = compiler.parseSyntheticCode(code);
     Normalize.normalizeSyntheticCode(compiler, ast, "prefix_");
@@ -838,12 +856,12 @@ public final class NormalizeTest extends CompilerTestCase {
 
   public void testShadowFunctionName() {
     test(
-        LINE_JOINER.join(
+        lines(
             "function f() {",
             "  var f = 'test';",
             "  console.log(f);",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "function f() {",
             "  var f$jscomp$1 = 'test';",
             "  console.log(f$jscomp$1);",
@@ -875,18 +893,19 @@ public final class NormalizeTest extends CompilerTestCase {
     // we call enableNormalize to make the Normalize.VerifyConstants pass run.
 
     // TODO(johnlenz): fix this so it is just another test case.
-    CompilerTestCase tester = new CompilerTestCase() {
-      @Override
-      protected int getNumRepetitions() {
-        // The normalize pass is only run once.
-        return 1;
-      }
+    CompilerTestCase tester =
+        new CompilerTestCase() {
+          @Override
+          protected int getNumRepetitions() {
+            // The normalize pass is only run once.
+            return 1;
+          }
 
-      @Override
-      protected CompilerPass getProcessor(Compiler compiler) {
-        return new CollapseProperties(compiler);
-      }
-    };
+          @Override
+          protected CompilerPass getProcessor(Compiler compiler) {
+            return new CollapseProperties(compiler, PropertyCollapseLevel.ALL);
+          }
+        };
 
     tester.setUp();
     tester.enableNormalize();
@@ -904,8 +923,7 @@ public final class NormalizeTest extends CompilerTestCase {
         "var a$FOO = 1; var b = 1; b = a$FOO;");
 
     tester.testSame(
-        "var EXTERN; var ext; ext.FOO;",
-        "var b = EXTERN; var c = ext.FOO");
+        externs("var EXTERN; var ext; ext.FOO;"), srcs("var b = EXTERN; var c = ext.FOO"));
 
     tester.test(
         "var a={}; a.ACONST = 4; var b = 1; b = a.ACONST;",
@@ -933,12 +951,12 @@ public final class NormalizeTest extends CompilerTestCase {
 
   public void testArrowFunctionInFunction(){
     test(
-        LINE_JOINER.join(
+        lines(
             "function foo() {",
             "  var x = () => 1;",
             "  return x();",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "function foo() {",
             "  var x = () => { return 1; };",
             "  return x();",
@@ -955,7 +973,7 @@ public final class NormalizeTest extends CompilerTestCase {
 
   public void testES6ShorthandPropertySyntax03() {
     test(
-        LINE_JOINER.join(
+        lines(
             "function foo(a, b, c) {",
             "  return {",
             "    a,",
@@ -963,7 +981,7 @@ public final class NormalizeTest extends CompilerTestCase {
             "    c",
             "  };",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "function foo(a, b, c) {",
             "  return {",
             "    a: a,",
@@ -1026,7 +1044,7 @@ public final class NormalizeTest extends CompilerTestCase {
     test("export var a = 4;", "var a = 4; export {a as a};");
     test(
         "export var a, b;",
-        LINE_JOINER.join(
+        lines(
             "var a;",
             "var b;",
             "export {a as a, b as b};"));
@@ -1039,10 +1057,10 @@ public final class NormalizeTest extends CompilerTestCase {
 
   public void testSplitExportDeclarationWithDestructuring() {
     test("export var {} = {};", "var {} = {}; export {};");
-    test(LINE_JOINER.join(
+    test(lines(
         "let obj = {a: 3, b: 2};",
         "export var {a, b: d, e: f = 2} = obj;"),
-        LINE_JOINER.join(
+        lines(
             "let obj = {a: 3, b: 2};",
             "var {a: a, b: d, e: f = 2} = obj;",
             "export {a as a, d as d, f as f};"));
@@ -1058,7 +1076,7 @@ public final class NormalizeTest extends CompilerTestCase {
 
   public void testSplitExportDeclarationOfFunction() {
     test("export function bar() {};",
-        LINE_JOINER.join(
+        lines(
             "function bar() {}",
             "export {bar as bar};"
         ));
@@ -1071,7 +1089,7 @@ public final class NormalizeTest extends CompilerTestCase {
 
   public void testSplitExportDeclarationOfClass() {
     test("export class Foo {};",
-        LINE_JOINER.join("class Foo {}",
+        lines("class Foo {}",
           "export {Foo as Foo};"));
     testSame("export default class Bar {}");
     testSame("export default class {}");

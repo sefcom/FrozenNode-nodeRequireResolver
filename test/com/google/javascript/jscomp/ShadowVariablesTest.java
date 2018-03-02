@@ -90,7 +90,7 @@ public final class ShadowVariablesTest extends CompilerTestCase {
   public void testNoShadowReferencedVariables() {
     generatePseudoNames = true;
     // Unsafe to shadow function names on IE8
-    test(LINE_JOINER.join(
+    test(lines(
         "function f1() {",
         "  var x; x; x; x;",
         "  return function f2(y) {",
@@ -99,7 +99,7 @@ public final class ShadowVariablesTest extends CompilerTestCase {
         "    };",
         "  };",
         "}"),
-        LINE_JOINER.join(
+        lines(
         "function $f1$$() {",
         "  var $x$$; $x$$; $x$$; $x$$;",
         "  return function $f2$$($y$$) {",
@@ -272,7 +272,8 @@ public final class ShadowVariablesTest extends CompilerTestCase {
     try {
       vm.getNewNameToOriginalNameMap();
     } catch (java.lang.IllegalArgumentException unexpected) {
-      fail("Invalid VariableMap generated: " + vm.getOriginalNameToNewNameMap());
+      throw new AssertionError(
+          "Invalid VariableMap generated: " + vm.getOriginalNameToNewNameMap(), unexpected);
     }
   }
 
@@ -286,7 +287,7 @@ public final class ShadowVariablesTest extends CompilerTestCase {
 
     generatePseudoNames = true;
     test(
-        LINE_JOINER.join(
+        lines(
             "function f(x) {",
             "  x;x;x;",
             "  return function (y) { y; x };",
@@ -297,7 +298,7 @@ public final class ShadowVariablesTest extends CompilerTestCase {
             "    };",
             "  };",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "function $f$$($x$$) {",
             "  $x$$;$x$$;$x$$;",
             "  return function ($y$$) { $y$$; $x$$ };",
@@ -312,7 +313,7 @@ public final class ShadowVariablesTest extends CompilerTestCase {
 
   public void testBlocks() {
     // Unsafe to shadow nested "var"s
-    test(LINE_JOINER.join(
+    test(lines(
         "function f() {",
         "  var x = 1;",
         "  {",
@@ -322,7 +323,7 @@ public final class ShadowVariablesTest extends CompilerTestCase {
         "    }",
         "  }",
         "}"),
-        LINE_JOINER.join(
+        lines(
         "function a() {",
         "  var b = 1;",
         "  {",
@@ -334,7 +335,7 @@ public final class ShadowVariablesTest extends CompilerTestCase {
         "}"));
 
     // Safe to shadow nested "let"s
-    test(LINE_JOINER.join(
+    test(lines(
         "function f() {",
         "  let x = 1;",
         "  {",
@@ -344,7 +345,7 @@ public final class ShadowVariablesTest extends CompilerTestCase {
         "    }",
         "  }",
         "}"),
-        LINE_JOINER.join(
+        lines(
         "function b() {",
         "  let a = 1;",
         "  {",
@@ -355,7 +356,7 @@ public final class ShadowVariablesTest extends CompilerTestCase {
         "  }",
         "}"));
 
-    test(LINE_JOINER.join(
+    test(lines(
         "function f() {",
         "  let x = 1;",
         "  {",
@@ -366,7 +367,7 @@ public final class ShadowVariablesTest extends CompilerTestCase {
         "    }",
         "  }",
         "}"),
-        LINE_JOINER.join(
+        lines(
         "function c() {",
         "  let a = 1;",
         "  {",
@@ -381,13 +382,13 @@ public final class ShadowVariablesTest extends CompilerTestCase {
 
   public void testCatch() {
     // Unsafe to shadow caught exceptions on IE8 since they are not block scoped
-    test(LINE_JOINER.join(
+    test(lines(
         "function f(a) {",
         "  try {",
         "  } catch (e) {",
         "  }",
         "}"),
-        LINE_JOINER.join(
+        lines(
         "function a(b) {",
         "  try {",
         "  } catch (c) {",

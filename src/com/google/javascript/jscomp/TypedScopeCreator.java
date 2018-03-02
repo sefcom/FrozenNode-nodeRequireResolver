@@ -28,7 +28,6 @@ import static com.google.javascript.rhino.jstype.JSTypeNative.DATE_FUNCTION_TYPE
 import static com.google.javascript.rhino.jstype.JSTypeNative.ERROR_FUNCTION_TYPE;
 import static com.google.javascript.rhino.jstype.JSTypeNative.EVAL_ERROR_FUNCTION_TYPE;
 import static com.google.javascript.rhino.jstype.JSTypeNative.FUNCTION_FUNCTION_TYPE;
-import static com.google.javascript.rhino.jstype.JSTypeNative.FUNCTION_INSTANCE_TYPE;
 import static com.google.javascript.rhino.jstype.JSTypeNative.GLOBAL_THIS;
 import static com.google.javascript.rhino.jstype.JSTypeNative.NO_TYPE;
 import static com.google.javascript.rhino.jstype.JSTypeNative.NULL_TYPE;
@@ -52,6 +51,9 @@ import static com.google.javascript.rhino.jstype.JSTypeNative.VOID_TYPE;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multiset;
 import com.google.javascript.jscomp.CodingConvention.DelegateRelationship;
 import com.google.javascript.jscomp.CodingConvention.ObjectLiteralCast;
@@ -65,6 +67,7 @@ import com.google.javascript.rhino.InputId;
 import com.google.javascript.rhino.JSDocInfo;
 import com.google.javascript.rhino.Node;
 import com.google.javascript.rhino.NominalTypeBuilder;
+import com.google.javascript.rhino.StaticSymbolTable;
 import com.google.javascript.rhino.Token;
 import com.google.javascript.rhino.jstype.EnumType;
 import com.google.javascript.rhino.jstype.FunctionParamBuilder;
@@ -79,6 +82,7 @@ import com.google.javascript.rhino.jstype.TemplateType;
 import com.google.javascript.rhino.jstype.TemplateTypeMap;
 import com.google.javascript.rhino.jstype.TemplateTypeMapReplacer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -99,7 +103,7 @@ import javax.annotation.Nullable;
  *
  * @author nicksantos@google.com (Nick Santos)
  */
-final class TypedScopeCreator implements ScopeCreator {
+final class TypedScopeCreator implements ScopeCreator, StaticSymbolTable<TypedVar, TypedVar> {
   /**
    * A suffix for naming delegate proxies differently from their base.
    */
@@ -158,6 +162,7 @@ final class TypedScopeCreator implements ScopeCreator {
   private final JSTypeRegistry typeRegistry;
   private final List<FunctionType> delegateProxyCtors = new ArrayList<>();
   private final Map<String, String> delegateCallingConventions = new HashMap<>();
+  private final Map<Node, TypedScope> memoized = new LinkedHashMap<>();
   private final boolean runsAfterNTI;
 
   // Simple properties inferred about functions.
@@ -180,10 +185,6 @@ final class TypedScopeCreator implements ScopeCreator {
       checkNotNull(type);
       this.node = node;
       this.type = type;
-
-      // Other parts of this pass may read off the node.
-      // (like when we set the LHS of an assign with a typed RHS function.)
-      node.setJSType(type);
     }
 
     void resolve(TypedScope scope) {
@@ -213,18 +214,82 @@ final class TypedScopeCreator implements ScopeCreator {
     }
   }
 
+  @Override
+  public Iterable<TypedVar> getReferences(TypedVar var) {
+    return ImmutableList.of(var);
+  }
+
+  @Override
+  public TypedScope getScope(TypedVar var) {
+    return var.scope;
+  }
+
+  @Override
+  public Iterable<TypedVar> getAllSymbols() {
+    List<TypedVar> vars = new ArrayList<>();
+    for (TypedScope s : memoized.values()) {
+      Iterables.addAll(vars, s.getAllSymbols());
+    }
+    return vars;
+  }
+
+  Collection<TypedScope> getAllMemoizedScopes() {
+    // Return scopes in reverse order of creation so that IIFEs will
+    // come before the global scope.
+    return Lists.reverse(ImmutableList.copyOf(memoized.values()));
+  }
+
+  /**
+   * Removes all scopes with root nodes from a given script file.
+   *
+   * @param scriptName the name of the script file to remove nodes for.
+   */
+  void removeScopesForScript(String scriptName) {
+    for (Node scopeRoot : ImmutableSet.copyOf(memoized.keySet())) {
+      if (scriptName.equals(scopeRoot.getSourceFileName())) {
+        memoized.remove(scopeRoot);
+      }
+    }
+  }
+
+  /** Create a scope, looking up in the map for the parent scope. */
+  TypedScope createScope(Node n) {
+    // NOTE(sdh): Ideally we could just look up the node in the map,
+    // but sometimes TypedScopeCreator does not create the scope in
+    // the first place (particularly for empty blocks).  When these
+    // cases show up in the CFG, we need to do some extra legwork to
+    // ensure the scope exists.
+    TypedScope s = memoized.get(n);
+    return s != null
+        ? s
+        : createScope(n, createScope(NodeUtil.getEnclosingScopeRoot(n.getParent())));
+  }
+
   /**
    * Creates a scope with all types declared. Declares newly discovered types
    * and type properties in the type registry.
    */
   @Override
-  public TypedScope createScope(Node root, Scope parent) {
+  public TypedScope createScope(Node root, AbstractScope<?, ?> parent) {
     checkArgument(parent == null || parent instanceof TypedScope);
     TypedScope typedParent = (TypedScope) parent;
+
+    TypedScope scope = memoized.get(root);
+    if (scope != null) {
+      checkState(typedParent == scope.getParent());
+    } else {
+      scope = createScopeInternal(root, typedParent);
+      memoized.put(root, scope);
+    }
+    return scope;
+  }
+
+  private TypedScope createScopeInternal(Node root, TypedScope typedParent) {
     // Constructing the global scope is very different than constructing
     // inner scopes, because only global scopes can contain named classes that
     // show up in the type registry.
     TypedScope newScope = null;
+
     AbstractScopeBuilder scopeBuilder = null;
     if (typedParent == null) {
       JSType globalThis =
@@ -242,16 +307,12 @@ final class TypedScopeCreator implements ScopeCreator {
 
       // Find all the classes in the global scope.
       newScope = createInitialScope(root);
-
-      GlobalScopeBuilder globalScopeBuilder = new GlobalScopeBuilder(newScope);
-      scopeBuilder = globalScopeBuilder;
-      NodeTraversal.traverseTyped(compiler, root, scopeBuilder);
+      scopeBuilder = new GlobalScopeBuilder(newScope);
     } else {
       newScope = new TypedScope(typedParent, root);
-      LocalScopeBuilder localScopeBuilder = new LocalScopeBuilder(newScope);
-      scopeBuilder = localScopeBuilder;
-      localScopeBuilder.build();
+      scopeBuilder = new LocalScopeBuilder(newScope);
     }
+    scopeBuilder.build();
 
     scopeBuilder.resolveStubDeclarations();
 
@@ -351,11 +412,6 @@ final class TypedScopeCreator implements ScopeCreator {
     declareNativeFunctionType(s, TYPE_ERROR_FUNCTION_TYPE);
     declareNativeFunctionType(s, URI_ERROR_FUNCTION_TYPE);
     declareNativeValueType(s, "undefined", VOID_TYPE);
-
-    // There is no longer a need to special case ActiveXObject
-    // but this remains here until we can get the extern forks
-    // cleaned up.
-    declareNativeValueType(s, "ActiveXObject", FUNCTION_INSTANCE_TYPE);
 
     return s;
   }
@@ -476,7 +532,16 @@ final class TypedScopeCreator implements ScopeCreator {
       this.scope = scope;
     }
 
+    /** Traverse the scope root and build it. */
+    void build() {
+      NodeTraversal.traverseTyped(compiler, scope.getRootNode(), this);
+    }
+
+    /** Set the type for a node now, and enqueue it to be updated with a resolved type later. */
     void setDeferredType(Node node, JSType type) {
+      // Other parts of this pass may read the not-yet-resolved type off the node.
+      // (like when we set the LHS of an assign with a typed RHS function.)
+      node.setJSType(type);
       deferredSetTypes.add(new DeferredSetType(node, type));
     }
 
@@ -1374,6 +1439,13 @@ final class TypedScopeCreator implements ScopeCreator {
         if (rValue != null) {
           JSType rValueType = getDeclaredRValueType(lValue, rValue);
           if (rValueType != null) {
+            // Treat @const-annotated aliases like @constructor/@interface if RHS has instance type
+            if (lValue.isQualifiedName()
+                && rValueType.isFunctionType()
+                && rValueType.toMaybeFunctionType().hasInstanceType()) {
+              FunctionType functionType = rValueType.toMaybeFunctionType();
+              typeRegistry.declareType(lValue.getQualifiedName(), functionType.getInstanceType());
+            }
             return rValueType;
           }
         }
@@ -1805,6 +1877,22 @@ final class TypedScopeCreator implements ScopeCreator {
     }
 
     /**
+     * When a class has a stub for a property, and the property exists on a super interface,
+     * use that type.
+     */
+    private JSType getInheritedInterfacePropertyType(ObjectType obj, String propName) {
+      if (obj != null && obj.isPrototypeObject()) {
+        FunctionType f = obj.getOwnerFunction();
+        for (ObjectType i : f.getImplementedInterfaces()) {
+          if (i.hasProperty(propName)) {
+            return i.getPropertyType(propName);
+          }
+        }
+      }
+      return null;
+    }
+
+    /**
      * Resolve any stub declarations to unknown types if we could not
      * find types for them during traversal.
      */
@@ -1824,17 +1912,19 @@ final class TypedScopeCreator implements ScopeCreator {
         // If we see a stub property, make sure to register this property
         // in the type registry.
         ObjectType ownerType = getObjectSlot(ownerName);
-        defineSlot(n, parent, unknownType, true);
+        JSType inheritedType = getInheritedInterfacePropertyType(ownerType, propName);
+        JSType stubType = inheritedType == null ? unknownType : inheritedType;
+        defineSlot(n, parent, stubType, true);
 
         if (ownerType != null &&
             (isExtern || ownerType.isFunctionPrototypeType())) {
           // If this is a stub for a prototype, just declare it
           // as an unknown type. These are seen often in externs.
           ownerType.defineInferredProperty(
-              propName, unknownType, n);
+              propName, stubType, n);
         } else {
           typeRegistry.registerPropertyOnType(
-              propName, ownerType == null ? unknownType : ownerType);
+              propName, ownerType == null ? stubType : ownerType);
         }
       }
     }
@@ -1948,8 +2038,9 @@ final class TypedScopeCreator implements ScopeCreator {
     /**
      * Traverse the scope root and build it.
      */
+    @Override
     void build() {
-      NodeTraversal.traverseTyped(compiler, scope.getRootNode(), this);
+      super.build();
 
       AstFunctionContents contents =
           getFunctionAnalysisResults(scope.getRootNode());
@@ -2007,14 +2098,18 @@ final class TypedScopeCreator implements ScopeCreator {
 
     private ObjectType getThisTypeForCollectingProperties() {
       Node rootNode = scope.getRootNode();
-      if (rootNode.isFromExterns()) return null;
+      if (rootNode.isFromExterns()) {
+        return null;
+      }
 
       JSType type = rootNode.getJSType();
-      if (type == null || !type.isFunctionType()) return null;
+      if (type == null || !type.isFunctionType()) {
+        return null;
+      }
 
       FunctionType fnType = type.toMaybeFunctionType();
       JSType fnThisType = fnType.getTypeOfThis();
-      return fnThisType.isUnknownType() ? null : fnThisType.toObjectType();
+      return fnThisType == null ? null : fnThisType.toObjectType();
     }
 
     private void maybeCollectMember(Node member,

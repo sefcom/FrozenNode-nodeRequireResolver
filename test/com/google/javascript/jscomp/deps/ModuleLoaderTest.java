@@ -223,7 +223,7 @@ public final class ModuleLoaderTest extends TestCase {
           ModuleLoader.ResolutionMode.BROWSER);
       fail("Expected error");
     } catch (IllegalArgumentException e) {
-      assertThat(e.getMessage()).contains("Duplicate module path");
+      assertThat(e).hasMessageThat().contains("Duplicate module path");
     }
   }
 
@@ -301,19 +301,15 @@ public final class ModuleLoaderTest extends TestCase {
             "/node_modules/mymodule/server.js", "/node_modules/mymodule/client.js",
             "/node_modules/mymodule/override/relative.js", "/node_modules/mymodule/./with/this.js",
             "/node_modules/mymodule/exclude/this.js",
-                NodeModuleResolver.JSC_BROWSER_BLACKLISTED_MARKER,
+                ModuleLoader.JSC_BROWSER_BLACKLISTED_MARKER,
             "/node_modules/mymodule/replace/other.js",
-                "/node_modules/mymodule/with/alternative.js");
+            "/node_modules/mymodule/with/alternative.js");
 
     ImmutableList<CompilerInput> compilerInputs =
         inputs(
-            "node_modules/mymodule/package.json",
-            "node_modules/mymodule/server.js",
-            "node_modules/mymodule/client.js",
-            "node_modules/mymodule/exclude/this.js",
-            "node_modules/mymodule/replace/other.js",
-            "node_modules/mymodule/with/alternative.js",
-            "/node_modules/mymodule/override/relative.js",
+            "/node_modules/mymodule/package.json",
+            "/node_modules/mymodule/client.js",
+            "/node_modules/mymodule/with/alternative.js",
             "/node_modules/mymodule/with/this.js",
             "/foo.js");
 
@@ -328,7 +324,6 @@ public final class ModuleLoaderTest extends TestCase {
 
     assertUri(
         "/node_modules/mymodule/client.js", loader.resolve("/foo.js").resolveJsModule("mymodule"));
-
     assertUri(
         "/node_modules/mymodule/with/alternative.js",
         loader.resolve("/foo.js").resolveJsModule("mymodule/replace/other.js"));
@@ -338,8 +333,47 @@ public final class ModuleLoaderTest extends TestCase {
     assertUri(
         "/node_modules/mymodule/with/this.js",
         loader.resolve("/foo.js").resolveJsModule("mymodule/override/relative.js"));
+    assertUri(
+        "/node_modules/mymodule/with/this.js",
+        loader.resolve("/node_modules/mymodule/client.js").resolveJsModule("./override/relative.js"));
     assertNull(
         loader.resolve("/node_modules/mymodule/client.js").resolveJsModule("./exclude/this.js"));
+  }
+
+  public void testWebpack() throws Exception {
+    ImmutableMap<String, String> webpackModulesById =
+        ImmutableMap.of(
+            "1", "A/index.js",
+            "B/index.js", "B/index.js",
+            "3", "app.js");
+
+    ModuleLoader loader =
+        new ModuleLoader(
+            null,
+            ImmutableList.of("."),
+            inputs("A/index.js", "B/index.js", "app.js"),
+            ModuleLoader.PathResolver.RELATIVE,
+            ModuleLoader.ResolutionMode.WEBPACK,
+            webpackModulesById);
+
+    input("A/index.js");
+    input("B/index.js");
+    input("app.js");
+    assertUri("/A/index.js", loader.resolve("A/index.js").resolveJsModule("1"));
+    assertUri("/B/index.js", loader.resolve("A/index.js").resolveJsModule("B/index.js"));
+    assertUri("/app.js", loader.resolve("A/index.js").resolveJsModule("3"));
+    assertUri("/A/index.js", loader.resolve("B/index.js").resolveJsModule("1"));
+    assertUri("/B/index.js", loader.resolve("B/index.js").resolveJsModule("B/index.js"));
+    assertUri("/app.js", loader.resolve("B/index.js").resolveJsModule("3"));
+    assertUri("/A/index.js", loader.resolve("app.js").resolveJsModule("1"));
+    assertUri("/B/index.js", loader.resolve("app.js").resolveJsModule("B/index.js"));
+    assertUri("/app.js", loader.resolve("app.js").resolveJsModule("3"));
+
+    // Path loading falls back to the node resolver
+    assertUri("A/index.js", loader.resolve("B/index.js").resolveJsModule("../A"));
+    assertUri("A/index.js", loader.resolve("B/index.js").resolveJsModule("../A/"));
+    assertUri("A/index.js", loader.resolve("B/index.js").resolveJsModule("../A/index"));
+    assertUri("A/index.js", loader.resolve("app.js").resolveJsModule("./A/index"));
   }
 
   CompilerInput input(String name) {

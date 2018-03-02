@@ -21,6 +21,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -34,10 +35,8 @@ import com.google.javascript.rhino.InputId;
 import com.google.javascript.rhino.Node;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 
 /**
@@ -62,6 +61,7 @@ public class CompilerInput implements SourceAst, DependencyInfo {
   private final List<String> extraRequires = new ArrayList<>();
   private final List<String> extraProvides = new ArrayList<>();
   private final List<String> orderedRequires = new ArrayList<>();
+  private final List<String> dynamicRequires = new ArrayList<>();
   private boolean hasFullParseDependencyInfo = false;
   private ModuleType jsModuleType = ModuleType.NONE;
 
@@ -162,12 +162,17 @@ public class CompilerInput implements SourceAst, DependencyInfo {
 
   /** Gets a list of types depended on by this input. */
   @Override
-  public Collection<String> getRequires() {
+  public ImmutableList<String> getRequires() {
     if (hasFullParseDependencyInfo) {
-      return orderedRequires;
+      return ImmutableList.copyOf(orderedRequires);
     }
 
     return getDependencyInfo().getRequires();
+  }
+
+  @Override
+  public ImmutableList<String> getWeakRequires() {
+    return getDependencyInfo().getWeakRequires();
   }
 
   /**
@@ -175,7 +180,7 @@ public class CompilerInput implements SourceAst, DependencyInfo {
    * but does not attempt to regenerate the dependency information.
    * Typically this occurs from module rewriting.
    */
-  Collection<String> getKnownRequires() {
+  ImmutableCollection<String> getKnownRequires() {
     return concat(
         dependencyInfo != null ? dependencyInfo.getRequires() : ImmutableList.<String>of(),
         extraRequires);
@@ -183,7 +188,7 @@ public class CompilerInput implements SourceAst, DependencyInfo {
 
   /** Gets a list of types provided by this input. */
   @Override
-  public Collection<String> getProvides() {
+  public ImmutableList<String> getProvides() {
     return getDependencyInfo().getProvides();
   }
 
@@ -192,7 +197,7 @@ public class CompilerInput implements SourceAst, DependencyInfo {
    * regenerate the dependency information. Typically this occurs
    * from module rewriting.
    */
-  Collection<String> getKnownProvides() {
+  ImmutableCollection<String> getKnownProvides() {
     return concat(
         dependencyInfo != null ? dependencyInfo.getProvides() : ImmutableList.<String>of(),
         extraProvides);
@@ -210,6 +215,28 @@ public class CompilerInput implements SourceAst, DependencyInfo {
   public boolean addOrderedRequire(String require) {
     if (!orderedRequires.contains(require)) {
       orderedRequires.add(require);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Returns the types that this input dynamically depends on in the order seen in the file. The
+   * returned types were loaded dynamically so while they are part of the dependency graph, they do
+   * not need sorted before this input.
+   */
+  public ImmutableList<String> getDynamicRequires() {
+    return ImmutableList.copyOf(dynamicRequires);
+  }
+
+  /**
+   * Registers a type that this input depends on in the order seen in the file. The type was loaded
+   * dynamically so while it is part of the dependency graph, it does not need sorted before this
+   * input.
+   */
+  public boolean addDynamicRequire(String require) {
+    if (!dynamicRequires.contains(require)) {
+      dynamicRequires.add(require);
       return true;
     }
     return false;
@@ -240,12 +267,12 @@ public class CompilerInput implements SourceAst, DependencyInfo {
       dependencyInfo = generateDependencyInfo();
     }
     if (!extraRequires.isEmpty() || !extraProvides.isEmpty()) {
-      dependencyInfo = new SimpleDependencyInfo(
-          getName(),
-          getName(),
-          concat(dependencyInfo.getProvides(), extraProvides),
-          concat(dependencyInfo.getRequires(), extraRequires),
-          dependencyInfo.getLoadFlags());
+      dependencyInfo =
+          SimpleDependencyInfo.builder(getName(), getName())
+              .setProvides(concat(dependencyInfo.getProvides(), extraProvides))
+              .setRequires(concat(dependencyInfo.getRequires(), extraRequires))
+              .setLoadFlags(dependencyInfo.getLoadFlags())
+              .build();
       extraRequires.clear();
       extraProvides.clear();
     }
@@ -279,7 +306,7 @@ public class CompilerInput implements SourceAst, DependencyInfo {
         return new LazyParsedDependencyInfo(info, (JsAst) ast, compiler);
       } catch (IOException e) {
         compiler.getErrorManager().report(CheckLevel.ERROR,
-            JSError.make(AbstractCompiler.READ_ERROR, getName()));
+            JSError.make(AbstractCompiler.READ_ERROR, getName(), e.getMessage()));
         return SimpleDependencyInfo.EMPTY;
       }
     } else {
@@ -291,7 +318,7 @@ public class CompilerInput implements SourceAst, DependencyInfo {
         return SimpleDependencyInfo.EMPTY;
       }
 
-      finder.visitTree(getAstRoot(compiler));
+      finder.visitTree(root);
 
       // TODO(nicksantos|user): This caching behavior is a bit
       // odd, and only works if you assume the exact call flow that
@@ -303,7 +330,11 @@ public class CompilerInput implements SourceAst, DependencyInfo {
       // compilation scheme. The API needs to be fixed so callers aren't
       // doing weird things like this, and then we should get rid of the
       // multiple-scan strategy.
-      return new SimpleDependencyInfo("", "", finder.provides, finder.requires, finder.loadFlags);
+      return SimpleDependencyInfo.builder("", "")
+          .setProvides(finder.provides)
+          .setRequires(finder.requires)
+          .setLoadFlags(finder.loadFlags)
+          .build();
     }
   }
 
@@ -404,6 +435,7 @@ public class CompilerInput implements SourceAst, DependencyInfo {
         case SCRIPT:
         case NAME:
         case DESTRUCTURING_LHS:
+        case LET:
           break;
 
         default:
@@ -498,7 +530,7 @@ public class CompilerInput implements SourceAst, DependencyInfo {
     return "goog".equals(getLoadFlags().get("module"));
   }
 
-  private static <T> Set<T> concat(Iterable<T> first, Iterable<T> second) {
+  private static <T> ImmutableSet<T> concat(Iterable<T> first, Iterable<T> second) {
     return ImmutableSet.<T>builder().addAll(first).addAll(second).build();
   }
 
@@ -518,10 +550,13 @@ public class CompilerInput implements SourceAst, DependencyInfo {
     this.ast.clearAst();
   }
 
-  enum ModuleType {
+  /** JavaScript module type. */
+  public enum ModuleType {
     NONE,
-    GOOG_MODULE,
+    GOOG,
     ES6,
-    COMMONJS
+    COMMONJS,
+    JSON,
+    IMPORTED_SCRIPT
   }
 }

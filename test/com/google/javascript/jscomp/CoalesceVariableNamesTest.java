@@ -134,6 +134,8 @@ public final class CoalesceVariableNamesTest extends CompilerTestCase {
     inFunction(
         "var x = 1,     k; x; y = 1; for (var y in k) { y }",
         "var x = 1; var k; x; x = 1; for (    x in k) { x }");
+
+    inFunction("function f(param){ var foo; for([foo] in arr); param }");
   }
 
   public void testForOf() {
@@ -143,6 +145,8 @@ public final class CoalesceVariableNamesTest extends CompilerTestCase {
     inFunction(
         "var x = 1,     k; x; y = 1; for (var y of k) { y }",
         "var x = 1; var k; x; x = 1; for (    x of k) { x }");
+
+    inFunction("function f(param){ var foo; for([foo] of arr); param }");
   }
 
   public void testLoopInductionVar() {
@@ -277,7 +281,7 @@ public final class CoalesceVariableNamesTest extends CompilerTestCase {
 
   public void testBug65688660() {
     test(
-        LINE_JOINER.join(
+        lines(
             "function f(param) {",
             "  if (true) {",
             "    const b1 = [];",
@@ -290,7 +294,7 @@ public final class CoalesceVariableNamesTest extends CompilerTestCase {
             "    }",
             "  }",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "function f(param) {",
             "  if (true) {",
             "    param = [];",
@@ -309,7 +313,7 @@ public final class CoalesceVariableNamesTest extends CompilerTestCase {
     // Verify that we don't wrongly merge "opt_a2" and "i" without considering
     // arguments[0] aliasing it.
     String src =
-        LINE_JOINER.join(
+        lines(
             "function f(opt_a2){",
             "  var buffer;",
             "  if(opt_a2){",
@@ -331,17 +335,17 @@ public final class CoalesceVariableNamesTest extends CompilerTestCase {
 
   public void testObjDestructuringConst1() {
     test(
-        LINE_JOINER.join(
+        lines(
             "function f(obj) {",
             "  {",
             "    const {foo: foo} = obj;",
             "    alert(foo);",
             "  }",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "function f(obj) {",
             "  {",
-            "    var {foo: obj} = obj;",
+            "    var {foo: obj} = obj;", // TODO(lharker): could we remove the var statement?
             "    alert(obj);",
             "  }",
             "}"));
@@ -349,7 +353,7 @@ public final class CoalesceVariableNamesTest extends CompilerTestCase {
 
   public void testObjDestructuringConst2() {
     test(
-        LINE_JOINER.join(
+        lines(
             "function f(obj) {",
             "  {",
             "    const {foo: foo} = obj;",
@@ -360,11 +364,11 @@ public final class CoalesceVariableNamesTest extends CompilerTestCase {
             "    alert(bar);",
             "  }",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "function f(obj) {",
             "  {",
-            "    var {foo: obj} = obj;",
-            "    alert(obj);",
+            "    const {foo: foo} = obj;",
+            "    alert(foo);",
             "  }",
             "  {",
             "    var {bar: obj} = obj;",
@@ -375,7 +379,7 @@ public final class CoalesceVariableNamesTest extends CompilerTestCase {
 
   public void testObjDestructuringConst3() {
     testSame(
-        LINE_JOINER.join(
+        lines(
             "function f() {",
             "  const obj = {};",
             "  const {prop1: foo, prop2: bar} = obj;",
@@ -383,11 +387,41 @@ public final class CoalesceVariableNamesTest extends CompilerTestCase {
             "}"));
   }
 
+  public void testObjDestructuringVar() {
+    test(
+        lines(
+            "function f(param) {",
+            "  const obj = {};",
+            "  var {prop1: foo, prop2: bar} = obj;",
+            "  alert(foo);",
+            "}"),
+        lines(
+            "function f(param) {",
+            "  param = {};",
+            "  var {prop1: param, prop2: bar} = param;",
+            "  alert(param);",
+            "}"));
+  }
+
+  public void testDestructuringDefaultValue() {
+    testSame("function f(param) {  var a;  [a = param] = {};  param;  }");
+
+    test(
+        "function f(param) {  var a;  [a = param] = {};  a;  }",
+        "function f(param) {  [param = param] = {};  param;  }");
+  }
+
+  public void testDestructuringEvaluationOrder() {
+    // Since the "a = 5" assignment is evaluated before "a = param" (which is
+    // conditionally evaluated), we must not coalesce param and a.
+    testSame("function f(param) { var a; [a = param] = (a = 5, {});  a; }");
+  }
+
   // We would normally coalesce 'key' with 'collidesWithKey', but in doing so we'd change the 'let'
   // on line 2 to a 'var' which would cause the inner function to capture the wrong value of 'val'.
   public void testCapture() {
     testSame(
-        LINE_JOINER.join(
+        lines(
             "function f(param) {",
             "  for (let [key, val] of foo()) {",
             "    param = (x) => { return val(x); };",
@@ -399,7 +433,7 @@ public final class CoalesceVariableNamesTest extends CompilerTestCase {
 
   public void testDestructuring() {
     testSame(
-        LINE_JOINER.join(
+        lines(
             "function f() {",
             "  const [x, y] = foo(5);",
             "  let z = foo(x);",
@@ -480,7 +514,7 @@ public final class CoalesceVariableNamesTest extends CompilerTestCase {
   public void testBug1445366() {
     // An assignment might not be complete if the RHS throws an exception.
     inFunction(
-        LINE_JOINER.join(
+        lines(
             "var iframe = getFrame();",
             "try {",
             "  var win = iframe.contentWindow;",
@@ -494,14 +528,14 @@ public final class CoalesceVariableNamesTest extends CompilerTestCase {
 
     // Verify that we can still coalesce it if there are no handlers.
     inFunction(
-        LINE_JOINER.join(
+        lines(
             "var iframe = getFrame();",
             "var win = iframe.contentWindow;",
             "if (win)",
             "  this.setupWinUtil_();",
             "else",
             "  this.load();"),
-        LINE_JOINER.join(
+        lines(
             "var iframe = getFrame();",
             "iframe = iframe.contentWindow;",
             "if (iframe)",
@@ -514,7 +548,7 @@ public final class CoalesceVariableNamesTest extends CompilerTestCase {
   // check will produce an incorrect result if none of the 'case' statements is executed.
   public void testCannotReuseAnyParamsBug() {
     testSame(
-        LINE_JOINER.join(
+        lines(
             "function handleKeyboardShortcut(e, key, isModifierPressed) {",
             "  if (!isModifierPressed) {",
             "    return false;",
@@ -543,10 +577,8 @@ public final class CoalesceVariableNamesTest extends CompilerTestCase {
             "};"));
   }
 
-  // TODO(b/66919166): Fix this test and re-enable it.
-  // Same as above, but this time the parameter 'type' is part of a destructuring pattern.
-  public void disabled_testCannotReuseAnyParamsBugWithDestructuring() {
-    testSame(LINE_JOINER.join(
+  public void testCannotReuseAnyParamsBugWithDestructuring() {
+    testSame(lines(
         "function handleKeyboardShortcut({type: type}, key, isModifierPressed) {",
         "  if (!isModifierPressed) {",
         "    return false;",
@@ -603,7 +635,7 @@ public final class CoalesceVariableNamesTest extends CompilerTestCase {
         "var x_y = 1; var x_y$ = 0; print(x_y$);      x_y$ = 1; print(x_y$); print(x_y);");
 
     inFunction(
-        LINE_JOINER.join(
+        lines(
             "var x_y = 1; ",
             "function f() {",
             "  var x    = 0;",
@@ -612,7 +644,7 @@ public final class CoalesceVariableNamesTest extends CompilerTestCase {
             "  print( y);",
             "  print(x_y);",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "function f(){",
             "  var x_y$=0;",
             "  print(x_y$);",
@@ -623,7 +655,7 @@ public final class CoalesceVariableNamesTest extends CompilerTestCase {
             "var x_y=1"));
 
     inFunction(
-        LINE_JOINER.join(
+        lines(
             "var x   = 0;",
             "print(x  );",
             "var   y = 1;",
@@ -632,7 +664,7 @@ public final class CoalesceVariableNamesTest extends CompilerTestCase {
             "function bar() {",
             "  print(closure_var);",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "function bar(){",
             "  print(closure_var)",
             "}",
@@ -646,7 +678,7 @@ public final class CoalesceVariableNamesTest extends CompilerTestCase {
   public void testUsePseudoNamesWithLets() {
     usePseudoName = true;
     inFunction(
-        LINE_JOINER.join(
+        lines(
             "var x_y = 1; ",
             "function f() {",
             "  let x    = 0;",
@@ -655,7 +687,7 @@ public final class CoalesceVariableNamesTest extends CompilerTestCase {
             "  print( y);",
             "  print(x_y);",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "function f(){",
             "  var x_y$=0;",
             "  print(x_y$);",
@@ -727,7 +759,7 @@ public final class CoalesceVariableNamesTest extends CompilerTestCase {
         "if(1) { var x = 0; x } else {     x = 0; x }");
 
     inFunction(
-        LINE_JOINER.join(
+        lines(
             "if (a) {",
             "   return a;",
             " } else {",
@@ -736,7 +768,7 @@ public final class CoalesceVariableNamesTest extends CompilerTestCase {
             "   return c;",
             " }",
             " return a;"),
-        LINE_JOINER.join(
+        lines(
             "if (a) {",
             "    return a;",
             "  } else {",
@@ -817,7 +849,7 @@ public final class CoalesceVariableNamesTest extends CompilerTestCase {
   public void testCodeWithTwoFunctions() {
     // We only want to coalesce within a function, not across functions
     test(
-        LINE_JOINER.join(
+        lines(
             "function FUNC1() {",
             "  var x = 1; ",
             "  var y = 2; ",
@@ -828,7 +860,7 @@ public final class CoalesceVariableNamesTest extends CompilerTestCase {
             "  var w = 4; ",
             "          w; ",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "function FUNC1() {",
             "  var x = 1; ",
             "      x = 2; ",
@@ -842,17 +874,17 @@ public final class CoalesceVariableNamesTest extends CompilerTestCase {
 
     // Two arrow functions
     test(
-        LINE_JOINER.join(
+        lines(
             "() => { var x = 1; var y = 2; y; };",
             "() => { var z = 3; var w = 4; w; };"),
-        LINE_JOINER.join(
+        lines(
             "() => { var x = 1;     x = 2; x; };",
             "() => { var z = 3;     z = 4; z; };"));
   }
 
   public void testNestedFunctionCoalescing() {
     test(
-        LINE_JOINER.join(
+        lines(
             "function FUNC1() {",
             "  var x = 1; ",
             "  var y = 2; ",
@@ -863,7 +895,7 @@ public final class CoalesceVariableNamesTest extends CompilerTestCase {
             "            w; ",
             "  }",
             "}"),
-        LINE_JOINER.join(
+        lines(
             "function FUNC1() {",
             "  function FUNC2() {",
             "    var z = 3;",

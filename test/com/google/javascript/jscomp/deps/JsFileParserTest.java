@@ -62,9 +62,12 @@ public final class JsFileParserTest extends TestCase {
       + "goog.require(\"bar.data.SuperstarAddStarThreadActionRequestDelegate\"); "
       + "//no new line at EOF";
 
-    DependencyInfo expected = new SimpleDependencyInfo(CLOSURE_PATH, SRC_PATH,
-        ImmutableList.of("yes1", "yes2"),
-        ImmutableList.of("yes3", "bar.data.SuperstarAddStarThreadActionRequestDelegate"), false);
+    DependencyInfo expected = SimpleDependencyInfo.builder(CLOSURE_PATH, SRC_PATH)
+        .setProvides(ImmutableList.of("yes1", "yes2"))
+        .setRequires(
+            ImmutableList.of("yes3", "bar.data.SuperstarAddStarThreadActionRequestDelegate"))
+        .setGoogModule(false)
+        .build();
 
     DependencyInfo result = parser.parseFile(SRC_PATH, CLOSURE_PATH, contents);
 
@@ -82,10 +85,11 @@ public final class JsFileParserTest extends TestCase {
       + "var C = goog.require(\"a.b.C\");\n"
       + "let {D, E} = goog.require('a.b.d');";
 
-    DependencyInfo expected = new SimpleDependencyInfo(CLOSURE_PATH, SRC_PATH,
-        ImmutableList.of("yes1"),
-        ImmutableList.of("yes2", "a.b.C", "a.b.d"),
-        ImmutableMap.of("module", "goog"));
+    DependencyInfo expected = SimpleDependencyInfo.builder(CLOSURE_PATH, SRC_PATH)
+        .setProvides(ImmutableList.of("yes1"))
+        .setRequires(ImmutableList.of("yes2", "a.b.C", "a.b.d"))
+        .setLoadFlags(ImmutableMap.of("module", "goog"))
+        .build();
 
     DependencyInfo result = parser.parseFile(SRC_PATH, CLOSURE_PATH, contents);
 
@@ -103,10 +107,45 @@ public final class JsFileParserTest extends TestCase {
       + "var C=goog.require(\"a.b.C\");\n"
       + "const {\n  D,\n  E\n}=goog.require(\"a.b.d\");";
 
-    DependencyInfo expected = new SimpleDependencyInfo(CLOSURE_PATH, SRC_PATH,
-        ImmutableList.of("yes1"),
-        ImmutableList.of("yes2", "a.b.C", "a.b.d"),
-        ImmutableMap.of("module", "goog"));
+    DependencyInfo expected = SimpleDependencyInfo.builder(CLOSURE_PATH, SRC_PATH)
+        .setProvides(ImmutableList.of("yes1"))
+        .setRequires(ImmutableList.of("yes2", "a.b.C", "a.b.d"))
+        .setLoadFlags(ImmutableMap.of("module", "goog"))
+        .build();
+
+    DependencyInfo result = parser.parseFile(SRC_PATH, CLOSURE_PATH, contents);
+
+    assertDeps(expected, result);
+  }
+
+  public void testParseGoogModuleWithWeakDeps() {
+    String contents =
+        ""
+            + "goog.module('yes1');\n"
+            + "var yes2=goog.requireType('yes2');\n"
+            + "var C=goog.requireType(\"a.b.C\");\n"
+            + "const {\n  D,\n  E\n}=goog.requireType(\"a.b.d\");";
+
+    DependencyInfo expected =
+        SimpleDependencyInfo.builder(CLOSURE_PATH, SRC_PATH)
+            .setProvides(ImmutableList.of("yes1"))
+            .setWeakRequires(ImmutableList.of("yes2", "a.b.C", "a.b.d"))
+            .setLoadFlags(ImmutableMap.of("module", "goog"))
+            .build();
+
+    DependencyInfo result = parser.parseFile(SRC_PATH, CLOSURE_PATH, contents);
+
+    assertDeps(expected, result);
+  }
+
+  public void testParseScriptWithWeakDeps() {
+    String contents = "" + "goog.provide('yes1');\n" + "goog.requireType('a.b.C');";
+
+    DependencyInfo expected =
+        SimpleDependencyInfo.builder(CLOSURE_PATH, SRC_PATH)
+            .setProvides(ImmutableList.of("yes1"))
+            .setWeakRequires(ImmutableList.of("a.b.C"))
+            .build();
 
     DependencyInfo result = parser.parseFile(SRC_PATH, CLOSURE_PATH, contents);
 
@@ -124,10 +163,11 @@ public final class JsFileParserTest extends TestCase {
       + "var C=goog.require(\"a.b.C\");\n"
       + "const {\n  D,\n  E\n}=goog.require(\"a.b.d\");});";
 
-    DependencyInfo expected = new SimpleDependencyInfo(CLOSURE_PATH, SRC_PATH,
-        ImmutableList.of("yes1"),
-        ImmutableList.of("yes2", "a.b.C", "a.b.d"),
-        ImmutableMap.<String, String>of()); // wrapped modules aren't marked as modules
+    DependencyInfo expected = SimpleDependencyInfo.builder(CLOSURE_PATH, SRC_PATH)
+        .setProvides(ImmutableList.of("yes1"))
+        .setRequires(ImmutableList.of("yes2", "a.b.C", "a.b.d"))
+        .setLoadFlags(ImmutableMap.<String, String>of())
+        .build(); // wrapped modules aren't marked as modules
 
     DependencyInfo result = parser.parseFile(SRC_PATH, CLOSURE_PATH, contents);
 
@@ -148,11 +188,12 @@ public final class JsFileParserTest extends TestCase {
         + "import \"./dquote\";\n"
         + "export * from './exported';\n";
 
-    DependencyInfo expected = new SimpleDependencyInfo("a.js", "b.js",
-        ImmutableList.of("module$b"),
-        ImmutableList.of(
-            "module$yes2", "module$a$b$C", "module$a$b$d", "module$dquote", "module$exported"),
-        ImmutableMap.of("module", "es6"));
+    DependencyInfo expected = SimpleDependencyInfo.builder("a.js", "b.js")
+        .setProvides(ImmutableList.of("module$b"))
+        .setRequires(ImmutableList.of(
+            "module$yes2", "module$a$b$C", "module$a$b$d", "module$dquote", "module$exported"))
+        .setLoadFlags(ImmutableMap.of("module", "es6"))
+        .build();
 
     DependencyInfo result = parser.parseFile("b.js", "a.js", contents);
 
@@ -171,14 +212,13 @@ public final class JsFileParserTest extends TestCase {
         + "import '../c/w';\n";
 
     DependencyInfo expected =
-        new SimpleDependencyInfo(
-            "../../a/b.js",
-            "/foo/bar/a/b.js",
-            ImmutableList.of("module$foo$bar$a$b"),
-            ImmutableList.of(
+        SimpleDependencyInfo.builder("../../a/b.js", "/foo/bar/a/b.js")
+            .setProvides(ImmutableList.of("module$foo$bar$a$b"))
+            .setRequires(ImmutableList.of(
                 "module$foo$bar$a$x", "module$foo$bar$y",
-                "module$foo$bar$a$z", "module$foo$bar$c$w"),
-            ImmutableMap.of("module", "es6"));
+                "module$foo$bar$a$z", "module$foo$bar$c$w"))
+            .setLoadFlags(ImmutableMap.of("module", "es6"))
+            .build();
 
     DependencyInfo result = parser.parseFile("/foo/bar/a/b.js", "../../a/b.js", contents);
 
@@ -194,10 +234,11 @@ public final class JsFileParserTest extends TestCase {
         + "import 'goog:foo.bar.baz';\n"
         + "goog.require('baz.qux');\n";
 
-    DependencyInfo expected = new SimpleDependencyInfo("b.js", "a.js",
-        ImmutableList.of("module$a"),
-        ImmutableList.of("foo.bar.baz", "baz.qux"),
-        ImmutableMap.of("module", "es6"));
+    DependencyInfo expected = SimpleDependencyInfo.builder("b.js", "a.js")
+        .setProvides(ImmutableList.of("module$a"))
+        .setRequires(ImmutableList.of("foo.bar.baz", "baz.qux"))
+        .setLoadFlags(ImmutableMap.of("module", "es6"))
+        .build();
 
     DependencyInfo result = parser.parseFile("a.js", "b.js", contents);
 
@@ -223,12 +264,13 @@ public final class JsFileParserTest extends TestCase {
         + "import '../closure/d/e';\n"
         + "import '../../corge/f';\n";
 
-    DependencyInfo expected = new SimpleDependencyInfo("../bar/baz.js", "/foo/js/bar/baz.js",
-        ImmutableList.of("module$js$bar$baz"),
-        ImmutableList.of(
+    DependencyInfo expected = SimpleDependencyInfo.builder("../bar/baz.js", "/foo/js/bar/baz.js")
+        .setProvides(ImmutableList.of("module$js$bar$baz"))
+        .setRequires(ImmutableList.of(
             "module$js$bar$a", "module$js$bar$qux$b", "module$js$closure$c",
-            "module$js$closure$d$e", "module$corge$f"),
-        ImmutableMap.of("module", "es6"));
+            "module$js$closure$d$e", "module$corge$f"))
+        .setLoadFlags(ImmutableMap.of("module", "es6"))
+        .build();
 
     DependencyInfo result =
         parser
@@ -251,10 +293,11 @@ public final class JsFileParserTest extends TestCase {
       + "var C=goog.require(\"a.b.C\");\n"
       + "const {\n  D,\n  E\n}=goog.require(\"a.b.d\");";
 
-    DependencyInfo expected = new SimpleDependencyInfo(CLOSURE_PATH, SRC_PATH,
-        ImmutableList.of("yes1"),
-        ImmutableList.of("yes2", "a.b.C", "a.b.d"),
-        true);
+    DependencyInfo expected = SimpleDependencyInfo.builder(CLOSURE_PATH, SRC_PATH)
+        .setProvides(ImmutableList.of("yes1"))
+        .setRequires(ImmutableList.of("yes2", "a.b.C", "a.b.d"))
+        .setGoogModule(true)
+        .build();
 
     DependencyInfo result = parser.parseFile(SRC_PATH, CLOSURE_PATH, contents);
 
@@ -265,8 +308,11 @@ public final class JsFileParserTest extends TestCase {
     String contents = "goog.provide('yes1');goog.provide('yes2');/*"
         + "goog.provide('no1');*/goog.provide('yes3');//goog.provide('no2');";
 
-    DependencyInfo expected = new SimpleDependencyInfo(CLOSURE_PATH, SRC_PATH,
-        ImmutableList.of("yes1", "yes2", "yes3"), Collections.<String>emptyList(), false);
+    DependencyInfo expected = SimpleDependencyInfo.builder(CLOSURE_PATH, SRC_PATH)
+        .setProvides(ImmutableList.of("yes1", "yes2", "yes3"))
+        .setRequires(Collections.<String>emptyList())
+        .setGoogModule(false)
+        .build();
 
     DependencyInfo result = parser.parseFile(SRC_PATH, CLOSURE_PATH, contents);
 
@@ -281,8 +327,11 @@ public final class JsFileParserTest extends TestCase {
         + "foo = function() {};\n"
         + "goog.provide('no1');";
 
-    DependencyInfo expected = new SimpleDependencyInfo(CLOSURE_PATH, SRC_PATH,
-        ImmutableList.of("yes1", "yes2"), Collections.<String>emptyList(), false);
+    DependencyInfo expected = SimpleDependencyInfo.builder(CLOSURE_PATH, SRC_PATH)
+        .setProvides(ImmutableList.of("yes1", "yes2"))
+        .setRequires(Collections.<String>emptyList())
+        .setGoogModule(false)
+        .build();
     DependencyInfo result = parser.parseFile(SRC_PATH, CLOSURE_PATH, contents);
 
     assertDeps(expected, result);
@@ -293,8 +342,11 @@ public final class JsFileParserTest extends TestCase {
         " * goog.provide('no2');\n */\n"
         + "goog.provide('yes1');\n";
 
-    DependencyInfo expected = new SimpleDependencyInfo(CLOSURE_PATH, SRC_PATH,
-        ImmutableList.of("yes1"), Collections.<String>emptyList(), false);
+    DependencyInfo expected = SimpleDependencyInfo.builder(CLOSURE_PATH, SRC_PATH)
+        .setProvides(ImmutableList.of("yes1"))
+        .setRequires(Collections.<String>emptyList())
+        .setGoogModule(false)
+        .build();
     DependencyInfo result = parser.parseFile(SRC_PATH, CLOSURE_PATH, contents);
 
     assertDeps(expected, result);
@@ -305,8 +357,11 @@ public final class JsFileParserTest extends TestCase {
         " * goog.provide('no1');\n */\n"
         + "goog.provide('yes1');\n";
 
-    DependencyInfo expected = new SimpleDependencyInfo(CLOSURE_PATH, SRC_PATH,
-        ImmutableList.of("yes1"), Collections.<String>emptyList(), false);
+    DependencyInfo expected = SimpleDependencyInfo.builder(CLOSURE_PATH, SRC_PATH)
+        .setProvides(ImmutableList.of("yes1"))
+        .setRequires(Collections.<String>emptyList())
+        .setGoogModule(false)
+        .build();
     DependencyInfo result = parser.parseFile(SRC_PATH, CLOSURE_PATH, contents);
 
     assertDeps(expected, result);
@@ -318,8 +373,11 @@ public final class JsFileParserTest extends TestCase {
         " */\n" +
         "var COMPILED = false;\n";
 
-    DependencyInfo expected = new SimpleDependencyInfo(CLOSURE_PATH, SRC_PATH,
-        ImmutableList.of("goog"), Collections.<String>emptyList(), false);
+    DependencyInfo expected = SimpleDependencyInfo.builder(CLOSURE_PATH, SRC_PATH)
+        .setProvides(ImmutableList.of("goog"))
+        .setRequires(Collections.<String>emptyList())
+        .setGoogModule(false)
+        .build();
     DependencyInfo result = parser.setIncludeGoogBase(true).parseFile(
         SRC_PATH, CLOSURE_PATH, contents);
     assertDeps(expected, result);
@@ -328,8 +386,11 @@ public final class JsFileParserTest extends TestCase {
   public void testIncludeGoog2() {
     String contents = "goog.require('bar');";
 
-    DependencyInfo expected = new SimpleDependencyInfo(CLOSURE_PATH, SRC_PATH,
-        ImmutableList.<String>of(), ImmutableList.of("goog", "bar"), false);
+    DependencyInfo expected = SimpleDependencyInfo.builder(CLOSURE_PATH, SRC_PATH)
+        .setProvides(ImmutableList.<String>of())
+        .setRequires(ImmutableList.of("goog", "bar"))
+        .setGoogModule(false)
+        .build();
     DependencyInfo result = parser.setIncludeGoogBase(true).parseFile(
         SRC_PATH, CLOSURE_PATH, contents);
     assertDeps(expected, result);
@@ -343,8 +404,11 @@ public final class JsFileParserTest extends TestCase {
         " */\n" +
         "var COMPILED = false;\n";
 
-    DependencyInfo expected = new SimpleDependencyInfo(CLOSURE_PATH, SRC_PATH,
-        ImmutableList.of("x"), ImmutableList.of("goog"), false);
+    DependencyInfo expected = SimpleDependencyInfo.builder(CLOSURE_PATH, SRC_PATH)
+        .setProvides(ImmutableList.of("x"))
+        .setRequires(ImmutableList.of("goog"))
+        .setGoogModule(false)
+        .build();
     DependencyInfo result = parser.setIncludeGoogBase(true).parseFile(
         SRC_PATH, CLOSURE_PATH, contents);
     assertDeps(expected, result);
@@ -353,8 +417,11 @@ public final class JsFileParserTest extends TestCase {
   public void testIncludeGoog4() {
     String contents = "goog.addDependency('foo', [], []);\n";
 
-    DependencyInfo expected = new SimpleDependencyInfo(CLOSURE_PATH, SRC_PATH,
-        ImmutableList.<String>of(), ImmutableList.of("goog"), false);
+    DependencyInfo expected = SimpleDependencyInfo.builder(CLOSURE_PATH, SRC_PATH)
+        .setProvides(ImmutableList.<String>of())
+        .setRequires(ImmutableList.of("goog"))
+        .setGoogModule(false)
+        .build();
     DependencyInfo result = parser.setIncludeGoogBase(true).parseFile(
         SRC_PATH, CLOSURE_PATH, contents);
     assertDeps(expected, result);
