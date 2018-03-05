@@ -2036,6 +2036,7 @@ public class CodeGenerator {
     String DFSVar = findVarName(path);
     if(!DFSVar.equals("")){ // If it does replace it with variable name... DONE
       ReqResLog("The variable was found, replacing require with variable\n");
+      // TODO check if js, json, or other
       add(DFSVar+".exports"); // TODO preseve the stuff attached (so var x = require("mod").x1, .x1 would be "attached")
       currNode = currNode.getFirstChild().getNext(); // FIRST ATTEMPT TO GET TO ATTACHED CHILD
       return currNode;
@@ -2051,10 +2052,10 @@ public class CodeGenerator {
     }else if(extension.equalsIgnoreCase(".json")){
       wrapJSON(path);
     }else if (extension.equalsIgnoreCase(".node")){
-      ReqResLog(".node is a valid file type, but I do not have a wrapper for it\n");
+      ReqResLog("[ Important ] .node is a valid file type, but I do not have a wrapper for it\n");
       currNode = null;
     }else if (extension.equalsIgnoreCase(".mjs")){
-      ReqResLog(".mjs is used for experimental modules. I do not have a wrapper for it\n");
+      ReqResLog("[ Important ] .mjs is used for experimental modules. I do not have a wrapper for it\n");
     }else{
       ReqResLog("This is an unsupported file type\n");
     }
@@ -2112,11 +2113,17 @@ public class CodeGenerator {
     out = callCommand(command,currentPath,req);
     // Process output into path
     path = out.substring(3,out.lastIndexOf('>')-2);
+    path = builtInModCheck(m,path);
+    // Make path use foward slash
+    path = path.replace("\\\\","\\").replace("\\","/");
+    return path;
+  }
+  public String builtInModCheck(String m, String path){
     if(m.equalsIgnoreCase(path)){
       ReqResLog("This might be a source module: ");
       ReqResLog(m);ReqResLog("\n");
       path = this.sourceNodeCode+"\\lib"+"\\"+m+".js"; // pathToNative+file-seporator+moduleName+.js
-      // TODO if does not exist complain (to log)
+      checkFileExistance(path,m); // TODO make it so it checks c coded modules. And change variable name?
     }
     String errorString = "rror: Cannot find module '";
     if(path.startsWith(errorString)) {
@@ -2126,22 +2133,29 @@ public class CodeGenerator {
         ReqResLog(temp);ReqResLog("\n");
         path = this.sourceNodeCode+"\\lib" + "\\" + temp + ".js";
       } else {
-        try {
-          // async_hooks is the reason for this. It gives the error message an internal/ does, but is not an internal/
-          path = this.sourceNodeCode+"\\lib" + "\\" + temp + ".js";
-          File f = new File(path);
-          if (!f.exists()) {
-            ReqResLog(temp);
-            ReqResLog(" DOES NOT appear to exist\n[ VERY IMPORTANT ] A path may need to be provided\n");
-          }
-        } catch (Exception e) {
-          ReqResLog(temp);
-          ReqResLog(" DOES NOT appear to exist\n");
-        }
+        // async_hooks is the reason for this. It gives the error message an internal/ does, but is not an internal/
+        path = this.sourceNodeCode+"\\lib" + "\\" + temp + ".js";
+        checkFileExistance(path,temp);
       }
     }
-    path = path.replace("\\\\","\\").replace("\\","/");
     return path;
+  }
+  public boolean checkFileExistance(String path,String temp){
+    boolean exists = true;
+    try {
+      File f = new File(path);
+      if (!f.exists()) {
+        exists = false;
+        ReqResLog(temp);
+        ReqResLog(" DOES NOT appear to exist\n[ VERY IMPORTANT ] A path may need to be provided\n");
+      }
+      //f.close();
+    } catch (Exception e) {
+      exists = false;
+      ReqResLog(temp);
+      ReqResLog(" DOES NOT appear to exist\n");
+    }
+    return exists;
   }
   public String findModuleName(Node n){
     String modName = "";
@@ -2282,18 +2296,19 @@ public class CodeGenerator {
       String[] command = {
               "java", "-jar",
               "D:\\Sefcom\\closure\\closure-compiler-myAttempt\\target\\closure-compiler-1.0-SNAPSHOT.jar",
-              "--module_resolution", "NODE", "--js", path, "--formatting", "PRETTY_PRINT", "--require_resolve_log_location",
-              this.reqreslogloc, "--nodejs_source", this.sourceNodeCode, "--DFS_tracking_log_location",
-              this.dfsResultFilename
+              "--module_resolution", "NODE", "--js", path,"--compilation_level",this.compLevel, "--formatting",
+              "PRETTY_PRINT","--language_out",this.langOut,"--require_resolve_log_location", this.reqreslogloc,
+              "--nodejs_source", this.sourceNodeCode, "--DFS_tracking_log_location", this.dfsResultFilename
       };
       return command;
     }else {
       String[] command = {
               "java", "-jar",
               "D:\\Sefcom\\closure\\closure-compiler-myAttempt\\target\\closure-compiler-1.0-SNAPSHOT.jar",
-              "--module_resolution", "NODE", "--js", path, "--formatting", "PRETTY_PRINT", "--require_resolve_log_location",
-              this.reqreslogloc, "--nodejs_source", this.sourceNodeCode, "--DFS_tracking_log_location",
-              this.dfsResultFilename, "--node_exe_path", this.nodePref
+              "--module_resolution", "NODE", "--js", path,"--compilation_level",this.compLevel, "--formatting",
+              "PRETTY_PRINT","--language_out",this.langOut,"--require_resolve_log_location", this.reqreslogloc,
+              "--nodejs_source", this.sourceNodeCode, "--DFS_tracking_log_location", this.dfsResultFilename,
+              "--node_exe_path", this.nodePref
       };
       return command;
     }
@@ -2487,12 +2502,16 @@ public class CodeGenerator {
       this.sourceNodeCode = "D:\\Sefcom\\NodeJS_code\\node-master";
     }
   }
+  private String langOut = "ECMASCRIPT_2015";
+  private String compLevel = "WHITESPACE_ONLY";//"SIMPLE";//"WHITESPACE_ONLY";
   public void initGlobals(CompilerOptions options){
     // Used for log location
     this.reqreslogloc = options.getReqResLog();
     this.dfsResultFilename = options.getDFSLog();
     this.sourceNodeCode = options.getNJSSource();
     this.nodePref = options.getNodePref();
+    //this.langOut = options.getLanguageOut();
+    //this.compLevel = options.getCompLevel(); // TODO complevel
     /* TODO
        Get Path of this JAR
        Get working directory

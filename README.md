@@ -1,25 +1,22 @@
-I am preparing to update my code to . I am updating mannually the files I work with, then
-I will merge the new closure compiler taking every thing it offers, then pull back the modified.
-
-
-
 You can read README_org.md to learn more about the closure compiler.
 
 This is a modified closure compiler, that takes in a NodeJS file and resolves all of the require statements.
 This is intended to be a preprocessor for static analysis. (I am using it for my thesis).
 This is probably not as efficient as it could be, but it works (not counting todos).
 This is made to work with the setting "--formatting PRETTY_PRINT".
-(I was manually backing up before this)
+You should also use "--language_out ECMASCRIPT_2015" or up and "--compilation_level WHITESPACE_ONLY"
 
+I added a python script named "preprocessorWrapper.py". This was originally going to help with a resolving issue, but
+it did not work. However it does still work as a (mass) caller for the entire preprocessing process.
+There are two main types of calls. "Single File" and "MultiFiles". These are controlled by flags that can be set by
+the command line. Everything else should auto-populate correctly.
+You have to manually edit the global variables if you want to change:
+  java (JAVA), closure compiler jar (CCJAR), node source code location (NSRC), language out (lang_out)
+Most of the other settings for closure compiler have not been tested with my code, so they are statically set and I do
+not recommend changing.
 
-I have tried marking parts I have added with a comment "James". This is more so I can ctrl+f for it. I should have kept an active list before this, but I will try now.
-Because of the weird way I did this I think it will not be preserved correctly.
-  1.   CodeGenerator.java
-  2.   CompilerOptions.java
-  3.   CommandLineRunner.java
-  I don't Think I modified these, but they were important places for break points if you want to debug
-  1.   Compiler.java
-  2.   CodePrinter.java
+Currently you may get "TypeError: Cannot read property 'exports' of undefined" for a global variable.
+This appears to happen when the require that was resolved is inside a function that was not called. You can just move it.
 
 CompilerOptions have been added to help (They do not print properly, so I am putting them here. May not fix that)
   1.  --require_resolve_log_location
@@ -44,20 +41,16 @@ CompilerOptions have been added to help (They do not print properly, so I am put
 
 Known TODO:
 1. Handle require('require-all'). While doing research on require loops I learned about this.
-2. Closure Compiler has trouble with certain files. Can't find exact message but basically it says
-   "Can not convert from ES6". I plan to use "babel" on files that it does this with. In fact this update was so I could
-   use the babel complied code to see if it fixed anything. (Particularly --nodejs_source)
-3. Test that extras are left on with my Global Variables
+2. Test that extras are left on with my Global Variables (They appear to be, but I have not tested methodically)
 Changes that would be nice:
-1. Adding more options (and useful options)
+1. Allow settings to be set by a config file
 2. Make prepender apart of the process (made a python file)
 3. Little more dynamic
 
 
 Currently (FOR THESIS RUNNING PROCESS) probably will make bash script or something.
-For each project (run through bable)
 For each project's main node code
-  java -jar closure-compiler.jar --module_resolution NODE --js <original_file_absLoc> --js_output_file <output_absLoc> --formatting PRETTY_PRINT --require_resolve_log_location <log_absLoc> --reset_rrl true
+  java -jar closure-compiler.jar --module_resolution NODE --js <original_file_absLoc> --js_output_file <output_absLoc> --formatting PRETTY_PRINT --compilation_level WHITESPACE_ONLY --language_out ECMASCRIPT_2015 --require_resolve_log_location <log_absLoc> --reset_rrl true
   python varPrepender.py <output_absLoc>
 
 
@@ -68,3 +61,25 @@ Again there is still a lot that could be fixed.
     AND you are fine with a "working directory" of "D:\Sefcom\closure\closure-compiler-myAttempt\"
 
     I think every thing else can be configured now. I would like to let this be a config file, but it is not right now.
+
+
+========= OLD ========
+I am preparing to update my code to . I am updating mannually the files I work with, then
+I will merge the new closure compiler taking every thing it offers, then pull back the modified.
+
+I have tried marking parts I have added with a comment "James". This is more so I can ctrl+f for it. I should have kept an active list before this, but I will try now.
+Because of the weird way I did this I think it will not be preserved correctly.
+  1.   CodeGenerator.java
+  2.   CompilerOptions.java
+  3.   CommandLineRunner.java
+  I don't Think I modified these, but they were important places for break points if you want to debug
+  1.   Compiler.java
+  2.   CodePrinter.java
+
+
+Currently (FOR THESIS RUNNING PROCESS) probably will make bash script or something.
+For each project (run through bable)
+For each project's main node code
+  java -jar closure-compiler.jar --module_resolution NODE --js <original_file_absLoc> --js_output_file <output_absLoc> --formatting PRETTY_PRINT --require_resolve_log_location <log_absLoc> --reset_rrl true
+  python varPrepender.py <output_absLoc>
+
