@@ -2031,6 +2031,7 @@ public class CodeGenerator {
     Node currNode = n;
     // Gets file location and extension
     String modName = findModuleName(currNode);
+    if(modName==null) return null;
     String path = getRequirePath(modName,currNode);
     // See if file has a variable already
     String DFSVar = findVarName(path);
@@ -2160,6 +2161,11 @@ public class CodeGenerator {
   public String findModuleName(Node n){
     String modName = "";
     n = n.getFirstChild().getNext();
+    if(n.getToken() != Token.STRING){
+      ReqResLog("[ Very Important ]: REQUIRE There appears to have been a dynamic require of some sort.\n\t"+
+              "Currently we do not handle these");
+      return null; // For now ignore requires that do not use strings.
+    }
     modName = n.getString().replace("\\\\","\\").replace("\\","/");
     return modName;
   }

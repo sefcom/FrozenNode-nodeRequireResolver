@@ -124,14 +124,14 @@ def readFileAndCall(multifile,multidir,outdir):
     f2 = open(multidir,'r')
     t2 = f2.readline()
     while(t!=""):
-      callCommands(t,t2.replace("\n",""))
+      callCommands(t.replace("\n",""),t2.replace("\n",""))
       t = f.readline()
       t2 = f2.readline()
     f2.close()
   else:
     print("Assuming you want to use output directory")
     while(t!=""):
-	  callCommands(t,outdir)
+	  callCommands(t.replace("\n",""),outdir)
 	  t = f.readline()
   f.close()
 
@@ -180,6 +180,6 @@ def readCLoptions():
 if __name__ == "__main__":
   readCLoptions()
   if(clOpt["file_name"] != ""):
-    callCommands(clOpt["file_name"],clOpt["od"])
+    callCommands(clOpt["file_name"].replace("\n",""),clOpt["od"].replace("\n",""))
   if(clOpt["mf"] != ""):
-    readFileAndCall(clOpt["mf"],clOpt["mod"],clOpt["od"])
+    readFileAndCall(clOpt["mf"],clOpt["mod"],clOpt["od"].replace("\n",""))

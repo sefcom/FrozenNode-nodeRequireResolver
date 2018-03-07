@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="9ba8c76d-324d-4e6c-8169-b92a136a08b6" name="Default" comment="" />
+    <list default="true" id="9ba8c76d-324d-4e6c-8169-b92a136a08b6" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/preprocessorWrapper.py" afterPath="$PROJECT_DIR$/preprocessorWrapper.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java" afterPath="$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/varPrepender.py" afterPath="$PROJECT_DIR$/varPrepender.py" />
+    </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -11,14 +16,26 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="CodeGenerator.java" pinned="false" current-in-tab="false">
+      <file leaf-file-name="CodeGenerator.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="136">
-              <caret line="2032" column="46" lean-forward="false" selection-start-line="2032" selection-start-column="46" selection-end-line="2032" selection-end-column="46" />
+            <state relative-caret-position="283">
+              <caret line="2165" column="14" lean-forward="false" selection-start-line="2165" selection-start-column="14" selection-end-line="2165" selection-end-column="14" />
               <folding>
-                <element signature="e#0#80963#0" expanded="true" />
+                <element signature="e#0#81274#0" expanded="true" />
                 <element signature="imports" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Compiler.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/com/google/javascript/jscomp/Compiler.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="35904">
+              <caret line="2248" column="0" lean-forward="false" selection-start-line="2248" selection-start-column="0" selection-end-line="2248" selection-end-column="0" />
+              <folding>
+                <element signature="e#0#121068#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -27,18 +44,8 @@
       <file leaf-file-name="varPrepender.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/varPrepender.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="319">
-              <caret line="44" column="34" lean-forward="false" selection-start-line="44" selection-start-column="34" selection-end-line="44" selection-end-column="34" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="README.md" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/README.md">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="0">
-              <caret line="0" column="0" lean-forward="true" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+            <state relative-caret-position="433">
+              <caret line="39" column="5" lean-forward="false" selection-start-line="39" selection-start-column="5" selection-end-line="39" selection-end-column="5" />
               <folding />
             </state>
           </provider>
@@ -47,7 +54,7 @@
       <file leaf-file-name="CompilerOptions.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CompilerOptions.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="181">
+            <state relative-caret-position="43894">
               <caret line="3015" column="53" lean-forward="false" selection-start-line="3015" selection-start-column="48" selection-end-line="3015" selection-end-column="53" />
               <folding>
                 <element signature="e#0#111183#0" expanded="true" />
@@ -60,7 +67,7 @@
       <file leaf-file-name="CommandLineRunner.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CommandLineRunner.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="470">
+            <state relative-caret-position="12546">
               <caret line="811" column="41" lean-forward="false" selection-start-line="811" selection-start-column="14" selection-end-line="811" selection-end-column="41" />
               <folding>
                 <element signature="e#0#77037#0" expanded="true" />
@@ -73,9 +80,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>initReqResLog</find>
-      <find>this.sourceNodeCodeLib</find>
-      <find>d:\\</find>
       <find />
       <find>--language_out</find>
       <find>languageOut</find>
@@ -98,10 +102,13 @@
       <find>fta</find>
       <find>dl</find>
       <find>a</find>
-      <find>a</find>
       <find>getNumberOfVars</find>
       <find>james</find>
       <find>appendVarNames</find>
+      <find>foward</find>
+      <find>check</find>
+      <find>replaceRequire</find>
+      <find>forwardCheckNodeRequire</find>
       <find>findModuleName</find>
     </findStrings>
   </component>
@@ -122,9 +129,9 @@
         <option value="$PROJECT_DIR$/myREADME.md" />
         <option value="$PROJECT_DIR$/src/com/google/javascript/jscomp/CommandLineRunner.java" />
         <option value="$PROJECT_DIR$/src/com/google/javascript/jscomp/CompilerOptions.java" />
-        <option value="$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java" />
         <option value="$PROJECT_DIR$/varPrepender.py" />
         <option value="$PROJECT_DIR$/README.md" />
+        <option value="$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java" />
       </list>
     </option>
   </component>
@@ -149,47 +156,16 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="AndroidView" />
-      <pane id="Scope" />
       <pane id="PackagesPane" />
       <pane id="Scratches" />
+      <pane id="AndroidView" />
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
             <path>
               <item name="closure-compiler-myAttempt" type="b2602c69:ProjectViewProjectNode" />
               <item name="closure-compiler-myAttempt" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="closure-compiler-myAttempt" type="b2602c69:ProjectViewProjectNode" />
-              <item name="closure-compiler-myAttempt" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="closure-compiler-myAttempt" type="b2602c69:ProjectViewProjectNode" />
-              <item name="closure-compiler-myAttempt" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="com" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="closure-compiler-myAttempt" type="b2602c69:ProjectViewProjectNode" />
-              <item name="closure-compiler-myAttempt" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="com" type="462c0819:PsiDirectoryNode" />
-              <item name="google" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="closure-compiler-myAttempt" type="b2602c69:ProjectViewProjectNode" />
-              <item name="closure-compiler-myAttempt" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="com" type="462c0819:PsiDirectoryNode" />
-              <item name="google" type="462c0819:PsiDirectoryNode" />
-              <item name="javascript" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="closure-compiler-myAttempt" type="b2602c69:ProjectViewProjectNode" />
-              <item name="closure-compiler-myAttempt" type="462c0819:PsiDirectoryNode" />
-              <item name="target" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -480,6 +456,14 @@
       <option name="ALTERNATIVE_JRE_PATH" />
       <envs />
     </configuration>
+    <configuration name="sSourceAndSink_RRL (4)" type="JarApplication" factoryName="JAR Application">
+      <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
+      <option name="JAR_PATH" value="$PROJECT_DIR$/target/closure-compiler-1.0-SNAPSHOT.jar" />
+      <option name="PROGRAM_PARAMETERS" value="--module_resolution NODE --js &quot;T:/Javascript/node_modules/utile/lib/index.js&quot; --compilation_level WHITESPACE_ONLY --formatting PRETTY_PRINT --language_out ECMASCRIPT_2015 --require_resolve_log_location &quot;D:\Sefcom\closure\myproject\log.txt&quot; --reset_rrl true --nodejs_source &quot;D:\Sefcom\NodeJS_code\node-v6.13.0&quot;" />
+      <option name="WORKING_DIRECTORY" value="D:\Sefcom\closure\closure-compiler-myAttempt" />
+      <option name="ALTERNATIVE_JRE_PATH" />
+      <envs />
+    </configuration>
     <configuration name="sSourceAndSink_RRL" type="JarApplication" factoryName="JAR Application">
       <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
       <option name="JAR_PATH" value="$PROJECT_DIR$/target/closure-compiler-1.0-SNAPSHOT.jar" />
@@ -488,7 +472,7 @@
       <option name="ALTERNATIVE_JRE_PATH" />
       <envs />
     </configuration>
-    <list size="12">
+    <list size="13">
       <item index="0" class="java.lang.String" itemvalue="JAR Application.Simple Test" />
       <item index="1" class="java.lang.String" itemvalue="JAR Application.ReqTest" />
       <item index="2" class="java.lang.String" itemvalue="JAR Application.ReqTest_WithRRL" />
@@ -496,11 +480,12 @@
       <item index="4" class="java.lang.String" itemvalue="JAR Application.sSourceAndSink_RRL" />
       <item index="5" class="java.lang.String" itemvalue="JAR Application.sSourceAndSink_RRL (2)" />
       <item index="6" class="java.lang.String" itemvalue="JAR Application.sSourceAndSink_RRL (3)" />
-      <item index="7" class="java.lang.String" itemvalue="JAR Application.sSourceAndSink_RRL (1)" />
-      <item index="8" class="java.lang.String" itemvalue="JAR Application.Help" />
-      <item index="9" class="java.lang.String" itemvalue="JAR Application.Advanced Test" />
-      <item index="10" class="java.lang.String" itemvalue="JAR Application.Tests" />
-      <item index="11" class="java.lang.String" itemvalue="Maven.Build Compiler Min" />
+      <item index="7" class="java.lang.String" itemvalue="JAR Application.sSourceAndSink_RRL (4)" />
+      <item index="8" class="java.lang.String" itemvalue="JAR Application.sSourceAndSink_RRL (1)" />
+      <item index="9" class="java.lang.String" itemvalue="JAR Application.Help" />
+      <item index="10" class="java.lang.String" itemvalue="JAR Application.Advanced Test" />
+      <item index="11" class="java.lang.String" itemvalue="JAR Application.Tests" />
+      <item index="12" class="java.lang.String" itemvalue="Maven.Build Compiler Min" />
     </list>
   </component>
   <component name="SbtLocalSettings">
@@ -541,18 +526,18 @@
       <window_info id="Capture Analysis" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.325" sideWeight="0.50852877" order="12" side_tool="true" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.325" sideWeight="0.4914712" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="13" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.325" sideWeight="0.4914712" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32934782" sideWeight="0.5" order="14" side_tool="false" content_ui="tabs" />
       <window_info id="Capture Tool" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.1130064" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.114072494" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="UI Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Theme Preview" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
-      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="12" side_tool="true" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="12" side_tool="true" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -598,11 +583,17 @@
           <properties />
           <option name="timeStamp" value="88" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java</url>
+          <line>2161</line>
+          <properties />
+          <option name="timeStamp" value="94" />
+        </line-breakpoint>
       </breakpoints>
       <breakpoints-dialog>
         <breakpoints-dialog />
       </breakpoints-dialog>
-      <option name="time" value="92" />
+      <option name="time" value="95" />
     </breakpoint-manager>
     <watches-manager>
       <configuration name="JarApplication">
@@ -634,7 +625,6 @@
           <caret line="857" column="0" lean-forward="false" selection-start-line="857" selection-start-column="0" selection-end-line="857" selection-end-column="0" />
           <folding>
             <element signature="e#0#121068#0" expanded="true" />
-            <element signature="imports" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -651,7 +641,7 @@
         <state relative-caret-position="2805">
           <caret line="165" column="0" lean-forward="false" selection-start-line="165" selection-start-column="0" selection-end-line="165" selection-end-column="0" />
           <folding>
-            <element signature="e#0#80963#0" expanded="true" />
+            <element signature="e#0#81274#0" expanded="true" />
             <element signature="imports" expanded="true" />
           </folding>
         </state>
@@ -673,7 +663,6 @@
           <caret line="857" column="0" lean-forward="false" selection-start-line="857" selection-start-column="0" selection-end-line="857" selection-end-column="0" />
           <folding>
             <element signature="e#0#121068#0" expanded="true" />
-            <element signature="imports" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -693,7 +682,7 @@
         <state relative-caret-position="2193">
           <caret line="165" column="0" lean-forward="false" selection-start-line="165" selection-start-column="0" selection-end-line="165" selection-end-column="0" />
           <folding>
-            <element signature="e#0#80963#0" expanded="true" />
+            <element signature="e#0#81274#0" expanded="true" />
             <element signature="imports" expanded="true" />
           </folding>
         </state>
@@ -712,7 +701,6 @@
           <caret line="857" column="0" lean-forward="false" selection-start-line="857" selection-start-column="0" selection-end-line="857" selection-end-column="0" />
           <folding>
             <element signature="e#0#121068#0" expanded="true" />
-            <element signature="imports" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -729,7 +717,7 @@
         <state relative-caret-position="2805">
           <caret line="165" column="0" lean-forward="false" selection-start-line="165" selection-start-column="0" selection-end-line="165" selection-end-column="0" />
           <folding>
-            <element signature="e#0#80963#0" expanded="true" />
+            <element signature="e#0#81274#0" expanded="true" />
             <element signature="imports" expanded="true" />
           </folding>
         </state>
@@ -751,7 +739,6 @@
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
             <element signature="e#0#121068#0" expanded="true" />
-            <element signature="imports" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -953,17 +940,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/com/google/javascript/jscomp/Compiler.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="158">
-          <caret line="2458" column="0" lean-forward="false" selection-start-line="2458" selection-start-column="0" selection-end-line="2458" selection-end-column="0" />
-          <folding>
-            <element signature="e#0#121068#0" expanded="true" />
-            <element signature="imports" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CodePrinter.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="566">
@@ -983,7 +959,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CommandLineRunner.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="470">
+        <state relative-caret-position="12546">
           <caret line="811" column="41" lean-forward="false" selection-start-line="811" selection-start-column="14" selection-end-line="811" selection-end-column="41" />
           <folding>
             <element signature="e#0#77037#0" expanded="true" />
@@ -993,7 +969,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CompilerOptions.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="181">
+        <state relative-caret-position="43894">
           <caret line="3015" column="53" lean-forward="false" selection-start-line="3015" selection-start-column="48" selection-end-line="3015" selection-end-column="53" />
           <folding>
             <element signature="e#0#111183#0" expanded="true" />
@@ -1002,30 +978,40 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/varPrepender.py">
+    <entry file="file://$PROJECT_DIR$/src/com/google/javascript/jscomp/Compiler.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="319">
-          <caret line="44" column="34" lean-forward="false" selection-start-line="44" selection-start-column="34" selection-end-line="44" selection-end-column="34" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="136">
-          <caret line="2032" column="46" lean-forward="false" selection-start-line="2032" selection-start-column="46" selection-end-line="2032" selection-end-column="46" />
+        <state relative-caret-position="35904">
+          <caret line="2248" column="0" lean-forward="false" selection-start-line="2248" selection-start-column="0" selection-end-line="2248" selection-end-column="0" />
           <folding>
-            <element signature="e#0#80963#0" expanded="true" />
-            <element signature="imports" expanded="true" />
+            <element signature="e#0#121068#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/README.md">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="true" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        <state relative-caret-position="535">
+          <caret line="85" column="0" lean-forward="true" selection-start-line="85" selection-start-column="0" selection-end-line="85" selection-end-column="0" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/varPrepender.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="433">
+          <caret line="39" column="5" lean-forward="false" selection-start-line="39" selection-start-column="5" selection-end-line="39" selection-end-column="5" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/com/google/javascript/jscomp/CodeGenerator.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="283">
+          <caret line="2165" column="14" lean-forward="false" selection-start-line="2165" selection-start-column="14" selection-end-line="2165" selection-end-column="14" />
+          <folding>
+            <element signature="e#0#81274#0" expanded="true" />
+            <element signature="imports" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

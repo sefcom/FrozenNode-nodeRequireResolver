@@ -18,10 +18,11 @@ def getNumberOfVars(dfs_loc):
   f.close()
   return t
 def appendVarNames(x):
-  line0 = "var "
+  line0=""
+  if(x!=0): line0 = "var "
   for i in range(x-1):
     line0 += var_name(i)+","
-  line0 += var_name(x-1)+";\n"
+  if(x!=0): line0 += var_name(x-1)+";\n"
   return line0
 # Require Function
 def appendRequires(dfs_loc):
