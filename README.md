@@ -16,7 +16,7 @@ Most of the other settings for closure compiler have not been tested with my cod
 not recommend changing.
 
 Currently you may get "TypeError: Cannot read property 'exports' of undefined" for a global variable.
-This appears to happen when the require that was resolved is inside a function that was not called. You can just move it.
+This appears to happen when the require that was resolved is inside a function that was not called. You can just swap it with one the code+function wrapper it.
 
 CompilerOptions have been added to help (They do not print properly, so I am putting them here. May not fix that)
   1.  --require_resolve_log_location
@@ -41,7 +41,7 @@ CompilerOptions have been added to help (They do not print properly, so I am put
 
 Known TODO:
 1. Handle require('require-all'). While doing research on require loops I learned about this.
-2. Test that extras are left on with my Global Variables (They appear to be, but I have not tested methodically)
+   It did not affect the files I am working with, so I probably will not fix these.
 Changes that would be nice:
 1. Allow settings to be set by a config file
 2. Make prepender apart of the process (made a python file)
@@ -52,7 +52,12 @@ Currently (FOR THESIS RUNNING PROCESS) probably will make bash script or somethi
 For each project's main node code
   java -jar closure-compiler.jar --module_resolution NODE --js <original_file_absLoc> --js_output_file <output_absLoc> --formatting PRETTY_PRINT --compilation_level WHITESPACE_ONLY --language_out ECMASCRIPT_2015 --require_resolve_log_location <log_absLoc> --reset_rrl true
   python varPrepender.py <output_absLoc>
-
+     OR
+  python preprocessorWrapper.py -f <file> -od <output_directory>
+     OR
+  python preprocessorWrapper.py -mf <multi_file> [-mod <multi_directory>]
+     OR
+  python preprocessorWrapper.py -mf <multi_file> [-od <output_directory>]
 
 Again there is still a lot that could be fixed.
   Currently should be able to run as long as

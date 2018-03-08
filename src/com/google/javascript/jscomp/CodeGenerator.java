@@ -2163,7 +2163,7 @@ public class CodeGenerator {
     n = n.getFirstChild().getNext();
     if(n.getToken() != Token.STRING){
       ReqResLog("[ Very Important ]: REQUIRE There appears to have been a dynamic require of some sort.\n\t"+
-              "Currently we do not handle these");
+              "Currently we do not handle these\n");
       return null; // For now ignore requires that do not use strings.
     }
     modName = n.getString().replace("\\\\","\\").replace("\\","/");
