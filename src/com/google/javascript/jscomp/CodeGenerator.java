@@ -2033,6 +2033,7 @@ public class CodeGenerator {
     String modName = findModuleName(currNode);
     if(modName==null) return null;
     String path = getRequirePath(modName,currNode);
+    if(path==null) return null;
     // See if file has a variable already
     String DFSVar = findVarName(path);
     if(!DFSVar.equals("")){ // If it does replace it with variable name... DONE
@@ -2115,6 +2116,7 @@ public class CodeGenerator {
     // Process output into path
     path = out.substring(3,out.lastIndexOf('>')-2);
     path = builtInModCheck(m,path);
+    if(path == null) return path;
     // Make path use foward slash
     path = path.replace("\\\\","\\").replace("\\","/");
     return path;
@@ -2122,6 +2124,7 @@ public class CodeGenerator {
   public String builtInModCheck(String m, String path){
     if(m.equalsIgnoreCase(path)){
       ReqResLog("This might be a source module: ");
+      if(!this.resolveNJSSC){return null;}
       ReqResLog(m);ReqResLog("\n");
       path = this.sourceNodeCode+"\\lib"+"\\"+m+".js"; // pathToNative+file-seporator+moduleName+.js
       checkFileExistance(path,m); // TODO make it so it checks c coded modules. And change variable name?
@@ -2129,6 +2132,7 @@ public class CodeGenerator {
     String errorString = "rror: Cannot find module '";
     if(path.startsWith(errorString)) {
       ReqResLog("This might be a internal source module: ");
+      if(!this.resolveNJSSC){return null;}
       String temp = path.split("'")[1];
       if (temp.startsWith("internal/")) {
         ReqResLog(temp);ReqResLog("\n");
@@ -2304,7 +2308,8 @@ public class CodeGenerator {
               "D:\\Sefcom\\closure\\closure-compiler-myAttempt\\target\\closure-compiler-1.0-SNAPSHOT.jar",
               "--module_resolution", "NODE", "--js", path,"--compilation_level",this.compLevel, "--formatting",
               "PRETTY_PRINT","--language_out",this.langOut,"--require_resolve_log_location", this.reqreslogloc,
-              "--nodejs_source", this.sourceNodeCode, "--DFS_tracking_log_location", this.dfsResultFilename
+              "--nodejs_source", this.sourceNodeCode, "--DFS_tracking_log_location", this.dfsResultFilename,
+              "--resolve_NSC",String.valueOf(this.resolveNJSSC)
       };
       return command;
     }else {
@@ -2314,7 +2319,7 @@ public class CodeGenerator {
               "--module_resolution", "NODE", "--js", path,"--compilation_level",this.compLevel, "--formatting",
               "PRETTY_PRINT","--language_out",this.langOut,"--require_resolve_log_location", this.reqreslogloc,
               "--nodejs_source", this.sourceNodeCode, "--DFS_tracking_log_location", this.dfsResultFilename,
-              "--node_exe_path", this.nodePref
+              "--node_exe_path", this.nodePref,"--resolve_NSC",String.valueOf(this.resolveNJSSC)
       };
       return command;
     }
@@ -2510,12 +2515,14 @@ public class CodeGenerator {
   }
   private String langOut = "ECMASCRIPT_2015";
   private String compLevel = "WHITESPACE_ONLY";//"SIMPLE";//"WHITESPACE_ONLY";
+  private boolean resolveNJSSC = false;
   public void initGlobals(CompilerOptions options){
     // Used for log location
     this.reqreslogloc = options.getReqResLog();
     this.dfsResultFilename = options.getDFSLog();
     this.sourceNodeCode = options.getNJSSource();
     this.nodePref = options.getNodePref();
+    this.resolveNJSSC = options.getNJSSBoolean();
     //this.langOut = options.getLanguageOut();
     //this.compLevel = options.getCompLevel(); // TODO complevel
     /* TODO

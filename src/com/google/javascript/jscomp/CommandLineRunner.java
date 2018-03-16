@@ -817,6 +817,16 @@ public class CommandLineRunner extends
     private String dfslog = null;
 
     @Option(
+            name = "--resolve_NSC",
+            usage =
+                    "True or False"
+                            + "This must be fully typed out if used."
+                            + "If this is true the code will staically link internal node modules, too."
+                            + "Use this if you are trying to run static analysis."
+    )
+    private String resolveNSC = "false";
+
+    @Option(
       name = "--nodejs_source",
       usage =
           "This tells the program where to find the nodeJS source code on you computer. This is NEEDED."
@@ -1868,6 +1878,7 @@ public class CommandLineRunner extends
     options.setResetRRL(flags.resetRRL);
     options.setDFSLog(flags.dfslog);
     options.setNJSSource(flags.nss);
+    options.setNJSSBoolean(flags.resolveNSC);
     options.setNodePref(flags.node_pref);
     options.setReqResConfig(flags.reqresconfig); // James END
 

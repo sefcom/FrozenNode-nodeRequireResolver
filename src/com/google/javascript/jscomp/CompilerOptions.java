@@ -3015,6 +3015,7 @@ public class CompilerOptions implements Serializable {
             .add("wrapGoogModulesForWhitespaceOnly", wrapGoogModulesForWhitespaceOnly)
             .add("reqreslog",getReqResLog()) // JAMES START
             .add("resetRRL",getResetRRL())
+            .add("",getNJSSBoolean())
             .add("nodejslibsource",getNJSSource())
             .add("dfsLog",getDFSLog())
             .add("node_pref",getNodePref())
@@ -3431,6 +3432,10 @@ public class CompilerOptions implements Serializable {
   private String DFSLog = null;
   public String getDFSLog() { return DFSLog; }
   public void setDFSLog(String path) { this.DFSLog = path; }
+
+  private boolean resolveNodeSourceCode = false;
+  public boolean getNJSSBoolean() { return resolveNodeSourceCode; }
+  public void setNJSSBoolean(String b) { if (b.equalsIgnoreCase("true")) { this.resolveNodeSourceCode = true; } }
 
   private String nodejs_source = null;
   public String getNJSSource() { return nodejs_source; }
