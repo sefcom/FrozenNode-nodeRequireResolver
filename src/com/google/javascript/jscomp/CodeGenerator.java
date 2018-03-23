@@ -2052,7 +2052,7 @@ public class CodeGenerator {
     if(extension.equalsIgnoreCase(".js")){
       wrapJavaScript(path,DFSVar);
     }else if(extension.equalsIgnoreCase(".json")){
-      wrapJSON(path);
+      wrapJSON(path,DFSVar);
     }else if (extension.equalsIgnoreCase(".node")){
       ReqResLog("[ Important ] .node is a valid file type, but I do not have a wrapper for it\n");
       currNode = null;
@@ -2089,17 +2089,30 @@ public class CodeGenerator {
     add(")");
     add(afterPaths);
   }
-  public void wrapJSON(String path){
+  public void wrapJSON(String path, String DFSVar){
     // This still seems wrong, so we will need to test it I think
     // IF we could use the below that would be great
     //Compiler.processJsonInputs(path);
+    //TODO convert this to JavaScript
     String code = readFile(path);
+    String aV = "function(){\n";
+    String globalVar = "\t"+DFSVar+" = { exports: {} };\n";
+    String JSON = "\t"+DFSVar+".exports = JSON.parse";
+    String codeToWrite = code.replace("\r\n","").replace("\n","");//.replace('"','\\\"').replace("'","\\\'");
+    codeToWrite = codeToWrite.replace("\\\\","/"); //TODO Test
+    codeToWrite = codeToWrite.replace("\'","\\'"); //TODO test
 
+    add(aV);
+    add(globalVar);
+    add(JSON);
     add("(");
     add("\n");
-    add(code); // Code to be wrapped...
+    add("'"+codeToWrite+"'"); // Code to be wrapped...
     add("\n");
-    add(")");
+    add("\t);");
+    add("\n");
+    add("\treturn "+DFSVar+".exports;");
+    add("}()");
   }
   // These are for finding the file that needs to be added
   public String getRequirePath(String m, Node n){// throws java.io.IOException{
