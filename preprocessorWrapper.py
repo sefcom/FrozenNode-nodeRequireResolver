@@ -139,7 +139,7 @@ def readFileAndCall(multifile,multidir,outdir):
 	  t = f.readline()
   f.close()
 
-# This keeps reads and keeps the command line arguments
+# This reads and keeps the command line arguments
 # clOpt are kept to only the below functions, so the code could be called from other python scripts.
 clOpt = {"mf":"","mod":"","file_name":"","od":"","nsr":node_source_resolve}
 clOptFound = 0
@@ -166,6 +166,16 @@ def checkArgs(a0,a1):
     if(a1 == ""): print("ERROR: No file was specified after the node source resolve option")
     clOpt["nsr"]=a1
     clOptFound = 1
+  elif(a0L == "--node_source_location" or a0L == "--node_source" or a0L == "-nsrc"):
+    global NSRC
+    if(a1 == ""): print("ERROR: No file was specified after the node source location option")
+    else:NSRC=a1
+    clOptFound = 1
+  elif(a0L == "--closure_compiler_jar" or a0L == "--require_resolver_jar" or a0L == "-ccjar" or a0L == "-rrjar"):
+    global CCJAR
+    if(a1 == ""): print("ERROR: No file was specified after the require resolver jar option")
+    else:CCJAR=a1
+    clOptFound = 1
   elif(a0L == "--help" or a0L=="-h"):
     print("  --multifile, -mf:\n\t This tells the program to read the file with the location specified.\n\t" +\
 	          " Each line in the file should be a file you want to run through the entire pre-process process.\n" +\
@@ -173,6 +183,11 @@ def checkArgs(a0,a1):
 	          " Each line in the file should correspond to a line in your multi-file.\n" +\
 		  "  --file, --js, -f:\n\t This tells the program that you want to pre-process the specified file.\n" +\
 		  "  --output_directory, --outdir, -od:\n\t This tells the program the output directory to put all files created by the preprocessor.\n" +\
+		  "  --node_source_resolve, -nsr:\n\t This tells the program to resolve internal modules [True or False] (modules compiled into Node.js)\n" +\
+		  "  --node_source_location, --node_source, -nsrc:\n\t This tells the program where to find the source code for internal modules (modules compiled into Node.js)\n\t" +\
+	          " I recommend changing the hardcoded default at the top of this file for this one.\n" +\
+		  "  --closure_compiler_jar, --require_resolver_jar, -ccjar, -rrjar:\n\t This tells the program where to find the Require Resolver JAR.\n\t" +\
+	          " I recommend changing the hardcoded default at the top of this file for this one.\n" +\
 		  "  --help, -h:\n\t This causes this message to print.\n")
     clOptFound = 1
 def readCLoptions():

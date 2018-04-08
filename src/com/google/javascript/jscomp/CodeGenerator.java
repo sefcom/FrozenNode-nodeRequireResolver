@@ -2098,7 +2098,7 @@ public class CodeGenerator {
     String aV = "function(){\n";
     String globalVar = "\t"+DFSVar+" = { exports: {} };\n";
     String JSON = "\t"+DFSVar+".exports = JSON.parse";
-    String codeToWrite = code.replace("\r\n","").replace("\n","");//.replace('"','\\\"').replace("'","\\\'");
+    String codeToWrite = code.replace("\r\n","").replace("\n","");//.replace("'","\\\'");
     codeToWrite = codeToWrite.replace("\\\\","/"); //TODO Test
     codeToWrite = codeToWrite.replace("\'","\\'"); //TODO test
 
@@ -2113,6 +2113,8 @@ public class CodeGenerator {
     add("\n");
     add("\treturn "+DFSVar+".exports;");
     add("}()");
+
+    storeCurrentDFSRequireResults(); // Store JSON variable (only needed if last variable)
   }
   // These are for finding the file that needs to be added
   public String getRequirePath(String m, Node n){// throws java.io.IOException{
@@ -2317,8 +2319,7 @@ public class CodeGenerator {
     // TODO add new options
     if(this.nodePref.equalsIgnoreCase("node")) {
       String[] command = {
-              "java", "-jar",
-              "D:\\Sefcom\\closure\\closure-compiler-myAttempt\\target\\closure-compiler-1.0-SNAPSHOT.jar",
+              "java", "-jar", this.jarLoc,
               "--module_resolution", "NODE", "--js", path,"--compilation_level",this.compLevel, "--formatting",
               "PRETTY_PRINT","--language_out",this.langOut,"--require_resolve_log_location", this.reqreslogloc,
               "--nodejs_source", this.sourceNodeCode, "--DFS_tracking_log_location", this.dfsResultFilename,
@@ -2327,8 +2328,7 @@ public class CodeGenerator {
       return command;
     }else {
       String[] command = {
-              "java", "-jar",
-              "D:\\Sefcom\\closure\\closure-compiler-myAttempt\\target\\closure-compiler-1.0-SNAPSHOT.jar",
+              "java", "-jar", this.jarLoc,
               "--module_resolution", "NODE", "--js", path,"--compilation_level",this.compLevel, "--formatting",
               "PRETTY_PRINT","--language_out",this.langOut,"--require_resolve_log_location", this.reqreslogloc,
               "--nodejs_source", this.sourceNodeCode, "--DFS_tracking_log_location", this.dfsResultFilename,
@@ -2526,9 +2526,29 @@ public class CodeGenerator {
       this.sourceNodeCode = "D:\\Sefcom\\NodeJS_code\\node-master";
     }
   }
+  public String getJarLoc(){
+    String temp = null;
+    try {
+      temp = CodeGenerator.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath();
+      if(System.getProperty("os.name").toLowerCase().contains("windows")){
+        // I only tested on a windows machine (I think it will work without removing the / on Linux)
+        //ReqResLog("This is a windows machine");
+        temp = temp.substring(1);
+      }
+      //ReqResLog("\nThe JAR is: ");
+      //ReqResLog(temp);
+      //ReqResLog("\n");
+    }catch (Exception e) {
+      String out = "An error occurred inside getJarLoc (CodeGenerator.java)\n";
+      ReqResLog(out);
+      ReqResLog(e.toString());
+    }
+    return temp;
+  }
   private String langOut = "ECMASCRIPT_2015";
   private String compLevel = "WHITESPACE_ONLY";//"SIMPLE";//"WHITESPACE_ONLY";
   private boolean resolveNJSSC = false;
+  private String jarLoc = null;
   public void initGlobals(CompilerOptions options){
     // Used for log location
     this.reqreslogloc = options.getReqResLog();
@@ -2536,6 +2556,7 @@ public class CodeGenerator {
     this.sourceNodeCode = options.getNJSSource();
     this.nodePref = options.getNodePref();
     this.resolveNJSSC = options.getNJSSBoolean();
+    this.jarLoc = getJarLoc();
     //this.langOut = options.getLanguageOut();
     //this.compLevel = options.getCompLevel(); // TODO complevel
     /* TODO

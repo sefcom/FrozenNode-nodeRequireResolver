@@ -10,3 +10,4 @@ target/
 .project
 /bin
 *.pyc
+test_FrozenNode/ppw/
