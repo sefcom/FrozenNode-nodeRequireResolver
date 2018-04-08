@@ -1,22 +1,19 @@
-You can read README_org.md to learn more about the closure compiler.
+You can read README_org.md to learn more about the Closure Compiler.
 
-This is a modified closure compiler, that takes in a NodeJS file and resolves all of the require statements.
-This is intended to be a preprocessor for static analysis. (I am using it for my thesis).
+This is a modified closure compiler, that takes in a Node.js file and resolves all of the require statements.
+This is intended to be a preprocessor for static analysis.
 This is probably not as efficient as it could be, but it works (not counting todos).
 This is made to work with the setting "--formatting PRETTY_PRINT".
 You should also use "--language_out ECMASCRIPT_2015" or up and "--compilation_level WHITESPACE_ONLY"
 
-I added a python script named "preprocessorWrapper.py". This was originally going to help with a resolving issue, but
-it did not work. However it does still work as a (mass) caller for the entire preprocessing process.
-There are two main types of calls. "Single File" and "MultiFiles". These are controlled by flags that can be set by
-the command line. Everything else should auto-populate correctly.
-You have to manually edit the global variables if you want to change:
-  java (JAVA), closure compiler jar (CCJAR), node source code location (NSRC), language out (lang_out)
-Most of the other settings for closure compiler have not been tested with my code, so they are statically set and I do
-not recommend changing.
+preprocessWrapper.py is the entry point for FrozenNode.
+You have to manually edit the following global variables if you want to change them:
+  java (JAVA), language out (lang_out)
+Most of the other settings are configurable or have not been tested with my code.
 
 Currently you may get "TypeError: Cannot read property 'exports' of undefined" for a global variable.
-This appears to happen when the require that was resolved is inside a function that was not called. You can just swap it with one the code+function wrapper it.
+This appears to happen when the require that was resolved is inside a function that was not called.
+You can just swap it with the code+function wrapper it is associated with.
 
 CompilerOptions have been added to help (They do not print properly, so I am putting them here. May not fix that)
   1.  --require_resolve_log_location
@@ -36,7 +33,6 @@ CompilerOptions have been added to help (They do not print properly, so I am put
        This is an unimplemented option to keep these options in a config folder to shorten the command line arguments.
   Planned Options (If you are using this version you need to change these manually in the code):
   1.  Use java variable
-  2.  Use jar location variable
 
 
 Known TODO:
@@ -44,8 +40,7 @@ Known TODO:
    It did not affect the files I am working with, so I probably will not fix these.
 Changes that would be nice:
 1. Allow settings to be set by a config file
-2. Make prepender apart of the process (made a python file)
-3. Little more dynamic
+2. Little more dynamic (java is the main thing now)
 
 
 Currently (FOR THESIS RUNNING PROCESS) probably will make bash script or something.
@@ -62,8 +57,6 @@ For each project's main node code
 Again there is still a lot that could be fixed.
   Currently should be able to run as long as
     Java environment variable (JAVA_HOME, I think) is set up correctly
-    The compiled jar is located at "D:\Sefcom\closure\closure-compiler-myAttempt\target\" with name "closure-compiler-1.0-SNAPSHOT.jar"
-    AND you are fine with a "working directory" of "D:\Sefcom\closure\closure-compiler-myAttempt\"
 
     I think every thing else can be configured now. I would like to let this be a config file, but it is not right now.
 
@@ -81,6 +74,8 @@ Because of the weird way I did this I think it will not be preserved correctly.
   1.   Compiler.java
   2.   CodePrinter.java
 
+I added a python script named "preprocessorWrapper.py". This was originally going to help with a resolving issue, but
+it did not work. However it does still work as a (mass) caller for the entire preprocessing process.
 
 Currently (FOR THESIS RUNNING PROCESS) probably will make bash script or something.
 For each project (run through bable)
