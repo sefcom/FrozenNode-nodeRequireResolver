@@ -23,7 +23,7 @@ script:
   #- mvn -pl com.google.javascript:closure-compiler javadoc:javadoc
   # Test FrozenNode
   - mvn clean
-  - mvn -DskipTests -pl externs/pom.xml,pom-main.xml,pom-main-shaded.xml -X
+  - mvn -DskipTests -pl externs/pom.xml,pom-main.xml,pom-main-shaded.xml
   - python ./test_FrozenNode/testScript.py
 
 # Causes the build to run on a VM instead of in a container, to avoid OOM errors.
