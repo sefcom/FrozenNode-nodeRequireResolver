@@ -86,6 +86,7 @@ def callSingleFile(filename,dn):
   ofn = names["of"]
   dir = names["out_dir"]
   wd = names["org_dir"]
+  print names
   
   # Call twice and get output
   command = ["node",fn]
@@ -105,6 +106,7 @@ def callSingleFileInPlace(filename,dn):
   bfn = getAbsFilename(filename.replace(".js",".bak.js"))
   shutil.copyfile(fn,bfn)
   wd = names["org_dir"]
+  print names
   
   # Call twice and get output
   command = ["node",fn]
