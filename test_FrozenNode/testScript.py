@@ -158,7 +158,7 @@ def rt(file,m,type):
       sys.exit(l)
 def printM(m):
   print callCommandWithShell(["ls"],getAbsFilename("./test_FrozenNode/ppw/"))
-  print callCommandWithShell(["cat","./testJS-out.compiled.js"],getAbsFilename("./test_FrozenNode/ppw/"))
+  #print callCommandWithShell(["cat","./testJS-out.compiled.js"],getAbsFilename("./test_FrozenNode/ppw/"))
   print "\n\n"
   for mes in m:
     print mes
