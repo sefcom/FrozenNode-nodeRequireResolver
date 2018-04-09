@@ -157,7 +157,7 @@ def rt(file,m,type):
       print "FAILED:\t\t",file,"test"
       sys.exit(l)
 def printM(m):
-  print callCommandWithShell(["ls","./test_FrozenNode/ppw/"],dirPW)
+  print callCommandWithShell(["ls"],getAbsFilename("./test_FrozenNode/ppw/"))
   print "\n\n"
   for mes in m:
     print mes
