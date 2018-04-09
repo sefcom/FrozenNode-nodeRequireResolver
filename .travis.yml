@@ -16,7 +16,7 @@ script:
   # Checks for JavaDoc errors
   #- mvn -pl com.google.javascript:closure-compiler javadoc:javadoc
   # Test FrozenNode
-  #- mvn clean install
+  - mvn clean
   - mvn -DskipTests -pl externs/pom.xml,pom-main.xml,pom-main-shaded.xml -X
   - python ./test_FrozenNode/testScript.py
 
