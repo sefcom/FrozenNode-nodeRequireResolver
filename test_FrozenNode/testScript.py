@@ -217,7 +217,7 @@ def specialTests():
 
 if __name__ == "__main__":
   # Compile Require Resolver Jar
-  compileJARWrapper()
+  #compileJARWrapper()
   
   # Set up globals
   ccjar="";nsrc="";nsr="";java="";lang=""
