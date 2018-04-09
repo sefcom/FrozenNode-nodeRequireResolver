@@ -6,7 +6,6 @@ python:
   - "2.7"
 language: node_js
 node_js:
-  - "node"
   - "6"
 cache:
   directories:

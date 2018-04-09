@@ -117,6 +117,8 @@ def callSingleFileInPlace(filename,dn):
 
 # Test tool to make sure it works
 def compare(o,n,file):
+  print "\n\n\n",o
+  print "\n\n\n",n
   oLineSep = o.split("\n")
   nLineSep = n.split("\n")
   exit = 0
