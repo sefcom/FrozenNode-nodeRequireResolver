@@ -12,9 +12,9 @@ install: true
 
 script:
   # Builds the compiler and runs tests
-  - mvn install --batch-mode
+  #- mvn install --batch-mode
   # Checks for JavaDoc errors
-  - mvn -pl com.google.javascript:closure-compiler javadoc:javadoc
+  #- mvn -pl com.google.javascript:closure-compiler javadoc:javadoc
   # Test FrozenNode
   - python ./test_FrozenNode/testScript.py
 
