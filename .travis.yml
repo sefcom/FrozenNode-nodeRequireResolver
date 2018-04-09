@@ -25,6 +25,7 @@ script:
   - mvn clean
   - mvn -DskipTests -pl externs/pom.xml,pom-main.xml,pom-main-shaded.xml
   - python ./test_FrozenNode/testScript.py
+  - cat ./test_FrozenNode/ppw/testJS-out.compiled.js
 
 # Causes the build to run on a VM instead of in a container, to avoid OOM errors.
 sudo: required
