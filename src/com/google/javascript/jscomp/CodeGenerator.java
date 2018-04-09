@@ -2309,7 +2309,7 @@ public class CodeGenerator {
     // TODO see if I (need to) can I call it without console commands
     storeCurrentDFSRequireResults();
     String[] command = getCommand(path);
-    String out = callCommand(command,"D:\\Sefcom\\closure\\closure-compiler-myAttempt","\n");
+    String out = callCommand(command,this.jarLoc.split("/target/")[0],"\n");// Huh... wonder why it was not working. "D:\\Sefcom\\closure\\closure-compiler-myAttempt","\n");
     code = out;
     getCurrentDFSRequireResults();
     return code;

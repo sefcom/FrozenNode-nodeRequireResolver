@@ -86,7 +86,6 @@ def callSingleFile(filename,dn):
   ofn = names["of"]
   dir = names["out_dir"]
   wd = names["org_dir"]
-  print names
   
   # Call twice and get output
   command = ["node",fn]
@@ -106,7 +105,6 @@ def callSingleFileInPlace(filename,dn):
   bfn = getAbsFilename(filename.replace(".js",".bak.js"))
   shutil.copyfile(fn,bfn)
   wd = names["org_dir"]
-  print names
   
   # Call twice and get output
   command = ["node",fn]
@@ -119,8 +117,6 @@ def callSingleFileInPlace(filename,dn):
 
 # Test tool to make sure it works
 def compare(o,n,file):
-  print "\n\n\n",o
-  print "\n\n\n",n
   oLineSep = o.split("\n")
   nLineSep = n.split("\n")
   exit = 0
@@ -157,8 +153,6 @@ def rt(file,m,type):
       print "FAILED:\t\t",file,"test"
       sys.exit(l)
 def printM(m):
-  print callCommandWithShell(["ls"],getAbsFilename("./test_FrozenNode/ppw/"))
-  #print callCommandWithShell(["cat","./testJS-out.compiled.js"],getAbsFilename("./test_FrozenNode/ppw/"))
   print "\n\n"
   for mes in m:
     print mes
