@@ -3,8 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="9ba8c76d-324d-4e6c-8169-b92a136a08b6" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.travis.yml" afterPath="$PROJECT_DIR$/.travis.yml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test_FrozenNode/testScript.py" afterPath="$PROJECT_DIR$/test_FrozenNode/testScript.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -31,8 +29,8 @@
       <file leaf-file-name="README_org.md" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/README_org.md">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="278">
-              <caret line="51" column="30" lean-forward="false" selection-start-line="51" selection-start-column="27" selection-end-line="51" selection-end-column="30" />
+            <state relative-caret-position="312">
+              <caret line="53" column="45" lean-forward="false" selection-start-line="53" selection-start-column="45" selection-end-line="53" selection-end-column="45" />
               <folding />
             </state>
           </provider>
@@ -985,8 +983,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/README_org.md">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="278">
-          <caret line="51" column="30" lean-forward="false" selection-start-line="51" selection-start-column="27" selection-end-line="51" selection-end-column="30" />
+        <state relative-caret-position="312">
+          <caret line="53" column="45" lean-forward="false" selection-start-line="53" selection-start-column="45" selection-end-line="53" selection-end-column="45" />
           <folding />
         </state>
       </provider>

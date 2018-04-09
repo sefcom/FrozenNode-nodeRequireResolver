@@ -35,6 +35,7 @@ def fileNameAssigner(fn,dn):
   # Get Current Dir
   parts = cleanedfn.split("/")
   d2 = ""
+  if os.name == "posix": d2 ="/"
   for i in range(len(parts)-1):
     if(parts[i]!=""):
       if(i==0): d2=parts[i]+"/"
