@@ -1,49 +1,82 @@
 You can read README_org.md to learn more about the Closure Compiler.
-### FrozenNode Travis Results
+# FrozenNode Travis Results
 [![Build Status](https://travis-ci.org/sefcom/FrozenNode-nodeRequireResolver.svg?branch=master)](https://travis-ci.org/sefcom/FrozenNode-nodeRequireResolver)
 
-### Compile ###
+# Compile
+
 You need maven (mvn) and Java 8+
+
   Tested with
+
     Windows:
+	  
 	  ```Java Version 8 Update 51
+	  
 	  Apache Maven 3.5.0```
+	
 	Linux:
+	  
 	  ```Oracle's Java 8 (Java build 1.8.0_161-b12)
+	  
 	  Apache Maven 3.3.9```
 Compile using 
-    `mvn -DskipTests -pl externs/pom.xml,pom-main.xml,pom-main-shaded.xml`
+    
+	`mvn -DskipTests -pl externs/pom.xml,pom-main.xml,pom-main-shaded.xml`
+  
   This skips the Google Web Tool (GWT) version of the compiler, which does not support some of the features of Java I used.
+  
   It also is much faster to compile this way.
 
-### Running ###
+# Running
+
 ## Prereqs
+
 Compiled
+
 Python version 2 (2.7)
 
+
 ## From the base directory of the project:
-# Run Tool
+
+### Run Tool
+  
   `python preprocessorWrapper.py -h`
+  
       This prints all of the options avaliable to the preprocess wrapper.
-	  -f is the most important as it specifies the file to process.
-  `java -jar ./target/closure-compiler-1.0-SNAPSHOT.jar <option>`
-  `python varPrepender.py <JSoutputFromJAR> <DFSoutputFromJAR>`
-      This is not the recommend to run the program.
-	  If you choose to do it this way you need to set several flags for the java application.
-	  These flags include:
-	    `--compilation_level WHITESPACE_ONLY` This allows the current version of Closure Compiler to process ES6/ECMASCRIPT_2015 without issue
-		`--formatting PRETTY_PRINT` This is the version the wrappers were designed for
-		`--language_out ECMASCRIPT_2015` This allows the current version of Closure Compiler to write the output from ES6/ECMASCRIPT_2015
-		`--js <js to process>` This specifies the file to process
-		`--reset_rrl true` This resets the logs kept by FrozenNode.
-		`--nodejs_source <path to Node.js Source Code on disk>` This allows Node.js internal libraries to be processed.
-	  Depending on your setup or desired output other flags may need to be specified
-	    For example `--DFS_tracking_log_location <path and name of DFSlog>` has a default value, but you can specify it so there are no overlap of logs.
 	  
-# Run tests
+	  -f is the most important as it specifies the file to process.
+  
+  `java -jar ./target/closure-compiler-1.0-SNAPSHOT.jar <option>`
+  
+  `python varPrepender.py <JSoutputFromJAR> <DFSoutputFromJAR>`
+      
+	  This is not the recommend to run the program.
+	  
+	  If you choose to do it this way you need to set several flags for the java application.
+	  
+	  These flags include:
+	    
+		`--compilation_level WHITESPACE_ONLY` This allows the current version of Closure Compiler to process ES6/ECMASCRIPT_2015 without issue
+		
+		`--formatting PRETTY_PRINT` This is the version the wrappers were designed for
+		
+		`--language_out ECMASCRIPT_2015` This allows the current version of Closure Compiler to write the output from ES6/ECMASCRIPT_2015
+		
+		`--js <js to process>` This specifies the file to process
+		
+		`--reset_rrl true` This resets the logs kept by FrozenNode.
+		
+		`--nodejs_source <path to Node.js Source Code on disk>` This allows Node.js internal libraries to be processed.
+	  
+	  Depending on your setup or desired output other flags may need to be specified
+	    
+		For example `--DFS_tracking_log_location <path and name of DFSlog>` has a default value, but you can specify it so there are no overlap of logs.
+	  
+### Run tests
+  
   `python ./test_FrozenNode/testScript.py`
 
-### INFO ###
+# INFO
 
 This is a modified closure compiler, that takes in a Node.js file and resolves all of the require statements.
 This is intended to be a preprocessor for static analysis.
